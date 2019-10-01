@@ -27,43 +27,21 @@
 //    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 //    SUCH DAMAGE.
 
-import Foundation
+attribute vec4 position;
+attribute vec2 texCoord;
 
-/// An object that uniquely identifies a device firmware.
-@objcMembers
-@objc(GSFirmwareIdentifier)
-public class FirmwareIdentifier: NSObject {
+varying vec2 texCoordVarying;
 
-    /// Device model on which the firmware can be applied.
-    public let deviceModel: DeviceModel
+uniform vec2 uResolution;
 
-    /// Version of the firmware.
-    public let version: FirmwareVersion
+uniform mat4 uPosition;
+uniform float uScale;
+uniform float uRatio;
 
-    /// Debug description.
-    override public var description: String {
-        return "\(deviceModel): \(version)"
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameters:
-    ///   - deviceModel: device model onto which this firmware applies
-    ///   - version: firmware version
-    public init(deviceModel: DeviceModel, version: FirmwareVersion) {
-        self.deviceModel = deviceModel
-        self.version = version
-    }
-
-    override public var hash: Int {
-         return version.hashValue &* 31 &+ deviceModel.hashValue
-    }
-
-    public override func isEqual(_ object: Any?) -> Bool {
-        if let identifier = object as? FirmwareIdentifier {
-            return deviceModel == identifier.deviceModel && version == identifier.version
-        } else {
-            return false
-        }
-    }
+void main()
+{
+    gl_Position = position;
+    gl_Position.xy *= uScale;
+    gl_Position.x /= uRatio;
+    texCoordVarying = texCoord;
 }

@@ -27,43 +27,13 @@
 //    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 //    SUCH DAMAGE.
 
-import Foundation
+precision mediump float;
 
-/// An object that uniquely identifies a device firmware.
-@objcMembers
-@objc(GSFirmwareIdentifier)
-public class FirmwareIdentifier: NSObject {
+uniform sampler2D SamplerRGB;
+varying highp vec2 texCoordVarying;
 
-    /// Device model on which the firmware can be applied.
-    public let deviceModel: DeviceModel
-
-    /// Version of the firmware.
-    public let version: FirmwareVersion
-
-    /// Debug description.
-    override public var description: String {
-        return "\(deviceModel): \(version)"
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameters:
-    ///   - deviceModel: device model onto which this firmware applies
-    ///   - version: firmware version
-    public init(deviceModel: DeviceModel, version: FirmwareVersion) {
-        self.deviceModel = deviceModel
-        self.version = version
-    }
-
-    override public var hash: Int {
-         return version.hashValue &* 31 &+ deviceModel.hashValue
-    }
-
-    public override func isEqual(_ object: Any?) -> Bool {
-        if let identifier = object as? FirmwareIdentifier {
-            return deviceModel == identifier.deviceModel && version == identifier.version
-        } else {
-            return false
-        }
-    }
+void main()
+{
+    gl_FragColor = texture2D(SamplerRGB, texCoordVarying);
 }
+

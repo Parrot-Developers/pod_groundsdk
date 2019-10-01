@@ -29,79 +29,84 @@
 
 import Foundation
 
-/// Copilot source description.
-@objc(GSCopilotSource)
-public enum CopilotSource: Int {
+/// Piloting Behaviour.
+@objc(GSPilotingControlBehaviour)
+public enum PilotingBehaviour: Int, CustomStringConvertible {
 
-    /// Use the SkyController joysticks.
-    case remoteControl
+    /// Standard piloting mode.
+    case standard
 
-    /// Use the application controls
-    /// Disables the SkyController joysticks
-    case application
+    /// Piloting style is camera operated, commands are relative to camera pitch.
+    case cameraOperated
 
     /// Debug description.
     public var description: String {
         switch self {
-        case .remoteControl:
-            return "remoteControl"
-        case .application:
-            return "application"
+        case .standard:
+            return "standard"
+        case .cameraOperated:
+            return "cameraOperated"
         }
     }
 
     /// Set containing all possible sources.
-    public static let allCases: Set<CopilotSource> = [.remoteControl, .application]
+    public static let allCases: Set<PilotingBehaviour> = [.standard, .cameraOperated]
 }
 
-/// Peripheral managing copilot
-///
-/// Copilot allows to select the source of piloting commands, either the remote control (default) or the application.
-/// Selecting a source prevents the other one from sending any piloting command.
-/// The piloting source is automatically reset to {@link Source#REMOTE_CONTROL remote control} when this one is
-/// disconnected from the phone.
+/// Peripheral managing the piloting general controls.
 ///
 /// This peripheral can be retrieved by:
 /// ```
-/// device.getPeripheral(Peripherals.coPilot)
+/// device.getPeripheral(Peripherals.pilotingControl)
 /// ```
-public protocol Copilot: Peripheral {
-    /// Copilot setting
-    var setting: CopilotSetting { get }
+public protocol PilotingControl: Peripheral {
+    /// Behaviour setting.
+    var behaviourSetting: PilotingBehaviourSetting { get }
 }
 
-/// Setting to change the piloting source
-public protocol CopilotSetting: class {
+/// Peripheral managing the piloting general controls.
+///
+/// - Note: this protocol is for Objective-C compatibility only.
+@objc public protocol GSPilotingControl: Peripheral {
+    /// Behaviour setting.
+    @objc(behaviourSetting)
+    var gsBehaviourSetting: GSPilotingBehaviourSetting { get }
+}
+
+/// Setting to change the piloting behaviour.
+public protocol PilotingBehaviourSetting: class {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
-    /// Current source setting.
-    var source: CopilotSource { get set }
+    /// Current behaviour setting.
+    var value: PilotingBehaviour { get set }
+
+    /// Supported behaviours.
+    var supportedBehaviours: Set<PilotingBehaviour> { get }
 }
 
-/// Peripheral managing copilot
+/// Setting to change the piloting behaviour.
+///
 /// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSCopilot {
-    /// Copilot setting
-    @objc(setting)
-    var gsSetting: GSCopilotSetting { get }
-}
-
-/// Setting to change the piloting source
-/// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSCopilotSetting {
-    /// Tells if a setting value has been changed and is waiting for change confirmation.
+@objc public protocol GSPilotingBehaviourSetting {
+    /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
-    /// Current source setting.
-    var source: CopilotSource { get set }
+    /// Current behaviour setting.
+    var value: PilotingBehaviour { get set }
+
+    /// Tells whether a given behaviour is supported.
+    ///
+    /// - Parameter behaviour: the behaviour to query
+    /// - Returns: `true` if the behaviour is supported, `false` otherwise
+    func isSupportedBehaviour(_ behaviour: PilotingBehaviour) -> Bool
 }
 
 /// :nodoc:
-/// CoPilot description
-@objc(GSCoPilotDesc)
-public class CopilotDesc: NSObject, PeripheralClassDesc {
-    public typealias ApiProtocol = Copilot
-    public let uid = PeripheralUid.copilot.rawValue
+/// PilotingControl description.
+@objc(GSPilotingControlDesc)
+public class PilotingControlDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = PilotingControl
+    public let uid = PeripheralUid.pilotingControl.rawValue
     public let parent: ComponentDescriptor? = nil
 }

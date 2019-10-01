@@ -29,41 +29,47 @@
 
 import Foundation
 
-/// An object that uniquely identifies a device firmware.
-@objcMembers
-@objc(GSFirmwareIdentifier)
-public class FirmwareIdentifier: NSObject {
+/// Parameters used according to the model of CockpitGlasses used
+enum Cockpit {
+    /// Parrot CockpitGlasses1 (Bebop, Disco)
+    case glasses1
+    /// Parrot CockpitGlasses2 (Bebop Power, Anafi)
+    case glasses2
 
-    /// Device model on which the firmware can be applied.
-    public let deviceModel: DeviceModel
-
-    /// Version of the firmware.
-    public let version: FirmwareVersion
-
-    /// Debug description.
-    override public var description: String {
-        return "\(deviceModel): \(version)"
+    /// Prefix uses for ressources in th Bundle
+    func filePrefix () -> String {
+        switch self {
+        case .glasses1:
+            return "cockpitg1_"
+        case .glasses2:
+            return "cockpitg2_"
+        }
     }
-
-    /// Constructor.
-    ///
-    /// - Parameters:
-    ///   - deviceModel: device model onto which this firmware applies
-    ///   - version: firmware version
-    public init(deviceModel: DeviceModel, version: FirmwareVersion) {
-        self.deviceModel = deviceModel
-        self.version = version
+    /// Interval allowed for interpupillary distance
+    var minMaxInterpupillaryDistanceMM: ClosedRange<CGFloat> {
+        switch self {
+        case .glasses1:
+            return (63 ... 63)
+        case .glasses2:
+            return (62 ... 67)
+        }
     }
-
-    override public var hash: Int {
-         return version.hashValue &* 31 &+ deviceModel.hashValue
+    /// Default interpupillary distance
+    var defaultInterpupillaryDistanceMM: CGFloat {
+        switch self {
+        case .glasses1:
+            return 63
+        case .glasses2:
+            return 62
+        }
     }
-
-    public override func isEqual(_ object: Any?) -> Bool {
-        if let identifier = object as? FirmwareIdentifier {
-            return deviceModel == identifier.deviceModel && version == identifier.version
-        } else {
-            return false
+    /// Correction of chromatic aberration (applied at the shader level)
+    var calculatedDistScaleFactor: (red: Float, green: Float, blue: Float) {
+        switch self {
+        case .glasses1:
+            return (1, 1, 1)
+        case .glasses2:
+            return (0.995, 1, 1.009)
         }
     }
 }

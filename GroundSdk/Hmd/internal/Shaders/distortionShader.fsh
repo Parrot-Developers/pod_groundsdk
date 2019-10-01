@@ -27,43 +27,51 @@
 //    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 //    SUCH DAMAGE.
 
-import Foundation
+uniform sampler2D uTexture0;
+varying highp vec2 vTexCoord0;
+varying highp vec2 vTexCoord1;
+varying highp vec2 vTexCoord2;
+varying highp vec4 vColor;
+uniform int uLensLimits;
 
-/// An object that uniquely identifies a device firmware.
-@objcMembers
-@objc(GSFirmwareIdentifier)
-public class FirmwareIdentifier: NSObject {
+void main()
+{
+    highp float ResultA = 1.0;
 
-    /// Device model on which the firmware can be applied.
-    public let deviceModel: DeviceModel
+    highp float ResultR;
 
-    /// Version of the firmware.
-    public let version: FirmwareVersion
+    if (vTexCoord0.x > 1.0 || vTexCoord0.y > 1.0 || vTexCoord0.x < 0.0 || vTexCoord0.y < 0.0)
+    {
 
-    /// Debug description.
-    override public var description: String {
-        return "\(deviceModel): \(version)"
+        ResultR = (uLensLimits == 1 ? 0.1 : 0.0);
+    }
+    else
+    {
+        ResultR = texture2D(uTexture0, vTexCoord0).r;
+        ResultA = texture2D(uTexture0, vTexCoord1).a;
     }
 
-    /// Constructor.
-    ///
-    /// - Parameters:
-    ///   - deviceModel: device model onto which this firmware applies
-    ///   - version: firmware version
-    public init(deviceModel: DeviceModel, version: FirmwareVersion) {
-        self.deviceModel = deviceModel
-        self.version = version
+    highp float ResultG;
+    if (vTexCoord1.x > 1.0 || vTexCoord1.y > 1.0 || vTexCoord1.x < 0.0 || vTexCoord1.y < 0.0)
+    {
+        ResultG = (uLensLimits == 1 ? 0.2 : 0.0);
+    }
+    else
+    {
+        ResultG = texture2D(uTexture0, vTexCoord1).g;
     }
 
-    override public var hash: Int {
-         return version.hashValue &* 31 &+ deviceModel.hashValue
+    highp float ResultB;
+    if (vTexCoord2.x > 1.0 || vTexCoord2.y > 1.0 || vTexCoord2.x < 0.0 || vTexCoord2.y < 0.0)
+    {
+        ResultB = (uLensLimits == 1 ? 0.3 : 0.0);
+    }
+    else
+    {
+        ResultB = texture2D(uTexture0, vTexCoord2).b;
     }
 
-    public override func isEqual(_ object: Any?) -> Bool {
-        if let identifier = object as? FirmwareIdentifier {
-            return deviceModel == identifier.deviceModel && version == identifier.version
-        } else {
-            return false
-        }
-    }
+    gl_FragColor = vec4(ResultR * vColor.r, ResultG * vColor.g , ResultB * vColor.b, ResultA);
+
 }
+

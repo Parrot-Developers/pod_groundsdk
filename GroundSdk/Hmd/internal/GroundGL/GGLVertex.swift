@@ -27,43 +27,21 @@
 //    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 //    SUCH DAMAGE.
 
-import Foundation
+import GLKit
 
-/// An object that uniquely identifies a device firmware.
-@objcMembers
-@objc(GSFirmwareIdentifier)
-public class FirmwareIdentifier: NSObject {
-
-    /// Device model on which the firmware can be applied.
-    public let deviceModel: DeviceModel
-
-    /// Version of the firmware.
-    public let version: FirmwareVersion
-
-    /// Debug description.
-    override public var description: String {
-        return "\(deviceModel): \(version)"
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameters:
-    ///   - deviceModel: device model onto which this firmware applies
-    ///   - version: firmware version
-    public init(deviceModel: DeviceModel, version: FirmwareVersion) {
-        self.deviceModel = deviceModel
-        self.version = version
-    }
-
-    override public var hash: Int {
-         return version.hashValue &* 31 &+ deviceModel.hashValue
-    }
-
-    public override func isEqual(_ object: Any?) -> Bool {
-        if let identifier = object as? FirmwareIdentifier {
-            return deviceModel == identifier.deviceModel && version == identifier.version
-        } else {
-            return false
-        }
-    }
+/// Defining a vertex as used in GGLDrawable protocol-compliant objects
+struct GGLVertex {
+    var x: GLfloat
+    var y: GLfloat
+    var z: GLfloat
+    var u: GLfloat
+    var v: GLfloat
 }
+
+let GGLVertexNumberOfCoordinates = 3
+let GGLVertexAttribPosition = GLuint(GLKVertexAttrib.position.rawValue)
+let GGLVertexAttribTexCoord0 = GLuint(GLKVertexAttrib.texCoord0.rawValue)
+let GGLVertexAttribTexCoord1 = GLuint(GLKVertexAttrib.texCoord1.rawValue)
+let GGLVertexSize = MemoryLayout<GGLVertex>.stride
+let GGLVertexuvOffset = MemoryLayout<GLfloat>.stride * GGLVertexNumberOfCoordinates
+let GGLVertexuvOffsetPointer = UnsafeRawPointer(bitPattern: GGLVertexuvOffset)

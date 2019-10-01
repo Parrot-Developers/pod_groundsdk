@@ -27,43 +27,36 @@
 //    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 //    SUCH DAMAGE.
 
-import Foundation
+attribute highp vec2 aPosition;
+attribute highp vec2 aTexCoord0;
+attribute highp vec2 aTexCoord1;
+attribute highp vec2 aTexCoord2;
+attribute highp vec4 aColor;
 
-/// An object that uniquely identifies a device firmware.
-@objcMembers
-@objc(GSFirmwareIdentifier)
-public class FirmwareIdentifier: NSObject {
+uniform highp vec2 uEyeToSourceOffset;
+uniform highp vec2 uEyeToSourceScale;
+uniform highp vec2 uTextureCoordOffset;
+uniform highp vec2 uTextureCoordScale;
+uniform highp vec3 uTextureCoordScaleDistFactor;
 
-    /// Device model on which the firmware can be applied.
-    public let deviceModel: DeviceModel
+varying highp vec2 vTexCoord0;
+varying highp vec2 vTexCoord1;
+varying highp vec2 vTexCoord2;
+varying highp vec4 vColor;
 
-    /// Version of the firmware.
-    public let version: FirmwareVersion
+void main()
+{
+    gl_Position.x = aPosition.x * uEyeToSourceScale.x + uEyeToSourceOffset.x;
+    gl_Position.y = aPosition.y * uEyeToSourceScale.y + uEyeToSourceOffset.y;
+    gl_Position.z = 0.5;
+    gl_Position.w = 1.0;
 
-    /// Debug description.
-    override public var description: String {
-        return "\(deviceModel): \(version)"
-    }
+    float var = 0.5;
+    vec2 center = vec2(0.5,0.5);
 
-    /// Constructor.
-    ///
-    /// - Parameters:
-    ///   - deviceModel: device model onto which this firmware applies
-    ///   - version: firmware version
-    public init(deviceModel: DeviceModel, version: FirmwareVersion) {
-        self.deviceModel = deviceModel
-        self.version = version
-    }
+    vTexCoord0 = ((aTexCoord0 - center) * (uTextureCoordScale * uTextureCoordScaleDistFactor.x) ) + center + uTextureCoordOffset;
+    vTexCoord1 = ((aTexCoord1 - center) * (uTextureCoordScale * uTextureCoordScaleDistFactor.y) ) + center + uTextureCoordOffset;
+    vTexCoord2 = ((aTexCoord2 - center) * (uTextureCoordScale * uTextureCoordScaleDistFactor.z) ) + center + uTextureCoordOffset;
 
-    override public var hash: Int {
-         return version.hashValue &* 31 &+ deviceModel.hashValue
-    }
-
-    public override func isEqual(_ object: Any?) -> Bool {
-        if let identifier = object as? FirmwareIdentifier {
-            return deviceModel == identifier.deviceModel && version == identifier.version
-        } else {
-            return false
-        }
-    }
+    vColor = aColor;
 }
