@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2020 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,60 +29,35 @@
 
 import Foundation
 
-/// Magnetometer calibration state
-@objc(GSMagnetometerCalibrationState)
-public enum MagnetometerCalibrationState: Int {
-    /// Magnetometer is calibrated.
-    case calibrated
-
-    /// Magnetometer calibration is required.
-    case required
-
-    /// Magnetometer calibration is recommanded.
-    case recommended
-
-    /// Debug description.
-    public var description: String {
-        switch self {
-        case .calibrated:
-            return "calibrated"
-        case .required:
-            return "required"
-        case .recommended:
-            return "recommended"
-        }
-    }
-
-    /// Set containing all possible cases.
-    public static let allCases: Set<MagnetometerCalibrationState> = [.calibrated,
-        .required, .recommended]
-}
-
-/// Magnetometer peripheral.
+/// Log Control peripheral interface.
 ///
-/// Base class telling whether the magnetometer is calibrated or not.
-/// A subclass shall be used to control the calibration process, depending on the device, for instance
-/// `MagnetometerWith1StepCalibration` or `MagnetometerWith3StepCalibration`.
+/// This peripheral allows to deactivate logs on the drone.
 ///
 /// This peripheral can be retrieved by:
 /// ```
-/// device.getPeripheral(Peripherals.magnetometer)
+/// device.getPeripheral(Peripherals.logControl)
 /// ```
-@objc(GSMagnetometer)
-public protocol Magnetometer: Peripheral {
+public protocol LogControl: Peripheral {
+    /// Indicates if the logs are enabled on the drone.
+    var areLogsEnabled: Bool { get }
 
-    /// Indicates the magnetometer calibration state.
+    /// Indicates if the deactivate command is supported.
+    var canDeactivateLogs: Bool { get }
+
+    /// Requests the deactivation of logs.
     ///
-    /// - Note: The magnetometer should be calibrated to make positioning related actions,
-    /// such as ReturnToHome, FlightPlan...
-    var calibrationState: MagnetometerCalibrationState { get }
+    /// - Note: The logs stay disabled for the session, and will be
+    ///     enabled again at the next restart. This method has no action if
+    ///     canDeactivateLogs is `false`
+    ///
+    /// - Returns: `true` if the deactivation has been asked, `false` otherwise
+    func deactivateLogs() -> Bool
 }
 
 /// :nodoc:
-/// Magnetometer description
-@objc(GSMagnetometerDesc)
-public class MagnetometerDesc: NSObject, PeripheralClassDesc {
-    public typealias ApiProtocol = Magnetometer
-    public let uid = PeripheralUid.magnetometer.rawValue
+/// LogControl description
+public class LogControlDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = LogControl
+    public let uid = PeripheralUid.logControl.rawValue
     public let parent: ComponentDescriptor? = nil
 }

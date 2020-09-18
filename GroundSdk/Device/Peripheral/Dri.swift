@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2020 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,60 +29,42 @@
 
 import Foundation
 
-/// Magnetometer calibration state
-@objc(GSMagnetometerCalibrationState)
-public enum MagnetometerCalibrationState: Int {
-    /// Magnetometer is calibrated.
-    case calibrated
-
-    /// Magnetometer calibration is required.
-    case required
-
-    /// Magnetometer calibration is recommanded.
-    case recommended
+/// Identifier type.
+public enum DriIdType: Int, CustomStringConvertible {
+    /// French 30 bytes format.
+    case FR_30_Octets
+    /// ANSI CTA 2063 format on 40 bytes.
+    case ANSI_CTA_2063
 
     /// Debug description.
     public var description: String {
         switch self {
-        case .calibrated:
-            return "calibrated"
-        case .required:
-            return "required"
-        case .recommended:
-            return "recommended"
+        case .FR_30_Octets: return "FR_30_Octets"
+        case .ANSI_CTA_2063: return "ANSI_CTA_2063"
         }
     }
-
-    /// Set containing all possible cases.
-    public static let allCases: Set<MagnetometerCalibrationState> = [.calibrated,
-        .required, .recommended]
 }
 
-/// Magnetometer peripheral.
+/// Dri peripheral interface.
 ///
-/// Base class telling whether the magnetometer is calibrated or not.
-/// A subclass shall be used to control the calibration process, depending on the device, for instance
-/// `MagnetometerWith1StepCalibration` or `MagnetometerWith3StepCalibration`.
+/// This peripheral allows changing dri state.
 ///
 /// This peripheral can be retrieved by:
 /// ```
-/// device.getPeripheral(Peripherals.magnetometer)
+/// device.getPeripheral(Peripherals.dri)
 /// ```
-@objc(GSMagnetometer)
-public protocol Magnetometer: Peripheral {
+public protocol Dri: Peripheral {
+    /// Dri setting.
+    var mode: BoolSetting? { get }
 
-    /// Indicates the magnetometer calibration state.
-    ///
-    /// - Note: The magnetometer should be calibrated to make positioning related actions,
-    /// such as ReturnToHome, FlightPlan...
-    var calibrationState: MagnetometerCalibrationState { get }
+    /// Dri drone ID.
+    var droneId: (type: DriIdType, id: String)? { get }
 }
 
 /// :nodoc:
-/// Magnetometer description
-@objc(GSMagnetometerDesc)
-public class MagnetometerDesc: NSObject, PeripheralClassDesc {
-    public typealias ApiProtocol = Magnetometer
-    public let uid = PeripheralUid.magnetometer.rawValue
+/// Dri description
+public class DriDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = Dri
+    public let uid = PeripheralUid.dri.rawValue
     public let parent: ComponentDescriptor? = nil
 }

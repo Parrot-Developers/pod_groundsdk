@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2020 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,60 +29,28 @@
 
 import Foundation
 
-/// Magnetometer calibration state
-@objc(GSMagnetometerCalibrationState)
-public enum MagnetometerCalibrationState: Int {
-    /// Magnetometer is calibrated.
-    case calibrated
-
-    /// Magnetometer calibration is required.
-    case required
-
-    /// Magnetometer calibration is recommanded.
-    case recommended
-
-    /// Debug description.
-    public var description: String {
-        switch self {
-        case .calibrated:
-            return "calibrated"
-        case .required:
-            return "required"
-        case .recommended:
-            return "recommended"
-        }
-    }
-
-    /// Set containing all possible cases.
-    public static let allCases: Set<MagnetometerCalibrationState> = [.calibrated,
-        .required, .recommended]
-}
-
-/// Magnetometer peripheral.
+/// Certificate Uploader peripheral interface.
 ///
-/// Base class telling whether the magnetometer is calibrated or not.
-/// A subclass shall be used to control the calibration process, depending on the device, for instance
-/// `MagnetometerWith1StepCalibration` or `MagnetometerWith3StepCalibration`.
+/// This peripheral allows to upload certificates to connected devices, in order to unlock new features on the drone.
 ///
 /// This peripheral can be retrieved by:
 /// ```
-/// device.getPeripheral(Peripherals.magnetometer)
+/// device.getPeripheral(Peripherals.certificateUploader)
 /// ```
-@objc(GSMagnetometer)
-public protocol Magnetometer: Peripheral {
+public protocol CertificateUploader: Peripheral {
 
-    /// Indicates the magnetometer calibration state.
+    /// Uploads a certificate file to the drone.
     ///
-    /// - Note: The magnetometer should be calibrated to make positioning related actions,
-    /// such as ReturnToHome, FlightPlan...
-    var calibrationState: MagnetometerCalibrationState { get }
+    /// When the upload ends, the drone will restart
+    ///
+    /// - Parameter filepath: local path of the file to upload
+    func upload(certificate filepath: String)
 }
 
 /// :nodoc:
-/// Magnetometer description
-@objc(GSMagnetometerDesc)
-public class MagnetometerDesc: NSObject, PeripheralClassDesc {
-    public typealias ApiProtocol = Magnetometer
-    public let uid = PeripheralUid.magnetometer.rawValue
+/// Certificate Uploader description
+public class CertificateUploaderDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = CertificateUploader
+    public let uid = PeripheralUid.certificateUploader.rawValue
     public let parent: ComponentDescriptor? = nil
 }

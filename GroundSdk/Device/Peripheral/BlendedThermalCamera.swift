@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2020 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,60 +29,35 @@
 
 import Foundation
 
-/// Magnetometer calibration state
-@objc(GSMagnetometerCalibrationState)
-public enum MagnetometerCalibrationState: Int {
-    /// Magnetometer is calibrated.
-    case calibrated
-
-    /// Magnetometer calibration is required.
-    case required
-
-    /// Magnetometer calibration is recommanded.
-    case recommended
-
-    /// Debug description.
-    public var description: String {
-        switch self {
-        case .calibrated:
-            return "calibrated"
-        case .required:
-            return "required"
-        case .recommended:
-            return "recommended"
-        }
-    }
-
-    /// Set containing all possible cases.
-    public static let allCases: Set<MagnetometerCalibrationState> = [.calibrated,
-        .required, .recommended]
-}
-
-/// Magnetometer peripheral.
+/// Blended Thermal Camera peripheral.
 ///
-/// Base class telling whether the magnetometer is calibrated or not.
-/// A subclass shall be used to control the calibration process, depending on the device, for instance
-/// `MagnetometerWith1StepCalibration` or `MagnetometerWith3StepCalibration`.
+/// Provides access to the thermal camera in order to take pictures and to record videos.
+/// Also provides access to various camera settings, such as:
+/// - Exposure,
+/// - EV compensation,
+/// - White balance,
+/// - Recording mode, resolution and framerate selection,
+/// - Photo mode, format and file format selection.
 ///
 /// This peripheral can be retrieved by:
 /// ```
-/// device.getPeripheral(Peripherals.magnetometer)
+/// drone.getPeripheral(Peripherals.blendedThermalCamera)
 /// ```
-@objc(GSMagnetometer)
-public protocol Magnetometer: Peripheral {
+public protocol BlendedThermalCamera: Camera, Peripheral {
+}
 
-    /// Indicates the magnetometer calibration state.
-    ///
-    /// - Note: The magnetometer should be calibrated to make positioning related actions,
-    /// such as ReturnToHome, FlightPlan...
-    var calibrationState: MagnetometerCalibrationState { get }
+// MARK: - objc compatibility
+
+/// Blended Thermal camera peripheral.
+/// - Note: This protocol is for Objective-C compatibility only.
+@objc public protocol GSBlendedThermalCamera: GSCamera, Peripheral {
 }
 
 /// :nodoc:
-/// Magnetometer description
-@objc(GSMagnetometerDesc)
-public class MagnetometerDesc: NSObject, PeripheralClassDesc {
-    public typealias ApiProtocol = Magnetometer
-    public let uid = PeripheralUid.magnetometer.rawValue
+/// Blended Thermal camera description
+@objc(GSBlendedThermalCameraDesc)
+public class BlendedThermalCameraDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = BlendedThermalCamera
+    public let uid = PeripheralUid.blendedThermalCamera.rawValue
     public let parent: ComponentDescriptor? = nil
 }
