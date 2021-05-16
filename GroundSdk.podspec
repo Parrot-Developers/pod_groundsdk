@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
     s.license               = "{ :type => 'BSD 3-Clause License', :file => 'LICENSE' }"
     s.author                = 'Parrot Drone SAS'
     s.source                = { :git => 'https://github.com/Parrot-Developers/pod_groundsdk.git', :tag => "1.8.1" }
-    s.platform              = :ions
+    s.platform              = :ios
     s.ios.deployment_target = '10.0'
     s.source_files          = 'GroundSdk/**/*.{swift,h,m}'
     s.resources             = 'GroundSdk/**/*.{vsh,fsh,txt,png}'

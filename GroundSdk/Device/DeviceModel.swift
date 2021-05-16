@@ -100,10 +100,10 @@ public enum DeviceModel: CustomStringConvertible {
     }
 
     /// List of devices that can be connectable through usb.
-    private static var usbDevices: Set<DeviceModel> = RemoteControl.Model.allCases.map(DeviceModel.rc)
+    private static var usbDevices: Set<DeviceModel> = Set(RemoteControl.Model.allCases.map(DeviceModel.rc))
 
     /// List of devices that can be connectable through wifi.
-    private static var wifiDevices: Set<DeviceModel> = Drone.Model.allCases.map(DeviceModel.drone)
+    private static var wifiDevices: Set<DeviceModel> = Set(Drone.Model.allCases.map(DeviceModel.drone))
 
     /// List of devices that can be connectable through BLE.
     private static var bleDevices: Set<DeviceModel> = []
