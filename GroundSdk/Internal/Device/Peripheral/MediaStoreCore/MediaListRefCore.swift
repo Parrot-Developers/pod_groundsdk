@@ -72,7 +72,7 @@ class MediaListRefCore: Ref<[MediaItem]> {
 
                     // weak self in case backend call callback after cancelling request
                     if let `self` = self {
-                        `self`.request = nil
+                        self.request = nil
                         // copy user data into the new items
                         if let currentList = self.value as? [MediaItemCore] {
                             for media in medias {
@@ -80,7 +80,7 @@ class MediaListRefCore: Ref<[MediaItem]> {
                             }
                         }
                         // update the ref with the new list
-                        `self`.update(newValue: medias)
+                        self.update(newValue: medias)
                     }
                 }
             }

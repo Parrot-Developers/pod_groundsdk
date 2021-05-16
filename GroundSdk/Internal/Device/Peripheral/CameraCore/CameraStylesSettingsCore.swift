@@ -213,20 +213,22 @@ class CameraStyleSettingsCore: CameraStyleSettings, CustomDebugStringConvertible
     ///   - sharpness: requested sharpness
     /// - Returns: true if settings have been changed, false else
     private func set(saturation: Int? = nil, contrast: Int? = nil, sharpness: Int? = nil) -> Bool {
-        let oldContrast: (min: Int, value: Int, max: Int)? = contrast != nil ?
-            (min: _contrast.min, value: _contrast.value, max: _contrast.max) : nil
-        let oldSharpness: (min: Int, value: Int, max: Int)? = sharpness != nil ?
-            (min: _sharpness.min, value: _sharpness.value, max: _sharpness.max) : nil
-        let oldSaturation: (min: Int, value: Int, max: Int)? = saturation != nil ?
-            (min: _saturation.min, value: _saturation.value, max: _saturation.max) : nil
+      
+        let oldContrast: (min: Int, value: Int, max: Int)? = contrast
+            .map { _ in (min: _contrast.min, value: _contrast.value, max: _contrast.max) }
+        let oldSharpness: (min: Int, value: Int, max: Int)? = sharpness
+            .map { _ in (min: _sharpness.min, value: _sharpness.value, max: _sharpness.max) }
+        let oldSaturation: (min: Int, value: Int, max: Int)? = saturation
+            .map { _ in (min: _saturation.min, value: _saturation.value, max: _saturation.max) }
+
         if changeConfigBackend(saturation ?? _saturation.value, contrast ?? _contrast.value,
                                sharpness ?? _sharpness.value) {
             timeout.schedule { [weak self] in
 
                 if let `self` = self {
-                    let saturationUpdated = oldSaturation != nil ? self.update(saturation: oldSaturation!) : false
-                    let contrastUpdated = oldContrast != nil ? self.update(contrast: oldContrast!) : false
-                    let sharpnessUpdated = oldSharpness != nil ? self.update(sharpness: oldSharpness!) : false
+                    let saturationUpdated = oldSaturation.map(self.update(saturation:)) ?? false
+                    let contrastUpdated = oldContrast.map(self.update(contrast:)) ?? false
+                    let sharpnessUpdated = oldSharpness.map(self.update(sharpness:)) ?? false
                     if saturationUpdated || contrastUpdated || sharpnessUpdated {
                         self.didChangeDelegate.userDidChangeSetting()
                     }

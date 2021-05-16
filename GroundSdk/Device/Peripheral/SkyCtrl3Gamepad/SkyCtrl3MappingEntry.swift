@@ -127,7 +127,7 @@ public class SkyCtrl3ButtonsMappingEntry: SkyCtrl3MappingEntry {
     ///     Swift must use the function
     ///     `init(droneModel: Drone.Model, action: ButtonsMappableAction, buttonEvents: Set<SkyCtrl3ButtonEvent>)`
     public convenience init(droneModel: Drone.Model, action: ButtonsMappableAction, buttonEventsAsInt: Set<Int>) {
-        let buttonEvents = Set(buttonEventsAsInt.map({ SkyCtrl3ButtonEvent(rawValue: $0)! }))
+        let buttonEvents = Set(buttonEventsAsInt.compactMap(SkyCtrl3ButtonEvent.init))
         self.init(droneModel: droneModel, action: action, buttonEvents: buttonEvents)
     }
 
@@ -196,7 +196,7 @@ public class SkyCtrl3AxisMappingEntry: SkyCtrl3MappingEntry {
     public convenience init(
         droneModel: Drone.Model, action: AxisMappableAction, axisEvent: SkyCtrl3AxisEvent,
         buttonEventsAsInt: Set<Int>) {
-        let buttonEvents = Set(buttonEventsAsInt.map({ SkyCtrl3ButtonEvent(rawValue: $0)! }))
+        let buttonEvents = Set(buttonEventsAsInt.compactMap(SkyCtrl3ButtonEvent.init))
         self.init(droneModel: droneModel, action: action, axisEvent: axisEvent, buttonEvents: buttonEvents)
     }
 

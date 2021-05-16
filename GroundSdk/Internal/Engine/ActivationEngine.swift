@@ -174,9 +174,13 @@ class ActivationEngine: EngineBaseCore {
     /// - Returns: a list of all devices that needs to be registered.
     private func getDevicesToRegister() -> [DeviceRegisterer.Info] {
         var devices = [DeviceRegisterer.Info]()
-        let dronesToBeRegistered = droneStore.getDevices().filter({ deviceNeedToBeRegistered($0) })
+        let dronesToBeRegistered = droneStore
+            .getDevices()
+            .filter(deviceNeedToBeRegistered)
             .map { DeviceRegisterer.Info(uid: $0.uid, firmware: $0.firmwareVersionHolder.version.description) }
-        let rcsToBeRegistered = rcStore.getDevices().filter({ deviceNeedToBeRegistered($0) })
+        let rcsToBeRegistered = rcStore
+            .getDevices()
+            .filter(deviceNeedToBeRegistered)
             .map { DeviceRegisterer.Info(uid: $0.uid, firmware: $0.firmwareVersionHolder.version.description) }
         devices.append(contentsOf: dronesToBeRegistered)
         devices.append(contentsOf: rcsToBeRegistered)

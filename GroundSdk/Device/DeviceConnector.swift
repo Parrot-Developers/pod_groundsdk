@@ -62,12 +62,12 @@ extension DeviceConnectorType {
 @objc(GSDeviceConnectorTechnology)
 public enum DeviceConnectorTechnology: Int, CustomStringConvertible {
 
+    /// Connect using Bluetooth Low Energy.
+    case ble
     /// Connect using Wifi.
     case wifi
     /// Connect using USB.
     case usb
-    /// Connect using Bluetooth Low Energy.
-    case ble
 
     /// Debug description.
     public var description: String {

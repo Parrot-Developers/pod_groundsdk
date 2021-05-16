@@ -167,15 +167,17 @@ public class GlRenderSinkCore: SinkCore, GlRenderSink {
             return false
         }
         let fillMode = fillModeFrom(scaleType: scaleType, paddingFill: paddingFill)
-        let textureWidth = textureLoader != nil ? textureLoader!.textureSpec.width : 0
-        let textureDarWidth = textureLoader != nil ? textureLoader!.textureSpec.ratioNumerator : 0
-        let textureDarHeight = textureLoader != nil ? textureLoader!.textureSpec.ratioDenominator : 0
+        
+        let textureWidth =  textureLoader.map { $0.textureSpec.width } ?? 0
+        let textureDarWidth = textureLoader.map { $0.textureSpec.ratioNumerator } ?? 0
+        let textureDarHeight = textureLoader.map { $0.textureSpec.ratioDenominator } ?? 0
+
         sdkCoreRenderer = stream.startRenderer(renderZone: renderZone, fillMode: fillMode,
                                                zebrasEnabled: zebrasEnabled, zebrasThreshold: Float(zebrasThreshold),
                                                textureWidth: Int32(textureWidth),
                                                textureDarWidth: Int32(textureDarWidth),
                                                textureDarHeight: Int32(textureDarHeight),
-                                               textureLoaderlistener: textureLoader != nil ? self : nil,
+                                               textureLoaderlistener: textureLoader.map { _ in self },
                                                histogramsEnabled: histogramsEnabled, overlayListener: self,
                                                listener: self )
         return sdkCoreRenderer != nil

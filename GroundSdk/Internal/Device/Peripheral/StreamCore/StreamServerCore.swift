@@ -201,6 +201,6 @@ extension StreamServerCore: GSStreamServer {
 
     public func replay(source: MediaReplaySource, observer: @escaping (MediaReplay?) -> Void) -> GSMediaReplayRef? {
         let ref: Ref<MediaReplay>? = replay(source: source, observer: observer)
-        return ref != nil ? GSMediaReplayRef(ref: ref!) : nil
+        return ref.map(GSMediaReplayRef.init)
     }
 }

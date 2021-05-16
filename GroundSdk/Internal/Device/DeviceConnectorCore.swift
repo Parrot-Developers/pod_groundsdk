@@ -139,10 +139,6 @@ extension DeviceConnectorTechnology {
     /// - Parameter technology: the technology to compare to
     /// - Returns: `true` if the technology is strictly better
     func betterThan(_ technology: DeviceConnectorTechnology) -> Bool {
-        let ranks: [DeviceConnectorTechnology: Int] = [
-            .ble: 0,
-            .wifi: 1,
-            .usb: 2]
-        return ranks[self]! > ranks[technology]!
+        return self.rawValue > technology.rawValue
     }
 }
