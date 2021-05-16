@@ -297,7 +297,7 @@ public class GroundSdkConfig: NSObject {
     @objc(supportedDevices)
     public var gsSupportedDevices: Set<GSDeviceModel> {
         get {
-            return Set(supportedDevices.map { GSDeviceModel(deviceModel: $0) })
+            return Set(supportedDevices.map(GSDeviceModel.init))
         }
         set(newGsSupportedDevices) {
             supportedDevices = Set(newGsSupportedDevices.map { $0.deviceModel })

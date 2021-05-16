@@ -336,11 +336,9 @@ class CameraPhotoSettingsCore: CameraPhotoSettings, CustomDebugStringConvertible
             return
         }
 
-        let gpslapseCaptureIntervalValueClamped = gpslapseCaptureIntervalValue != nil ?
-            supportedGpslapseIntervals.clamp(gpslapseCaptureIntervalValue!) : nil
+        let gpslapseCaptureIntervalValueClamped = gpslapseCaptureIntervalValue.map(supportedGpslapseIntervals.clamp)
 
-        let timelapseCaptureIntervalValueClamped = timelapseCaptureIntervalValue != nil ?
-            supportedTimelapseIntervals.clamp(timelapseCaptureIntervalValue!) : nil
+        let timelapseCaptureIntervalValueClamped = timelapseCaptureIntervalValue.map(supportedTimelapseIntervals.clamp)
 
         if backend(mode, format, fileFormat, burstValue, bracketingValue, gpslapseCaptureIntervalValueClamped,
                    timelapseCaptureIntervalValueClamped) {

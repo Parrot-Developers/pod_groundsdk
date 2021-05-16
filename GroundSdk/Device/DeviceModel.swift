@@ -100,11 +100,10 @@ public enum DeviceModel: CustomStringConvertible {
     }
 
     /// List of devices that can be connectable through usb.
-    private static var usbDevices: Set<DeviceModel> = [.rc(.skyCtrl3), .rc(.skyCtrlUA)]
+    private static var usbDevices: Set<DeviceModel> = Set(RemoteControl.Model.allCases.map(DeviceModel.rc))
 
     /// List of devices that can be connectable through wifi.
-    private static var wifiDevices: Set<DeviceModel> = [.drone(.anafi4k), .drone(.anafiThermal), .drone(.anafiUa),
-                                                        .drone(.anafiUsa)]
+    private static var wifiDevices: Set<DeviceModel> = Set(Drone.Model.allCases.map(DeviceModel.drone))
 
     /// List of devices that can be connectable through BLE.
     private static var bleDevices: Set<DeviceModel> = []
@@ -251,7 +250,7 @@ public class GSDeviceModel: NSObject {
 
     /// All known device models.
     public static var allDevices: Set<GSDeviceModel> {
-        return Set(DeviceModel.allDevices.map { GSDeviceModel(deviceModel: $0) })
+        return Set(DeviceModel.allDevices.map(GSDeviceModel.init))
     }
 
     /// Filters device models that support a given technology.
@@ -265,7 +264,7 @@ public class GSDeviceModel: NSObject {
 
         let extractedModels = Set(models.map { $0.deviceModel })
         let supporting = DeviceModel.supportingTechnology(models: extractedModels, technology: technology)
-        return Set(supporting.map { GSDeviceModel(deviceModel: $0) })
+        return Set(supporting.map(GSDeviceModel.init))
     }
 
     /// Retrieves a device model by its name.

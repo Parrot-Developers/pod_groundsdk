@@ -91,8 +91,9 @@ class UpdateRestApi {
                     do {
                         let requestResult = try decoder.decode(ListRequestResponse.self, from: data)
                         // transform the json object into a `FirmwareStoreEntry` dict indexed by `FirmwareIdentifier`
-                        let firmwares = requestResult.firmwares.map { FirmwareStoreEntry.from(httpFirmware: $0) }
-                            .compactMap { $0 }.reduce([FirmwareIdentifier: FirmwareStoreEntry]()) { dict, value in
+                        let firmwares = requestResult.firmwares
+                            .compactMap(FirmwareStoreEntry.from)
+                            .reduce([FirmwareIdentifier: FirmwareStoreEntry]()) { dict, value in
                                 var dict = dict
                                 dict[value.firmware.firmwareIdentifier] = value
                                 return dict
@@ -103,7 +104,7 @@ class UpdateRestApi {
                             if let model = DeviceModel.from(internalIdHexStr: httpBlacklistedVersions.product) {
 
                                 let blacklistedVersionsForThisModel = httpBlacklistedVersions.versions
-                                    .map { FirmwareVersion.parse(versionStr: $0) }.compactMap { $0 }
+                                    .compactMap(FirmwareVersion.parse)
                                 blacklistedVersions[model] = Set(blacklistedVersionsForThisModel)
                             }
                         }
@@ -216,7 +217,7 @@ fileprivate extension FirmwareStoreEntry {
     /// - Returns: a firmware store entry if the http firmware info are parsable.
     static func from(httpFirmware: UpdateRestApi.HttpFirmwareInfo) -> FirmwareStoreEntry? {
         // for now we simply skip unknown flags, as we do not handle all of them
-        let attributes = httpFirmware.flags?.map { FirmwareAttribute.from(httpAttribute: $0) }.compactMap { $0 } ?? []
+        let attributes = httpFirmware.flags?.compactMap(FirmwareAttribute.from) ?? []
 
         if let model = DeviceModel.from(internalIdHexStr: httpFirmware.product),
             let version = FirmwareVersion.parse(versionStr: httpFirmware.version),

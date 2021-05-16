@@ -377,7 +377,7 @@ public extension GroundSdk {
     func replayRef(source: FileReplaySource,
                    observer: @escaping (_ stream: FileReplay?) -> Void) -> GSFileReplayRef? {
         let ref: Ref<FileReplay>? = session.newFileReplay(source: source, observer: observer)
-        return ref != nil ? GSFileReplayRef(ref: ref!) : nil
+        return ref.map(GSFileReplayRef.init)
     }
 }
 
