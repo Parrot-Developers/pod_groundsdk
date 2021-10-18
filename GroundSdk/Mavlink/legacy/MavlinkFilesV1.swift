@@ -56,7 +56,7 @@ public class MavlinkFiles {
                 fileHandle.closeFile()
             }
         } catch {
-            ULog.e(.mavlinkTag, "Could not generate MAVLink file: \(error)")
+            ULog.e(.mavlinkLegacyTag, "Could not generate MAVLink file: \(error)")
         }
     }
 
@@ -73,7 +73,7 @@ public class MavlinkFiles {
             let mavlinkString = try String(contentsOfFile: filepath, encoding: .utf8)
             commands = self.parse(mavlinkString: mavlinkString)
         } catch {
-            ULog.e(.mavlinkTag, "Could not parse MAVLink file: \(error)")
+            ULog.e(.mavlinkLegacyTag, "Could not parse MAVLink file: \(error)")
         }
         return commands
     }

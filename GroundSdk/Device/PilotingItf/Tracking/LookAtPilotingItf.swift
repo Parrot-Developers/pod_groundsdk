@@ -29,6 +29,63 @@
 
 import Foundation
 
+/// LookAtMe mode, defines how the drone looks at the target.
+@objc(GSLookAtMode)
+public enum LookAtMode: Int, CustomStringConvertible {
+
+    /// Look at the target without moving automatically.
+    case lookAt
+
+    /// Look at the target controller without moving automatically.
+    /// Animations are available.
+    case lookAtController
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .lookAt:   return "lookAt"
+        case .lookAtController:     return "lookAtController"
+        }
+    }
+
+    /// Set containing all modes.
+    public static let allCases: Set<LookAtMode> = [.lookAt, .lookAtController]
+}
+
+/// Setting providing access to the mode (LookAtMode) setup.
+public protocol LookAtModeSetting: AnyObject {
+    /// Set of supported modes.
+    var supportedModes: Set<LookAtMode> { get }
+
+    /// Tell if the setting value has been changed and is waiting for change confirmation.
+    var updating: Bool { get }
+
+    /// Look at mode.
+    ///
+    /// - Note: Only a supported look at mode can be set.
+    var value: LookAtMode { get set }
+}
+
+/// Setting providing access to the mode (LookAtMode) setup.
+///
+/// This protocol is Objective-C only. Swift must use `LookAtModeSetting`.
+@objc
+public protocol GSLookAtModeSetting {
+    /// Tell if the setting value has been changed and is waiting for change confirmation.
+    var updating: Bool { get }
+
+    /// Look at mode.
+    ///
+    /// - Note: Only a supported Look at mode can be set.
+    var value: LookAtMode { get set }
+
+    /// Tells whether a given mode is supported or not.
+    ///
+    /// - Parameter mode: the mode to query
+    /// - Returns: `true` if the mode is supported
+    func modeIsSupported(_ mode: LookAtMode) -> Bool
+}
+
 /// LookAt piloting interface.
 ///
 /// During an activated LookAt, the drone will always look at the target but can be piloted
@@ -39,7 +96,12 @@ import Foundation
 /// drone.getPilotingItf(PilotingItfs.lookAt)
 /// ```
 public protocol LookAtPilotingItf: PilotingItf, ActivablePilotingItf {
-    /// Tell why this piloting interface may currently be unavailable.
+    /// The look at mode to use.
+    ///
+    /// - Note: This setting is not saved at the application level.
+    var lookAtMode: LookAtModeSetting { get }
+
+    /// Tells why this piloting interface may currently be unavailable.
     ///
     /// The set of reasons that preclude this piloting interface from being available at present.
     var availabilityIssues: Set<TrackingIssue> { get }
@@ -100,6 +162,13 @@ public protocol LookAtPilotingItf: PilotingItf, ActivablePilotingItf {
 /// - Note: This class is for Objective-C only and must not be used in Swift.
 @objc
 public protocol GSLookAtPilotingItf: PilotingItf, ActivablePilotingItf {
+
+    /// The look at mode to use.
+    ///
+    /// - Note: This setting is not saved at the application level.
+    @objc(lookAtMode)
+    var gsLookAtMode: GSLookAtModeSetting { get }
+
     /// If the interface is `unavailable`, each TrackingIssue case can be tested.
     ///
     /// - Parameter issue: tracking issue to be tested

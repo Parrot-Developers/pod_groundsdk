@@ -30,7 +30,7 @@
 import Foundation
 
 /// Magnetometer backend part.
-public protocol MagnetometerBackend: class {
+public protocol MagnetometerBackend: AnyObject {
     /// Asks to the drone to start the calibration process.
     func startCalibrationProcess()
 

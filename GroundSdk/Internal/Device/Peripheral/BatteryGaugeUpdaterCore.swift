@@ -30,7 +30,7 @@
 import Foundation
 
 /// Battery gauge updater backend part.
-public protocol BatteryGaugeUpdaterBackend: class {
+public protocol BatteryGaugeUpdaterBackend: AnyObject {
     /// Requests preparing battery gauge update.
     func prepareUpdate()
 

@@ -138,7 +138,7 @@ public protocol FollowMePilotingItf: PilotingItf, ActivablePilotingItf {
     /// mode prerequisites are not met, the drone may remain stationary (while visually following its target).
     var followBehavior: FollowBehavior? { get }
 
-    /// Tell why this piloting interface may currently be unavailable.
+    /// Tells why this piloting interface may currently be unavailable.
     ///
     /// Set of reasons that preclude this piloting interface from being available at present.
     var availabilityIssues: Set<TrackingIssue> { get }

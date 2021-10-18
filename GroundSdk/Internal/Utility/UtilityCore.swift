@@ -43,8 +43,14 @@ public class Utilities: NSObject {
     public static let flightDataStorage = FlightDataStorageCoreDesc()
     /// Flight logs storage utility.
     public static let flightLogStorage = FlightLogStorageCoreDesc()
+    /// Flight log converter storage utility.
+    public static let flightLogConverterStorage = FlightLogConverterStorageCoreDesc()
+    /// Flight camera records storage utility.
+    public static let flightCameraRecordStorage = FlightCameraRecordStorageCoreDesc()
     /// Converted logs storage utility.
     public static let gutmaLogStorage = GutmaLogStorageCoreDesc()
+    /// Event logs utility.
+    public static let eventLogger = EventLogUtilityCoreDesc()
     /// Firmwares stores utility.
     public static let firmwareStore = FirmwareStoreCoreDesc()
     /// Firmware downloader utility.
@@ -65,6 +71,11 @@ public class Utilities: NSObject {
     public static let userAccount = UserAccountUtilityCoreDesc()
     /// GPS ephemeris utility.
     public static let ephemeris = EphemerisUtilityCoreDesc()
+    /// Certificate images storage utility.
+    public static let certificateImagesStorage = CertificateImagesStorageCoreDesc()
+    /// FileReplayBackend provider utility.
+    public static let fileReplayBackendProvider = FileReplayBackendProviderCoreDesc()
+
 }
 
 /// Utilities uid
@@ -85,11 +96,16 @@ enum UtilityUid: Int {
     case userAccount
     case ephemeris
     case flightLogStorage
+    case flightLogConverterStorage
+    case flightCameraRecordStorage
     case gutmaLogStorage
+    case eventLogger
+    case certificateImagesStorage
+    case fileReplayBackendProvider
 }
 
 /// Describe a Utility
-public protocol UtilityCoreDescriptor: class {
+public protocol UtilityCoreDescriptor: AnyObject {
     /// Unique identifier of the utility class
     var uid: Int { get }
 }

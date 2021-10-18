@@ -111,6 +111,7 @@ extension FileManager {
                 totalSize += size
                 if totalSize > totalMaxSizeMb * 1024 * 1024 {
                     do {
+                        ULog.d(.myparrot, "delete file (quota) \(elt.url)")
                         try FileManager.default.removeItem(at: elt.url)
                     } catch {
                         ULog.e(.fileManagerExtensionTag, "deleting \(elt.url.lastPathComponent) - \(error)")

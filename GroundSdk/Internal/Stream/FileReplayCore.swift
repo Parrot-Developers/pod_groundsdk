@@ -44,6 +44,14 @@ public class FileReplayCore: ReplayCore, FileReplay {
     /// - Parameter source: source to be played back
     public init(source: FileReplaySource) {
         self.source = source
+
+        super.init()
+
+        let provider = GroundSdkCore.getInstance().utilities.getUtility(Utilities.fileReplayBackendProvider)!
+
+        backend = provider.getStreamBackend(url: source.file, trackName: source.trackName, stream: self)
+
+        registerAppBackgroundObserver()
     }
 
     /// Create a stream backend.
@@ -54,38 +62,11 @@ public class FileReplayCore: ReplayCore, FileReplay {
     ///    - pompLoopUtil: pomp loop utility
     ///    - source: video stream source
     ///    - listener: listener that will be called when events happen on the stream
-    /// - Returns: a new 'SdkCoreStream' instance on success, otherwise 'nil'
+    /// - Returns: a new 'ArsdkStream' instance on success, otherwise 'nil'
     func createSdkCoreStream(pompLoopUtil: PompLoopUtil,
                              source: SdkCoreFileSource,
-                             listener: SdkCoreStreamListener) -> SdkCoreStream? {
-        return SdkCoreStream(pompLoopUtil: pompLoopUtil, source: source, track: self.source.trackName,
-                             listener: listener)
-    }
-
-    override func openStream(listener: SdkCoreStreamListener) -> SdkCoreStream? {
-        pompLoopUtil = PompLoopUtil(name: "FileReplay")
-
-        guard let pompLoopUtil = pompLoopUtil,
-            let url = source.file?.path,
-            let source = SdkCoreFileSource(url: url),
-            let sdkCoreStream = createSdkCoreStream(pompLoopUtil: pompLoopUtil, source: source, listener: listener)
-            else {
-                return nil
-        }
-        pompLoopUtil.runLoop()
-        sdkCoreStream.open()
-        registerAppBackgroundObserver()
-        return sdkCoreStream
-    }
-
-    override func handleSdkCoreStreamClose() {
-        super.handleSdkCoreStreamClose()
-        unregisterAppBackgroundObserver()
-    }
-
-    public override func streamDidClose(_ sdkCoreStream: SdkCoreStream, reason: SdkCoreStreamCloseReason) {
-        super.streamDidClose(sdkCoreStream, reason: reason)
-        pompLoopUtil?.stopRun()
+                             listener: ArsdkStreamListener) -> ArsdkStream? {
+        return ArsdkStream(pompLoopUtil: pompLoopUtil, listener: listener)
     }
 }
 
@@ -95,14 +76,23 @@ extension FileReplayCore {
     /// Register observer to get notified when the application is put in background.
     func registerAppBackgroundObserver() {
         let notificationCenter = NotificationCenter.default
-        notificationCenter.addObserver(self, selector: #selector(appMovedToBackground),
-                                       name: UIApplication.didEnterBackgroundNotification, object: nil)
+        if #available(iOS 13.0, *) {
+            notificationCenter.addObserver(self, selector: #selector(appMovedToBackground),
+                                           name: UIScene.didEnterBackgroundNotification, object: nil)
+        } else {
+            notificationCenter.addObserver(self, selector: #selector(appMovedToBackground),
+                                           name: UIApplication.didEnterBackgroundNotification, object: nil)
+        }
     }
 
     /// Unregister observer notified when the application is put in background.
     func unregisterAppBackgroundObserver() {
         let notificationCenter = NotificationCenter.default
-        notificationCenter.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
+        if #available(iOS 13.0, *) {
+            notificationCenter.removeObserver(self, name: UIScene.didEnterBackgroundNotification, object: nil)
+        } else {
+            notificationCenter.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
+        }
     }
 
     /// Called when the application is put in background.

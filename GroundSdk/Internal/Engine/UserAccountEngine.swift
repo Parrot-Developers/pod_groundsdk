@@ -35,63 +35,83 @@ public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
     private enum CodingKeys: String, CodingKey {
         case account
         case changeDate
-        case anonymousDataPolicy
-        case accountlessPersonalDataPolicy
+        case dataUploadPolicy
+        case oldDataPolicy
+        case token
+        case droneList
     }
 
     /// User account identifier, `nil` if none
     public let account: String?
-    /// Latest user account identifier change date
+
+    /// Latest user account change date
     public let changeDate: Date
 
     /// Indicates whether an unauthenticated user allows anonymous data communication. This flag is significant only
     /// if `account` is `nil` (ie if the user has not agreed to disclose his personal data)
-    public let anonymousDataPolicy: AnonymousDataPolicy
+    public var dataUploadPolicy: DataUploadPolicy
 
     /// Policy to observe with regard to non-anonymous user data that were collected in the absence of a registered
     /// user account, upon registration of such an account.
-    public let accountlessPersonalDataPolicy: AccountlessPersonalDataPolicy
+    public var oldDataPolicy: OldDataPolicy
+
+    /// User account token, `nil` if none.
+    public var token: String?
+
+    /// List of drones linked to the account in json format
+    public var droneList: String?
 
     /// Private Constructor for the UserAccountInfo (only public for test)
     ///
     /// - Parameters:
-    ///    - account: user account identifier, `nil` if none
-    ///    - changeDate: latest user account identifier change date
-    ///    - anonymousDataPolicy: whether an unauthenticated user allows anonymous data communication
-    ///    - accountlessPersonalDataPolicy: policy to observe with regard to non-anonymous user data
-    ///      that were collected in the absence of a registered user account, upon registration of such an account
-    internal init(account: String?, changeDate: Date, anonymousDataPolicy: AnonymousDataPolicy,
-                  accountlessPersonalDataPolicy: AccountlessPersonalDataPolicy) {
+    ///   - account: user account identifier, `nil` if none
+    ///   - changeDate: latest user account change date except for droneList
+    ///   - dataUploadPolicy: whether the upload is anonymous or not
+    ///   - oldDataPolicy: policy to observe with regard to non-anonymous user data
+    ///     that were collected in the absence of a registered user account, upon registration of such an account
+    ///   - token: authentication token
+    ///   - droneList: user drone list, APC JSON format
+    internal init(account: String?, changeDate: Date, dataUploadPolicy: DataUploadPolicy,
+                  oldDataPolicy: OldDataPolicy, token: String?, droneList: String?) {
         self.account = account
         self.changeDate = changeDate
-        self.anonymousDataPolicy = anonymousDataPolicy
-        self.accountlessPersonalDataPolicy = accountlessPersonalDataPolicy
+        self.dataUploadPolicy = dataUploadPolicy
+        self.oldDataPolicy = oldDataPolicy
+        self.token = token
+        self.droneList = droneList
     }
 
     /// Constructor for the UserAccountInfo (the change Date will be set at current Date)
     ///
     /// - Parameters:
     ///   - account: user account identifier, nil if none
-    ///   - anonymousDataPolicy: User allows or not to disclose anonymous Data or not (significant only if `account`
-    /// parameter is `nil`)
-    convenience init(account: String?, anonymousDataPolicy: AnonymousDataPolicy = .deny,
-                     accountlessPersonalDataPolicy: AccountlessPersonalDataPolicy = .denyUpload) {
-        self.init(account: account, changeDate: Date(), anonymousDataPolicy: anonymousDataPolicy,
-                  accountlessPersonalDataPolicy: accountlessPersonalDataPolicy)
+    ///   - dataUploadPolicy: User allows or not to disclose anonymous Data or not
+    ///   - oldDataPolicy: policy to observe with regard to non-anonymous user data
+    ///     that were collected in the absence of a registered user account, upon registration of such an account
+    ///   - token: authentication token
+    ///   - droneList: user drone list, APC JSON format
+    convenience init(account: String?, dataUploadPolicy: DataUploadPolicy = .deny,
+                     oldDataPolicy: OldDataPolicy = .denyUpload, token: String?, droneList: String?) {
+        self.init(account: account, changeDate: Date(), dataUploadPolicy: dataUploadPolicy,
+                  oldDataPolicy: oldDataPolicy, token: token, droneList: droneList)
     }
 
     /// Debug description.
     public var description: String {
         return "AccountInfo: account = \(account ?? "nil")), changeDate = \(changeDate))" +
-        ", anonymousDataPolicy = \(anonymousDataPolicy)" +
-        " accountlessPersonalDataPolicy = \(accountlessPersonalDataPolicy)"
+        ", dataUploadPolicy = \(dataUploadPolicy)" +
+        ", oldDataPolicy = \(oldDataPolicy)" +
+        ", token = \(token != nil ? token! : "nil")" +
+        ", droneList = \(droneList != nil ? droneList! : "nil")"
     }
 
     /// Equatable concordance
     public static func == (lhs: UserAccountInfoCore, rhs: UserAccountInfoCore) -> Bool {
         return lhs.account == rhs.account && lhs.changeDate == rhs.changeDate &&
-            lhs.anonymousDataPolicy == rhs.anonymousDataPolicy &&
-            lhs.accountlessPersonalDataPolicy == rhs.accountlessPersonalDataPolicy
+            lhs.dataUploadPolicy == rhs.dataUploadPolicy &&
+            lhs.oldDataPolicy == rhs.oldDataPolicy &&
+            lhs.token == rhs.token &&
+            lhs.droneList == rhs.droneList
     }
 }
 
@@ -105,6 +125,7 @@ class UserAccountEngine: EngineBaseCore {
     private var userAccountInfo: UserAccountInfoCore? {
         didSet {
             userAccountUtilityCoreImpl.update(userAccountInfo: userAccountInfo)
+            ULog.d(.myparrot, "Engine set user \(String(describing: userAccountInfo))")
         }
     }
 
@@ -154,24 +175,66 @@ class UserAccountEngine: EngineBaseCore {
 
 // MARK: - UserAccountBackend
 extension UserAccountEngine: UserAccountBackend {
-    func set(account: String, accountlessPersonalDataPolicy: AccountlessPersonalDataPolicy) {
+
+    func set(account: String, dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy,
+             token: String, droneList: String) {
         if userAccountInfo?.account != account
-            || userAccountInfo?.accountlessPersonalDataPolicy != accountlessPersonalDataPolicy {
-            userAccountInfo = UserAccountInfoCore(account: account,
-                                                  accountlessPersonalDataPolicy: accountlessPersonalDataPolicy)
+            || userAccountInfo?.oldDataPolicy != oldDataPolicy
+            || userAccountInfo?.token != token || userAccountInfo?.dataUploadPolicy != dataUploadPolicy
+            || userAccountInfo?.droneList != droneList {
+
+            let date = userAccountInfo?.changeDate == nil
+                || userAccountInfo?.account != account
+                || userAccountInfo?.dataUploadPolicy != dataUploadPolicy
+                || userAccountInfo?.oldDataPolicy != oldDataPolicy
+                ? Date() : userAccountInfo!.changeDate
+            userAccountInfo = UserAccountInfoCore(account: account, changeDate: date,
+                                                  dataUploadPolicy: dataUploadPolicy,
+                                                  oldDataPolicy: oldDataPolicy,
+                                                  token: token, droneList: droneList)
             saveData()
         }
     }
 
-    func clear(anonymousDataPolicy: AnonymousDataPolicy) {
+    func set(dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy) {
+        if userAccountInfo?.account != nil && userAccountInfo?.token != nil
+            && userAccountInfo?.droneList != nil {
+            set(account: userAccountInfo!.account!, dataUploadPolicy: dataUploadPolicy, oldDataPolicy: oldDataPolicy,
+                token: userAccountInfo!.token!, droneList: userAccountInfo!.droneList!)
+        } else {
+            clear(dataUploadPolicy: dataUploadPolicy)
+        }
+    }
+
+    func set(droneList: String) {
+        // we update the drone list only if user account exists.
+        if userAccountInfo?.account != nil, userAccountInfo?.droneList != droneList {
+            userAccountInfo = UserAccountInfoCore(account: userAccountInfo!.account!,
+                    changeDate: userAccountInfo!.changeDate,
+                    dataUploadPolicy: userAccountInfo!.dataUploadPolicy,
+                    oldDataPolicy: userAccountInfo!.oldDataPolicy,
+                    token: userAccountInfo!.token ?? "", droneList: droneList)
+            saveData()
+        }
+    }
+
+    func clear(dataUploadPolicy: DataUploadPolicy) {
         // we update the UserAccountInfo if :
         //    - if userAccountInfo does not exist
         // or - if the accountId is not nil
-        // or - if the anonymousDataPolicy flags changes
-        if userAccountInfo == nil || userAccountInfo?.anonymousDataPolicy != anonymousDataPolicy ||
-            userAccountInfo?.account != nil {
-            userAccountInfo = UserAccountInfoCore(account: nil, anonymousDataPolicy: anonymousDataPolicy,
-                                        accountlessPersonalDataPolicy: AccountlessPersonalDataPolicy.denyUpload)
+        // or - if the dataUploadPolicy flags changes
+        // or - if the token is not nil
+        // or - if the drone list is not nil
+        var dataUploadPolicyToSet = dataUploadPolicy
+        if dataUploadPolicy == .noGps || dataUploadPolicy == .full
+            || dataUploadPolicy == .noMedia {
+            dataUploadPolicyToSet = .anonymous
+        }
+        if userAccountInfo == nil || userAccountInfo?.dataUploadPolicy != dataUploadPolicy ||
+            userAccountInfo?.account != nil || userAccountInfo?.token != nil {
+            userAccountInfo = UserAccountInfoCore(account: nil, dataUploadPolicy: dataUploadPolicyToSet,
+                oldDataPolicy: OldDataPolicy.denyUpload, token: nil, droneList: nil)
+            saveData()
         }
     }
 }
@@ -190,6 +253,7 @@ extension UserAccountEngine {
             let data = try encoder.encode(userAccountInfo)
             let savedDictionary = [PersistingDataKeys.userAccountData.rawValue: data]
             groundSdkUserDefaults.storeData(savedDictionary)
+            ULog.d(.myparrot, "save user data\(String(describing: userAccountInfo))")
         } catch {
             // Handle error
             ULog.e(.userAccountEngineTag, "saveData: " + error.localizedDescription)
@@ -198,6 +262,7 @@ extension UserAccountEngine {
 
     /// Load persisting data
     private func loadData() {
+        ULog.d(.myparrot, "try to load previous user")
         let loadedDictionary = groundSdkUserDefaults.loadData() as? [String: Any]
         if let accountData = loadedDictionary?[PersistingDataKeys.userAccountData.rawValue] as? Data {
             let decoder = PropertyListDecoder()

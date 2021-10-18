@@ -48,14 +48,14 @@ public enum CameraZoomControlMode: Int, CustomStringConvertible {
 
 /// A camera zoom.
 ///
-/// Zoom level can be changed whether by giving a desired level (`set(level:)`)
+/// Zoom level can be changed either by giving a desired level (`set(level:)`)
 /// or by giving a desired zoom change velocity (`set(velocity:)`).
 @objc(GSCameraZoom)
-public protocol CameraZoom: class {
+public protocol CameraZoom: AnyObject {
     /// Max zoom speed setting.
     var maxSpeed: DoubleSetting { get }
 
-    /// Whether  zoom level changes using zoom velocity will stop at the `maxLossyLevel` or at the
+    /// Whether zoom level changes using zoom velocity will stop at the `maxLossyLevel` or at the
     /// `maxLossLessLevel` to avoid image quality degradation.
     /// If quality degradation is not allowed, it will stop at `maxLossLessZoomLevel`.
     var velocityQualityDegradationAllowance: BoolSetting { get }
@@ -86,7 +86,7 @@ public protocol CameraZoom: class {
     ///    - `.level`: target is in zoom level.1 means no zoom.
     ///                This value will be clamped to the `maxLossyLevel` if it is greater than this value.
     ///    - `.velocity`: value is in signed ratio (from -1 to 1) of `maxSpeed` setting value.
-    ///                   Negative values will produce a zoom out, positive value will zoom in.
+    ///                   Negative value will produce a zoom out, positive value will zoom in.
     ///
     /// - Parameters:
     ///   - mode: the mode that should be used to control the zoom.

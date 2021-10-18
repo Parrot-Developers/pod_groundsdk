@@ -30,7 +30,7 @@
 import Foundation
 
 /// SkyController 3 Gamepad backend
-public protocol SkyCtrl3GamepadBackend: class {
+public protocol SkyCtrl3GamepadBackend: AnyObject {
     /// Grabs the given set of inputs
     ///
     /// - Parameters:

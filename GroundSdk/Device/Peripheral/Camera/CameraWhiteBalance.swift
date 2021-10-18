@@ -290,7 +290,7 @@ public enum CameraWhiteBalanceTemperature: Int, CustomStringConvertible, Compara
 /// Settings to configure White balance.
 ///
 /// Allows to configure the white balance mode and custom temperature.
-public protocol CameraWhiteBalanceSettings: class {
+public protocol CameraWhiteBalanceSettings: AnyObject {
     /// Tells if a setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

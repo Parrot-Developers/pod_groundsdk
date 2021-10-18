@@ -69,6 +69,7 @@ class GutmaLogCollector {
     ///   - completionCallback: callback of the local GutmaLog list
     ///   - gutmaLogs: set of the files url that are ready.
     func collectGutmaLogs(completionCallback: @escaping (_ gutmaLogs: Set<URL>) -> Void) {
+
         ioQueue.async {
             do {
                 try FileManager.default.createDirectory(
@@ -94,10 +95,10 @@ class GutmaLogCollector {
                     let gutmaLogDirs = try? FileManager.default.contentsOfDirectory(
                         at: dir, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
                     gutmaLogDirs?.forEach { gutmaUrl in
-                        // if the gutma log file is finalized
-                        if gutmaUrl.isAFinalizedGutmaLog {
+                        if gutmaUrl.isAFinalizedGutmaLog {  // if the gutma log file is finalized
                             // keep the parent folder
                             toDelete.remove(dir)
+                            // remove file if processing
                             readyFiles.insert(gutmaUrl)
                         } else {
                             toDelete.insert(gutmaUrl)

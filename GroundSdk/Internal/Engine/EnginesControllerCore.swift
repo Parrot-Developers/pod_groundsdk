@@ -86,16 +86,26 @@ public class EnginesControllerCore: NSObject {
         if GroundSdkConfig.sharedInstance.enableBlackBox && GroundSdkConfig.sharedInstance.applicationKey != nil {
             allEngineList.append(BlackBoxEngine(enginesController: self))
         }
-        if GroundSdkConfig.sharedInstance.enableFlightData && GroundSdkConfig.sharedInstance.applicationKey != nil {
+        if GroundSdkConfig.sharedInstance.enableFlightData {
             allEngineList.append(FlightDataEngine(enginesController: self))
         }
-        if GroundSdkConfig.sharedInstance.enableGutmaLog && GroundSdkConfig.sharedInstance.applicationKey != nil {
+        if GroundSdkConfig.sharedInstance.enableGutmaLog && GroundSdkConfig.sharedInstance.enableFlightLog {
             allEngineList.append(GutmaLogEngine(enginesController: self))
+            allEngineList.append(FlightLogConverterEngine(enginesController: self))
         }
-        if GroundSdkConfig.sharedInstance.enableFlightData && GroundSdkConfig.sharedInstance.applicationKey != nil {
+        if GroundSdkConfig.sharedInstance.enableFlightLog {
             allEngineList.append(FlightLogEngine(enginesController: self))
         }
-
+        if GroundSdkConfig.sharedInstance.enableFlightCameraRecord
+            && GroundSdkConfig.sharedInstance.flightCameraRecordServer != nil
+            && GroundSdkConfig.sharedInstance.applicationKey != nil {
+            allEngineList.append(FlightCameraRecordEngine(enginesController: self))
+        }
+        if  GroundSdkConfig.sharedInstance.enableFlightLog
+            && GroundSdkConfig.sharedInstance.applicationKey != nil
+            && GroundSdkConfig.sharedInstance.flightLogServer != nil {
+            allEngineList.append(EventLogEngine(enginesController: self))
+        }
         if GroundSdkConfig.sharedInstance.enableEphemeris {
             allEngineList.append(EphemerisEngine(enginesController: self))
         }

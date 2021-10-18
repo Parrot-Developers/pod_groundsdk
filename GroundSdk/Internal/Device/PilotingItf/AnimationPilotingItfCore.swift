@@ -30,7 +30,7 @@
 import Foundation
 
 /// Animation piloting interface backend.
-public protocol AnimationPilotingItfBackend: class {
+public protocol AnimationPilotingItfBackend: AnyObject {
     /// Starts an animation.
     ///
     /// - Parameter config: configuration of the animation to execute
@@ -46,6 +46,10 @@ public protocol AnimationPilotingItfBackend: class {
 /// Internal animation piloting interface implementation
 public class AnimationPilotingItfCore: ComponentCore, AnimationPilotingItf {
 
+    public var supportedAnimations: [PilotingMode: Set<AnimationType>]?
+
+    public var availabilityIssues: [AnimationType: Set<AnimationIssue>]?
+
     public var animation: Animation? {
         return animCore
     }
@@ -56,7 +60,7 @@ public class AnimationPilotingItfCore: ComponentCore, AnimationPilotingItf {
     public private(set) var availableAnimations: Set<AnimationType> = []
 
     /// Backend
-    private let backend: AnimationPilotingItfBackend
+    private unowned let backend: AnimationPilotingItfBackend
 
     /// Constructor
     ///
@@ -82,6 +86,71 @@ public class AnimationPilotingItfCore: ComponentCore, AnimationPilotingItf {
 
 /// Backend callback methods
 extension AnimationPilotingItfCore {
+
+    /// Changes the set of supported animations
+    ///
+    /// - Parameter supportedAnimations: new set of supported animations
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(supportedAnimations newSet: [PilotingMode: Set<AnimationType>])
+        -> AnimationPilotingItfCore {
+        if supportedAnimations == nil {
+            supportedAnimations = newSet
+            markChanged()
+        } else if newSet.isEmpty && !supportedAnimations!.isEmpty {
+            supportedAnimations = newSet
+            markChanged()
+        } else {
+            for mode in newSet.keys {
+                let new = newSet[mode]
+                if let old = self.supportedAnimations![mode] {
+                    if old != new {
+                        supportedAnimations = newSet
+                        markChanged()
+                        return self
+                    }
+                } else {
+                    supportedAnimations = newSet
+                    markChanged()
+                    return self
+                }
+            }
+
+        }
+        return self
+    }
+
+    /// Changes the set of availability issues.
+    ///
+    /// - Parameter issueForAnimationType: new set of availability issues for animations.
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(issueForAnimationType newSet: [AnimationType: Set<AnimationIssue>])
+        -> AnimationPilotingItfCore {
+        if availabilityIssues == nil {
+            availabilityIssues = newSet
+            markChanged()
+        } else if newSet.isEmpty && !availabilityIssues!.isEmpty {
+            availabilityIssues = newSet
+            markChanged()
+        } else {
+            for animationType in newSet.keys {
+                let new = newSet[animationType]
+                if let old = self.availabilityIssues![animationType] {
+                    if old != new {
+                        availabilityIssues = newSet
+                        markChanged()
+                        return self
+                    }
+                } else {
+                    availabilityIssues = newSet
+                    markChanged()
+                    return self
+                }
+            }
+        }
+        return self
+    }
 
     /// Changes the set of available animations
     ///
@@ -145,6 +214,30 @@ extension AnimationPilotingItfCore {
 
 /// Extension of AnimationPilotingItfCore that brings the support of the ObjC GSAnimationPilotingItf protocol.
 extension AnimationPilotingItfCore: GSAnimationPilotingItf {
+    /// Tells whether the animation has the corresponding issue.
+    ///
+    /// - Parameters:
+    ///     - animation: the animation type to query
+    ///     - requierement: requierement to fix
+    public func isIssuePresent(_ animation: AnimationType, requierement: AnimationIssue) -> Bool {
+        if let requierements = availabilityIssues?[animation] {
+            return requierements.contains(requierement)
+        }
+        return false
+    }
+
+    /// Tells whether the animation is supported for a piloting mode.
+    ///
+    /// - Parameters:
+    ///     - animation: the animation type to query
+    ///     - mode: piloting mode
+    public func isAnimationSupported(animation: AnimationType, mode: PilotingMode) -> Bool {
+        if let animations = supportedAnimations?[mode] {
+            return animations.contains(animation)
+        }
+        return false
+    }
+
     public func isAnimationAvailable(_ animation: AnimationType) -> Bool {
         return availableAnimations.contains(animation)
     }

@@ -40,6 +40,9 @@ public class RemoteControl: NSObject, InstrumentProvider, PeripheralProvider {
         /// Sky Controller 3 remote control.
         case skyCtrl3
 
+        /// Sky Controller 4 remote control.
+        case skyCtrl4
+
         /// Sky Controller UA remote control.
         case skyCtrlUA
 
@@ -47,6 +50,7 @@ public class RemoteControl: NSObject, InstrumentProvider, PeripheralProvider {
         public var internalId: Int {
             switch self {
             case .skyCtrl3:     return 0x0918
+            case .skyCtrl4:     return 0x091d
             case .skyCtrlUA:    return 0x091c
             }
         }
@@ -55,12 +59,13 @@ public class RemoteControl: NSObject, InstrumentProvider, PeripheralProvider {
         public var description: String {
             switch self {
             case .skyCtrl3:     return "skyCtrl3"
+            case .skyCtrl4:     return "skyCtrl4"
             case .skyCtrlUA:    return "skyCtrlUA"
             }
         }
 
         /// Set containing all possible models of remote controls.
-        static let allCases: Set<Model> = [.skyCtrl3, .skyCtrlUA]
+        static let allCases: Set<Model> = [.skyCtrl3, .skyCtrl4, .skyCtrlUA]
     }
 
     /// Remote control unique identifier, persistant between sessions.

@@ -30,7 +30,7 @@
 import Foundation
 
 /// TargetTracker backend part.
-public protocol TargetTrackerBackend: class {
+public protocol TargetTrackerBackend: AnyObject {
 
     /// Set the position of the desired target in frame
     ///

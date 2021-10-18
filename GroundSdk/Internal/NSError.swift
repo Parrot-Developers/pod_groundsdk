@@ -32,7 +32,7 @@ import Foundation
 extension NSError {
 
     /// Registration result.
-    enum UrlError {
+    public enum UrlError {
         /// Request has been canceled.
         case canceled
         /// Connection error. Another attempt might succeed.
@@ -42,13 +42,19 @@ extension NSError {
         case otherError
     }
 
-    var urlError: UrlError {
+    public var urlError: UrlError {
         var urlError: UrlError
-        if self.domain == NSURLErrorDomain && self.code == NSURLErrorCancelled {
-            urlError = .canceled
-        } else if (self.domain == NSURLErrorDomain && self.code == NSURLErrorTimedOut) ||
-            (self.domain == NSURLErrorDomain && self.code == NSURLErrorNotConnectedToInternet) {
-            urlError = .connectionError
+        if self.domain == NSURLErrorDomain {
+            switch self.code {
+            case NSURLErrorCancelled:
+                urlError = .canceled
+            case NSURLErrorTimedOut,
+                 NSURLErrorNetworkConnectionLost,
+                 NSURLErrorNotConnectedToInternet:
+                urlError = .connectionError
+            default:
+                urlError = .otherError
+            }
         } else {
             urlError = .otherError
         }

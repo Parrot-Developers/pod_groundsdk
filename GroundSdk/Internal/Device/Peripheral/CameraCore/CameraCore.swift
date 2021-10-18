@@ -30,7 +30,7 @@
 import Foundation
 
 /// Camera backend.
-public protocol CameraBackend: class {
+public protocol CameraBackend: AnyObject {
     /// Changes the camera mode
     ///
     /// - Parameter mode: new mode

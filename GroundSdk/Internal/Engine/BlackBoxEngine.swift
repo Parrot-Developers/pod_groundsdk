@@ -39,7 +39,7 @@ class BlackBoxEngine: EngineBaseCore {
     /// This directory is located in the cache folder of the phone/tablet.
     ///
     /// This directory may contain:
-    /// - the current work directory (see `workDir`) , which may itself contain temporary reports
+    /// - the current work directory (see `workDir`), which may itself contain temporary reports
     ///   (being currently downloaded from remote devices) and finalized reports (that are ready to be uploaded)
     /// - previous work directories, that may themselves contain finalized reports, or temporary reports that failed to
     ///   be downloaded completely.
@@ -62,7 +62,7 @@ class BlackBoxEngine: EngineBaseCore {
     /// Monitor of the userAccount changes
     private var userAccountMonitor: MonitorCore!
 
-    /// User Account information
+    /// User account information
     private var userAccountInfo: UserAccountInfoCore?
 
     /// Black box reports collector
@@ -84,7 +84,7 @@ class BlackBoxEngine: EngineBaseCore {
     /// Kept to allow cancellation.
     private var currentUploadRequest: CancelableCore?
 
-    /// space quota in megabytes
+    /// Space quota in megabytes
     private var spaceQuotaInMb: Int = 0
 
     /// Constructor
@@ -112,15 +112,16 @@ class BlackBoxEngine: EngineBaseCore {
         let userAccountUtility = utilities.getUtility(Utilities.userAccount)!
         userAccountInfo = userAccountUtility.userAccountInfo
         userAccountMonitor = userAccountUtility.startMonitoring(accountDidChange: { (newUserAccountInfo) in
-            if newUserAccountInfo != self.userAccountInfo {
-                // if the account property changes and if the previous account was not nil, we delete all files
-                // (a new user was identified or a user has logout)
-                if self.userAccountInfo?.account != newUserAccountInfo?.account &&
-                    self.userAccountInfo?.account != nil {
-                    self.stopAndDropAllBlackBoxes()
-                }
-                self.userAccountInfo = newUserAccountInfo
+            // If the user account changes and if old data upload is denied, we delete all files
+            if newUserAccountInfo?.account != nil
+                && newUserAccountInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
+                && newUserAccountInfo?.oldDataPolicy == .denyUpload
+                && newUserAccountInfo?.changeDate != self.userAccountInfo?.changeDate {
+                ULog.d(.myparrot, "User account change with old data upload denied -> delete all black boxes")
+                self.stopAndDropAllBlackBoxes()
             }
+            self.userAccountInfo = newUserAccountInfo
+            self.startBlackBoxUploadProcess()
         })
 
         if spaceQuotaInMb != 0 {
@@ -166,6 +167,7 @@ class BlackBoxEngine: EngineBaseCore {
     func archiveBlackBoxData<T: Encodable>(_ blackBoxData: T) {
         collector.archive(blackBoxData: blackBoxData) { [weak self] report in
             self?.pendingReports.append(report)
+            ULog.d(.myparrot, "BLACKBOX append \(report)")
             self?.startBlackBoxUploadProcess()
         }
     }
@@ -180,8 +182,8 @@ class BlackBoxEngine: EngineBaseCore {
 
     /// Start the uploading process of blackBox files
     ///
-    /// if an upload is already start we are only updating the pending count
-    /// uploading process is only start when it is not already uploading files.
+    /// if an upload is already started we are only updating the pending count
+    /// uploading process is only started when it is not already uploading files.
     private func startBlackBoxUploadProcess() {
         guard !blackBoxReporter.isUploading else {
             blackBoxReporter.update(pendingCount: pendingReports.count)
@@ -197,17 +199,19 @@ class BlackBoxEngine: EngineBaseCore {
     /// file created before the user account was present.
     private func processNextBlackBox() {
         blackBoxReporter.update(pendingCount: pendingReports.count)
-        if self.userAccountInfo?.account == nil
+        if self.userAccountInfo?.account == nil || (self.userAccountInfo?.dataUploadPolicy != .full
+        && self.userAccountInfo?.dataUploadPolicy != .noMedia)
         || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
             blackBoxReporter.update(isUploading: false).notifyUpdated()
+            ULog.d(.myparrot, "BLACKBOX (no internet or no user, or upload denied))")
             return
         }
 
         if let uploader = uploader,
             currentUploadRequest == nil {
             if let blackBox = pendingReports.first {
-                if self.userAccountInfo!.accountlessPersonalDataPolicy == .denyUpload {
-                    // check if the file is before the authentification date
+                if self.userAccountInfo!.oldDataPolicy == .denyUpload {
+                    // check if the file is before the authentication date
                     // if yes, we remove the file because the user did not accept the download of the data collected
                     // before the authentication
                     let toRemove: Bool
@@ -215,7 +219,11 @@ class BlackBoxEngine: EngineBaseCore {
                         atPath: blackBox.url.path), let creationDate = attrs[.creationDate] as? Date,
                         let userDate = userAccountInfo?.changeDate {
                         toRemove = creationDate < userDate
+                        if toRemove {
+                            ULog.d(.myparrot, "BLACKBOX remove (creationDate < userDate)")
+                        }
                     } else {
+                        ULog.d(.myparrot, "BLACKBOX remove (no date)")
                         toRemove = true
                     }
                     if toRemove {
@@ -232,21 +240,26 @@ class BlackBoxEngine: EngineBaseCore {
                     if let error = error {
                         switch error {
                         case .badRequest:
+                            ULog.d(.myparrot, "BLACKBOX .badRequest \(report)")
                             ULog.w(.blackBoxEngineTag, "Bad request sent to the server. This should be a dev error.")
                             // delete file and stop uploading to avoid multiple errors
                             self.deleteBlackBox(report)
                             self.blackBoxReporter.update(isUploading: false).notifyUpdated()
                         case .badReport:
+                            ULog.d(.myparrot, "BLACKBOX .badReport \(report)")
                             self.deleteBlackBox(report)
                             self.processNextBlackBox()
                         case .serverError,
                              .connectionError:
+                            ULog.d(.myparrot, "BLACKBOX .serverError, connectionError \(blackBox)")
                             // Stop uploading if the server is not accessible
                             self.blackBoxReporter.update(isUploading: false).notifyUpdated()
                         case .canceled:
+                            ULog.d(.myparrot, "BLACKBOX .canceled \(report)")
                             self.blackBoxReporter.update(isUploading: false).notifyUpdated()
                         }
                     } else {    // success
+                        ULog.d(.myparrot, "BLACKBOX SUCCESS \(report)")
                         self.deleteBlackBox(report)
                         self.processNextBlackBox()
                     }
@@ -262,12 +275,13 @@ class BlackBoxEngine: EngineBaseCore {
     ///
     /// - Parameter blackBox: the black box report to delete
     private func deleteBlackBox(_ blackBox: BlackBox) {
+        ULog.d(.myparrot, "BLACKBOX deleteBlackBox \(blackBox)")
         if self.pendingReports.first == blackBox {
             self.pendingReports.remove(at: 0)
         } else {
             ULog.w(.blackBoxEngineTag, "Uploaded report is not the first one of the pending")
             // fallback
-            if let index: Int = self.pendingReports.index(where: {$0 == blackBox}) {
+            if let index: Int = self.pendingReports.firstIndex(where: {$0 == blackBox}) {
                 self.pendingReports.remove(at: index)
             }
         }
@@ -277,6 +291,7 @@ class BlackBoxEngine: EngineBaseCore {
 
     /// Cancel the current upload if there is one.
     private func cancelCurrentUpload() {
+        ULog.d(.myparrot, "BLACKBOX cancel current upload request \(String(describing: self.currentUploadRequest))")
         // stop current upload request
         self.currentUploadRequest?.cancel()
         self.currentUploadRequest = nil
@@ -287,7 +302,7 @@ class BlackBoxEngine: EngineBaseCore {
     /// Note: this function is called when a user is no more identified (and has not accepted the terms of use and
     /// confidentiality). Blackboxes are only recorded, archived, and sent when a authorized account is present
     private func stopAndDropAllBlackBoxes() {
-
+        ULog.d(.myparrot, "BLACKBOX stopAndDropAllBlackBoxes")
         // stop the upload if any
         cancelCurrentUpload()
 

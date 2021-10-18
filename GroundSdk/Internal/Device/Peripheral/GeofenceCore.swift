@@ -31,7 +31,7 @@ import Foundation
 import CoreLocation
 
 /// Geofence backend part.
-public protocol GeofenceBackend: class {
+public protocol GeofenceBackend: AnyObject {
     /// Sets geofence mode
     ///
     /// - Parameter mode: the new geofence mode

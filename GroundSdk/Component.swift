@@ -31,14 +31,14 @@ import Foundation
 
 /// Define a Component (facility, pilotingItf, instrument or peripheral).
 @objc(GSComponent)
-public protocol Component: class {
+public protocol Component: AnyObject {
     /// The component descriptor.
     var desc: ComponentDescriptor { get }
 }
 
 /// Describe a Component.
 @objc(GSComponentDescriptor)
-public protocol ComponentDescriptor: class {
+public protocol ComponentDescriptor: AnyObject {
     /// Component id, unique between component of the same category (pilotingItf, instrument or peripheral).
     var uid: Int { get }
     /// Parent component descriptor.

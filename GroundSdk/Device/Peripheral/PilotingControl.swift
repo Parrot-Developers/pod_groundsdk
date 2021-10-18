@@ -74,7 +74,7 @@ public protocol PilotingControl: Peripheral {
 }
 
 /// Setting to change the piloting behaviour.
-public protocol PilotingBehaviourSetting: class {
+public protocol PilotingBehaviourSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

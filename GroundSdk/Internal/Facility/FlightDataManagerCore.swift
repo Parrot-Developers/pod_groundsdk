@@ -30,7 +30,7 @@
 import Foundation
 
 /// Flight Data Manager backend
-protocol FlightDataManagerBackend: class {
+protocol FlightDataManagerBackend: AnyObject {
     /// Deletes a downloaded flight data file.
     ///
     /// - Parameter file: URL of the file flight data file to delete

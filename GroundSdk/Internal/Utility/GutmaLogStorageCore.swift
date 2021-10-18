@@ -39,7 +39,7 @@ public protocol GutmaLogStorageCore: UtilityCore {
     /// Multiple converters may be assigned the same convert directory. As a consequence, GutmaLog  directories
     /// that a converter may create should have a name as unique as possible to avoid collision.
     ///
-    /// The directory in question might not be existing, and the caller as the responsibility to create it if necessary,
+    /// The directory in question might not exist, and the caller has the responsibility to create it if necessary,
     /// but should ensure to do so on a background thread.
     var workDir: URL { get }
 
@@ -71,7 +71,7 @@ class GutmaLogStorageCoreImpl: GutmaLogStorageCore {
     }
 
     func notifyGutmaLogReady(gutmaLogUrl: URL) {
-        guard gutmaLogUrl.deletingLastPathComponent() == workDir else {
+        guard gutmaLogUrl.deletingLastPathComponent().absoluteString == workDir.absoluteString else {
             ULog.w(.gutmaLogEngineTag, "GutmaLogUrl \(gutmaLogUrl) " +
                 "is not located in the GutmaLog directory \(workDir)")
             return

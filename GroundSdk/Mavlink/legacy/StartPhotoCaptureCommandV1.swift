@@ -40,6 +40,8 @@ public final class StartPhotoCaptureCommand: MavlinkCommand {
         case fullFrame = 13
         /// Full sensor resolution (not de-wrapped), JPEG and DNG format.
         case fullFrameDng = 14
+        /// JPEG optimized for photogrammetry.
+        case photogrammetry = 15
 
         /// Debug description.
         public var description: String {
@@ -47,6 +49,7 @@ public final class StartPhotoCaptureCommand: MavlinkCommand {
             case .rectilinear:  return "rectilinear"
             case .fullFrame:    return "fullFrame"
             case .fullFrameDng: return "fullFrameDng"
+            case .photogrammetry: return "photogrammetry"
             }
         }
     }
@@ -83,7 +86,7 @@ public final class StartPhotoCaptureCommand: MavlinkCommand {
     /// - Parameter parameters: generic command parameters
     convenience init?(parameters: [Double?]) {
         if let interval = parameters[0], let count = parameters[1], let rawFormat = parameters[2],
-            let format = Format(rawValue: Int(rawFormat)) {
+           let format = Format(rawValue: Int(rawFormat)) {
             self.init(interval: interval, count: Int(count), format: format)
         } else {
             return nil

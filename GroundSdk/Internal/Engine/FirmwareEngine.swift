@@ -147,7 +147,7 @@ class FirmwareEngine: EngineBaseCore {
         if listingRequest == nil && !supportedDevices.isEmpty {
             firmwareManager.update(remoteQueryFlag: true).notifyUpdated()
             listingRequest = updateRestApi.listAvailableFirmwares(models: supportedDevices) {
-                //swiftlint:disable:next closure_parameter_position
+                // swiftlint:disable:next closure_parameter_position
                 [weak self] result, firmwares, blacklistedVersions in
                 if result == .success {
                     // remember the last success date for the request

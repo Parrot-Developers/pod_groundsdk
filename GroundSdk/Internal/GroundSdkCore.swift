@@ -288,6 +288,15 @@ public class GroundSdkCore: NSObject {
             enginesController.stop()
         }
     }
+
+    /// Logs an event
+    ///
+    /// - Parameter message: log message
+    public static func logEvent(message: String) {
+        if let eventLogger = self.sharedInstance?.utilities.getUtility(Utilities.eventLogger) {
+            eventLogger.log(message)
+        }
+    }
 }
 
 // Extension that brings useful functions for tests

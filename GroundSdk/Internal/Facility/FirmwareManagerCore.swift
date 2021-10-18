@@ -30,7 +30,7 @@
 import Foundation
 
 /// Firmware manager backend
-protocol FirmwareManagerBackend: class {
+protocol FirmwareManagerBackend: AnyObject {
     /// Requests fresh update information from remote servers.
     ///
     /// - Returns: true if a request was sent, false otherwise
@@ -51,7 +51,7 @@ protocol FirmwareManagerBackend: class {
     func delete(firmware: FirmwareInfoCore) -> Bool
 }
 
-protocol FirmwareManagerEntryBackend: class {
+protocol FirmwareManagerEntryBackend: AnyObject {
     /// Gets an existing task that is handling a given firmware
     ///
     /// - Parameter firmware: the firmware info

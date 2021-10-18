@@ -30,7 +30,7 @@
 import Foundation
 
 /// LogControl backend part.
-public protocol LogControlBackend: class {
+public protocol LogControlBackend: AnyObject {
     /// Requests the deactivation of logs.
     ///
     /// - Note: The logs stay disabled for the session, and will be

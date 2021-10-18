@@ -30,7 +30,7 @@
 import Foundation
 
 /// Antiflicker backend part.
-public protocol AntiflickerBackend: class {
+public protocol AntiflickerBackend: AnyObject {
     /// Sets anti-flickering mode
     ///
     /// - Parameter mode: the new anti-flickering mode

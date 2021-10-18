@@ -35,6 +35,7 @@ public class SphericalPhotoPanoramaCore: AnimationCore, SphericalPhotoPanoramaAn
     /// Constructor.
     public init() {
         super.init(type: .sphericalPhotoPanorama)
+        matcher = self
     }
 }
 

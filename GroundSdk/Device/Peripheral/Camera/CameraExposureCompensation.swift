@@ -127,7 +127,7 @@ public enum CameraEvCompensation: Int, CustomStringConvertible, Comparable {
 }
 
 /// Setting to configure camera exposure compensation.
-public protocol CameraExposureCompensationSetting: class {
+public protocol CameraExposureCompensationSetting: AnyObject {
     /// Tells if a setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

@@ -104,6 +104,8 @@ public class FirmwareVersion: NSObject {
             return .release
         case .rc:
             return .rc
+        @unknown default:
+            return .dev
         }
     }
 

@@ -84,8 +84,7 @@ public enum CameraExposureMode: Int, CustomStringConvertible, CaseIterable {
 
 /// Camera auto exposure metering mode.
 @objc(GSCameraAutoExposureMeteringMode)
-public enum CameraAutoExposureMeteringMode: Int, CustomStringConvertible, Comparable, CaseIterable {
-
+public enum CameraAutoExposureMeteringMode: Int, CustomStringConvertible, CaseIterable {
     /// Standard auto exposure metering mode.
     case standard
 
@@ -99,16 +98,11 @@ public enum CameraAutoExposureMeteringMode: Int, CustomStringConvertible, Compar
         case .centerTop:                    return "centerTop"
         }
     }
-
-    /// Comparable concordance
-    public static func < (lhs: CameraAutoExposureMeteringMode, rhs: CameraAutoExposureMeteringMode) -> Bool {
-        return lhs.rawValue < rhs.rawValue
-    }
 }
 
 /// Camera shutter speed values
 @objc(GSCameraShutterSpeed)
-public enum CameraShutterSpeed: Int, CustomStringConvertible, Comparable {
+public enum CameraShutterSpeed: Int, CustomStringConvertible, Comparable, CaseIterable {
     /// 1/10000 s
     case oneOver10000
     /// 1/8000 s
@@ -182,12 +176,14 @@ public enum CameraShutterSpeed: Int, CustomStringConvertible, Comparable {
     /// 1 s
     case one
 
+#if swift(<5.4)
     /// Set containing all possible values of CameraShutterSpeed.
     public static let allCases: Set<CameraShutterSpeed> = [
         oneOver10000, oneOver8000, oneOver6400, oneOver5000, oneOver4000, oneOver3200, oneOver2500, oneOver2000,
         oneOver1600, oneOver1250, oneOver1000, oneOver800, oneOver640, oneOver500, oneOver400, oneOver320, oneOver240,
         oneOver200, oneOver160, oneOver120, oneOver100, oneOver80, oneOver60, oneOver50, oneOver40, oneOver30,
         oneOver25, oneOver15, oneOver10, oneOver8, oneOver6, oneOver4, oneOver3, oneOver2, oneOver1_5, one]
+#endif
 
     /// Comparator.
     public static func < (lhs: CameraShutterSpeed, rhs: CameraShutterSpeed) -> Bool {
@@ -239,7 +235,7 @@ public enum CameraShutterSpeed: Int, CustomStringConvertible, Comparable {
 
 /// Camera Iso Sensitivity.
 @objc(GSCameraIso)
-public enum CameraIso: Int, CustomStringConvertible, Comparable {
+public enum CameraIso: Int, CustomStringConvertible, Comparable, CaseIterable {
     /// 50 iso
     @objc(GSCameraIso50)
     case iso50
@@ -292,10 +288,12 @@ public enum CameraIso: Int, CustomStringConvertible, Comparable {
     @objc(GSCameraIso3200)
     case iso3200
 
+#if swift(<5.4)
     /// Set containing all possible values of CameraShutterSpeed.
     public static let allCases: Set<CameraIso> = [
         iso50, iso64, iso80, iso100, iso125, iso160, iso200, iso250, iso320, iso400, iso500, iso640, iso800,
         iso1200, iso1600, iso2500, iso3200]
+#endif
 
     /// Comparator.
     public static func < (lhs: CameraIso, rhs: CameraIso) -> Bool {
@@ -331,7 +329,7 @@ public enum CameraIso: Int, CustomStringConvertible, Comparable {
 /// Allows to configure the exposure mode and parameters, such as:
 ///     - ISO sensitivity,
 ///     - Shutter speed.
-public protocol CameraExposureSettings: class {
+public protocol CameraExposureSettings: AnyObject {
     /// Tells if a setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

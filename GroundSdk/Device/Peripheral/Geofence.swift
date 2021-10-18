@@ -49,7 +49,7 @@ public enum GeofenceMode: Int, CustomStringConvertible, CaseIterable {
 
 /// Setting providing access to the GeofenceMode.
 @objc(GSGeofenceMode)
-public protocol GeofenceModeSetting: class {
+public protocol GeofenceModeSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation
     var updating: Bool { get }
 

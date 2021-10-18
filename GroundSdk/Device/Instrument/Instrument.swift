@@ -68,6 +68,14 @@ public class Instruments: NSObject {
     public static let cameraExposureValues = CameraExposureValuesDesc()
     /// Photo progress instrument.
     public static let photoProgressIndicator = PhotoProgressIndicatorDesc()
+    /// Flight info instrument.
+    public static let flightInfo = FlightInfoDesc()
+    /// Cellular logs instrument.
+    public static let cellularLogs = CellularLogsDesc()
+    /// Takeoff checklist instrument.
+    public static let takeoffChecklist = TakeoffChecklistDesc()
+    /// Cellular link status instrument.
+    public static let cellularLinkStatus = CellularLinkStatusDesc()
 }
 
 /// Instruments uid.
@@ -84,6 +92,10 @@ enum InstrumentUid: Int {
     case flightMeter
     case cameraExposureValues
     case photoProgressIndicator
+    case flightInfo
+    case cellularLogs
+    case takeoffChecklist
+    case cellularLinkStatus
 }
 
 /// Objective-C wrapper of Ref<Instrument>. Required because swift generics can't be used from Objective-C.

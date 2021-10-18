@@ -30,7 +30,7 @@
 import Foundation
 
 /// Gimbal backend part.
-public protocol GimbalBackend: class {
+public protocol GimbalBackend: CalibratableGimbalBackend {
     /// Sets the stabilization on a given axis
     ///
     /// - Parameters:
@@ -55,7 +55,7 @@ public protocol GimbalBackend: class {
     /// - Returns: true if the new max speed has been asked
     func set(offsetCorrection: Double, onAxis axis: GimbalAxis) -> Bool
 
-    /// Control the gimbal
+    /// Controls the gimbal
     ///
     /// - Parameters:
     ///   - mode: control mode
@@ -64,25 +64,21 @@ public protocol GimbalBackend: class {
     ///   - roll: roll target, nil if roll should not be changed
     func control(mode: GimbalControlMode, yaw: Double?, pitch: Double?, roll: Double?)
 
+    /// Resets the attitude of the gimbal.
+    func resetAttitude()
+
     /// Starts the offsets correction process.
     func startOffsetsCorrectionProcess()
 
     /// Stops the offsets correction process.
     func stopOffsetsCorrectionProcess()
 
-    /// Starts calibration process.
-    func startCalibration()
-
-    /// Cancels calibration process.
-    func cancelCalibration()
 }
 
 /// Internal gimbal peripheral implementation
-public class GimbalCore: PeripheralCore, Gimbal {
+public class GimbalCore: CalibratableGimbalCore, Gimbal {
 
     private(set) public var supportedAxes: Set<GimbalAxis> = []
-
-    private(set) public var currentErrors: Set<GimbalError> = []
 
     private(set) public var lockedAxes: Set<GimbalAxis> = []
 
@@ -113,14 +109,10 @@ public class GimbalCore: PeripheralCore, Gimbal {
 
     private(set) public var offsetsCorrectionProcess: GimbalOffsetsCorrectionProcess?
 
-    /// Tells whether the gimbal is calibrated.
-    private(set) public var calibrated = false
-
-    /// Calibration process state.
-    private(set) public var calibrationProcessState = GimbalCalibrationProcessState.none
-
-    /// Implementation backend
-    private unowned let backend: GimbalBackend
+    /// Super class backend as GimbalBackend
+    private var gimbalBackend: GimbalBackend {
+        return backend as! GimbalBackend
+    }
 
     /// Constructor
     ///
@@ -128,8 +120,7 @@ public class GimbalCore: PeripheralCore, Gimbal {
     ///   - store: store where this peripheral will be stored
     ///   - backend: gimbal backend
     public init(store: ComponentStoreCore, backend: GimbalBackend) {
-        self.backend = backend
-        super.init(desc: Peripherals.gimbal, store: store)
+        super.init(desc: Peripherals.gimbal, store: store, backend: backend)
     }
 
     public func control(mode: GimbalControlMode, yaw: Double?, pitch: Double?, roll: Double?) {
@@ -151,34 +142,26 @@ public class GimbalCore: PeripheralCore, Gimbal {
         } else {
             rollInRange = roll
         }
-        backend.control(
+        gimbalBackend.control(
             mode: mode,
             yaw: supportedAxes.contains(.yaw) ? yawInRange : nil,
             pitch: supportedAxes.contains(.pitch) ? pitchInRange : nil,
             roll: supportedAxes.contains(.roll) ? rollInRange : nil)
     }
 
+    public func resetAttitude() {
+        gimbalBackend.resetAttitude()
+    }
+
     public func startOffsetsCorrectionProcess() {
         if offsetsCorrectionProcess == nil {
-            backend.startOffsetsCorrectionProcess()
+            gimbalBackend.startOffsetsCorrectionProcess()
         }
     }
 
     public func stopOffsetsCorrectionProcess() {
         if offsetsCorrectionProcess != nil {
-            backend.stopOffsetsCorrectionProcess()
-        }
-    }
-
-    public func startCalibration() {
-        if calibrationProcessState != .calibrating {
-            backend.startCalibration()
-        }
-    }
-
-    public func cancelCalibration() {
-        if calibrationProcessState == .calibrating {
-            backend.cancelCalibration()
+            gimbalBackend.stopOffsetsCorrectionProcess()
         }
     }
 
@@ -218,20 +201,6 @@ extension GimbalCore {
                 _relativeAttitude[$0] = nil
             }
 
-            markChanged()
-        }
-        return self
-    }
-
-    /// Updates the set of current errors.
-    ///
-    /// - Note: Changes are not notified until notifyUpdated() is called.
-    ///
-    /// - Parameter newValue: new set of current errors
-    /// - Returns: self to allow call chaining
-    @discardableResult public func update(currentErrors newValue: Set<GimbalError>) -> GimbalCore {
-        if newValue != currentErrors {
-            currentErrors = newValue
             markChanged()
         }
         return self
@@ -290,7 +259,7 @@ extension GimbalCore {
         if supportedAxes.contains(axis) {
             if _maxSpeedSettings[axis] == nil {
                 _maxSpeedSettings[axis] = DoubleSettingCore(didChangeDelegate: self) { [unowned self] newValue in
-                    return self.backend.set(maxSpeed: newValue, onAxis: axis)
+                    return self.gimbalBackend.set(maxSpeed: newValue, onAxis: axis)
                 }
             }
 
@@ -315,7 +284,7 @@ extension GimbalCore {
         if supportedAxes.contains(axis) {
             if _stabilizationSettings[axis] == nil {
                 _stabilizationSettings[axis] = BoolSettingCore(didChangeDelegate: self) { [unowned self] newValue in
-                    return self.backend.set(stabilization: newValue, onAxis: axis)
+                    return self.gimbalBackend.set(stabilization: newValue, onAxis: axis)
                 }
                 markChanged()
             }
@@ -453,7 +422,7 @@ extension GimbalCore {
                 offsetsCorrectionProcess._offsetsCorrection[axis] = DoubleSettingCore(didChangeDelegate: self) {
                     // swiftlint:disable:next closure_parameter_position
                     [unowned self] newValue in
-                    return self.backend.set(offsetCorrection: newValue, onAxis: axis)
+                    return self.gimbalBackend.set(offsetCorrection: newValue, onAxis: axis)
                 }
             }
 
@@ -462,35 +431,6 @@ extension GimbalCore {
 
                 markChanged()
             }
-        }
-        return self
-    }
-
-    /// Updates the calibrated state.
-    ///
-    /// - Note: Changes are not notified until notifyUpdated() is called.
-    ///
-    /// - Parameter newValue: whether the gimbal is calibrated
-    /// - Returns: self to allow call chaining
-    @discardableResult public func update(calibrated newValue: Bool) -> GimbalCore {
-        if calibrated != newValue {
-            calibrated = newValue
-            markChanged()
-        }
-        return self
-    }
-
-    /// Updates the calibration process state.
-    ///
-    /// - Note: Changes are not notified until notifyUpdated() is called.
-    ///
-    /// - Parameter newValue: new calibration process state
-    /// - Returns: self to allow call chaining
-    @discardableResult public func update(
-        calibrationProcessState newValue: GimbalCalibrationProcessState) -> GimbalCore {
-        if calibrationProcessState != newValue {
-            calibrationProcessState = newValue
-            markChanged()
         }
         return self
     }
@@ -513,12 +453,9 @@ extension GimbalCore {
 
 /// Extension of Gimbal that implements ObjC API
 extension GimbalCore: GSGimbal {
+
     public func isAxisSupported(_ axis: GimbalAxis) -> Bool {
         return supportedAxes.contains(axis)
-    }
-
-    public func hasError(_ error: GimbalError) -> Bool {
-        return currentErrors.contains(error)
     }
 
     public func isAxisLocked(_ axis: GimbalAxis) -> Bool {

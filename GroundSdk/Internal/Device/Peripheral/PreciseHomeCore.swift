@@ -30,7 +30,7 @@
 import Foundation
 
 /// Precise home backend part.
-public protocol PreciseHomeBackend: class {
+public protocol PreciseHomeBackend: AnyObject {
     /// Sets precise home mode
     ///
     /// - Parameter mode: the new precise home mode

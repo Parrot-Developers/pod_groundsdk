@@ -51,12 +51,18 @@ public enum TrackingIssue: Int, CustomStringConvertible {
     case targetBarometerInfoInaccurate
     /// External target detection information is missing.
     case targetDetectionInfoMissing
+    /// Drone is above max altitude.
+    case droneAboveMaxAltitude
+    /// Drone is outside of the geofence.
+    case droneOutOfGeofence
     /// Drone is too far from target.
     case droneTooFarFromTarget
     /// Target horizontal speed is too high.
     case targetHorizontalSpeedKO
     /// Target vertical speed is too high.
     case targetVerticalSpeedKO
+    /// Target altitude has a bad accuracy.
+    case targetAltitudeAccuracyKO
 
     /// Debug description.
     public var description: String {
@@ -69,9 +75,12 @@ public enum TrackingIssue: Int, CustomStringConvertible {
         case .targetGpsInfoInaccurate:          return "targetGpsInfoInaccurate"
         case .targetBarometerInfoInaccurate:    return "targetBarometerInfoInaccurate"
         case .targetDetectionInfoMissing:       return "targetDetectionInfoMissing"
+        case .droneAboveMaxAltitude:            return "droneAboveMaxAltitude"
+        case .droneOutOfGeofence:               return "droneOutOfGeofence"
         case .droneTooFarFromTarget:            return "droneTooFarFromTarget"
         case .targetHorizontalSpeedKO:          return "targetHorizontalSpeedKO"
         case .targetVerticalSpeedKO:            return "targetVerticalSpeedKO"
+        case .targetAltitudeAccuracyKO:         return "targetAltitudeAccuracyKO"
         }
     }
 }

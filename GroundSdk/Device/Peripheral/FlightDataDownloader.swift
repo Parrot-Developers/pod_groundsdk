@@ -66,7 +66,7 @@ public enum FlightDataDownloadCompletionStatus: Int, CustomStringConvertible {
 public class FlightDataDownloaderState: NSObject {
     /// Current completion status of the flight data (PUD) downloader.
     ///
-    /// The completion status changes to either `.interrupted` or `.success` when the download interrupted or
+    /// The completion status changes to either `.interrupted` or `.success` when the download has been interrupted or
     /// completes successfully,
     /// then remains in this state until another flight data (PUD) download begins, where it switches back to `.none`.
     public internal(set) var status: FlightDataDownloadCompletionStatus

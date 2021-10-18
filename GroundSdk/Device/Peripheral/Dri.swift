@@ -134,7 +134,7 @@ public enum DriTypeState: Equatable, CustomStringConvertible {
 }
 
 /// Setting to configure DRI type.
-public protocol DriTypeSetting: class {
+public protocol DriTypeSetting: AnyObject {
     /// DRI type configuration state, when available.
     var state: DriTypeState? { get }
 

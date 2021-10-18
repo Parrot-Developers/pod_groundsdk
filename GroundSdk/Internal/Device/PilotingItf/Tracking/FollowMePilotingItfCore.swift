@@ -221,6 +221,7 @@ extension FollowMePilotingItfCore {
 
 /// Internal FollowMePilotingItfCore implementation for objectiveC
 extension FollowMePilotingItfCore: GSFollowMePilotingItf {
+
     public var gsFollowMode: GSFollowModeSetting {
         return _followMode
     }

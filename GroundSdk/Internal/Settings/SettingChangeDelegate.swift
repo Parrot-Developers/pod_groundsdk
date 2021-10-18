@@ -30,7 +30,7 @@
 import Foundation
 
 /// Implemented by class that handle setting change
-protocol SettingChangeDelegate: class {
+protocol SettingChangeDelegate: AnyObject {
     /// Notify that the setting value as been changed by the user by calling the setting setter
     func userDidChangeSetting()
 }

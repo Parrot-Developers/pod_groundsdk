@@ -30,7 +30,7 @@
 import Foundation
 
 /// Camera zoom backend.
-protocol CameraZoomBackend: class {
+protocol CameraZoomBackend: AnyObject {
 
     /// Sets the max zoom speed
     ///

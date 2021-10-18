@@ -31,15 +31,16 @@ import Foundation
 
 /// Core class for FileReplaySource.
 public class FileSourceCore: FileReplaySource {
-    /// file
-    public var file: URL?
+    /// File url.
+    public let file: URL
 
-    public var track: MediaItem.Track = .defaultVideo
+    /// Track Source.
+    public let track: MediaItem.Track
 
-    /// Name of the track of the stream
-    public var trackName: String
+    /// Name of the track of the stream.
+    public let trackName: String
 
-    /// Constructor
+    /// Constructor.
     ///
     /// - Parameters:
     ///    - file: file to be played back
@@ -48,12 +49,5 @@ public class FileSourceCore: FileReplaySource {
         self.file = file
         self.track = track
         self.trackName = track == .defaultVideo ? StreamCore.TRACK_DEFAULT_VIDEO : StreamCore.TRACK_THERMAL_VIDEO
-    }
-
-    func openStream(server: StreamServerCore, listener: SdkCoreStreamListener) -> SdkCoreStream? {
-        if let file = file {
-            return server.openStream(url: file.absoluteString, track: trackName, listener: listener)
-        }
-        return nil
     }
 }

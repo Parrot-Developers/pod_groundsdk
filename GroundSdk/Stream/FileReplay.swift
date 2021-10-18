@@ -40,7 +40,7 @@ public protocol FileReplay: Replay {
 @objc(GSFileReplaySource)
 public protocol FileReplaySource {
     /// File being played back.
-    var file: URL? { get }
+    var file: URL { get }
 
     /// Stream track identifier.
     var track: MediaItem.Track { get }

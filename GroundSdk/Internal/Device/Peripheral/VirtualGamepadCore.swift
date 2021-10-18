@@ -30,7 +30,7 @@
 import Foundation
 
 /// Virtual Gamepad backend
-public protocol VirtualGamepadBackend: class {
+public protocol VirtualGamepadBackend: AnyObject {
     /// Grabs navigation input
     ///
     /// - Returns: true if navigation inputs could be grabbed, false otherwise.

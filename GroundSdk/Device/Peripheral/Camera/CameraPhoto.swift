@@ -268,7 +268,7 @@ public enum CameraPhotoFunctionState: Int, CustomStringConvertible {
 /// - Photo file format,
 /// - Burst value (for {@link Mode#BURST burst mode},
 /// - Bracketing value (for {@link Mode#BRACKETING bracketing mode}.
-public protocol CameraPhotoSettings: class {
+public protocol CameraPhotoSettings: AnyObject {
     /// Tells if a setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
@@ -285,7 +285,7 @@ public protocol CameraPhotoSettings: class {
     /// Supported burst values when mode is `burst`.
     var supportedBurstValues: Set<CameraBurstValue> { get }
 
-    /// Supported bracketing values when mode is `burst`.
+    /// Supported bracketing values when mode is `bracketing`.
     var supportedBracketingValues: Set<CameraBracketingValue> { get }
 
     /// Whether HDR is available in the current mode, format and file format

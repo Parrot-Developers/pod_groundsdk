@@ -62,7 +62,7 @@ public enum FlightLogDownloadCompletionStatus: Int, CustomStringConvertible {
 public class FlightLogDownloaderState: NSObject {
     /// Current completion status of the flight log downloader.
     ///
-    /// The completion status changes to either `.interrupted` or `.success` when the download interrupted or
+    /// The completion status changes to either `.interrupted` or `.success` when the download has been interrupted or
     /// completes successfully,
     /// then remains in this state until another flight log download begins, where it switches back to `.none`.
     public internal(set) var status: FlightLogDownloadCompletionStatus
@@ -70,6 +70,11 @@ public class FlightLogDownloaderState: NSObject {
     /// The current progress of an ongoing flight log download, expressed as a percentage.
     public internal(set) var downloadedCount: Int
 
+    /// Constructor
+    ///
+    /// - Parameters:
+    ///     - status: flight log download completion status.
+    ///     - downloadedCount: downloaded count.
     internal init(status: FlightLogDownloadCompletionStatus = .none, downloadedCount: Int = 0) {
         self.status = status
         self.downloadedCount = downloadedCount

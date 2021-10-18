@@ -30,7 +30,7 @@
 import Foundation
 
 /// Backend of the Autoconnection facility
-public protocol AutoConnectionBackend: class {
+public protocol AutoConnectionBackend: AnyObject {
     /// Requests auto-connection to start.
     ///
     /// Returns: true if auto-connection did start, false otherwise.

@@ -32,7 +32,7 @@ import Foundation
 /// Camera white balance lock.
 ///
 ///  Allows to lock/unlock the white balance values.
-public protocol CameraWhiteBalanceLock: class {
+public protocol CameraWhiteBalanceLock: AnyObject {
     /// Tells if a setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

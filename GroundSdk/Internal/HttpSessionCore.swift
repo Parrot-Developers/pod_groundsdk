@@ -84,10 +84,6 @@ public class HttpSessionCore: NSObject {
     /// task created with 'downloadFile(withStreamReader: _)` function
     private var streamWriters: [Int: StreamWriter] = [:]
 
-    /// Error raised when request has been canceled
-    ///
-    /// Visibility is internal for testing purpose.
-    static let canceledError = NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)
     /// Default error.
     /// Used when no known error could be matched.
     ///
@@ -128,7 +124,7 @@ public class HttpSessionCore: NSObject {
 
             let result: Result
             if let error = error {
-                if error as NSError == HttpSessionCore.canceledError {
+                if (error as NSError).urlError == .canceled {
                     result = .canceled
                 } else {
                     result = .error(error)
@@ -178,7 +174,7 @@ public class HttpSessionCore: NSObject {
 
             let result: Result
             if let error = error {
-                if error as NSError == HttpSessionCore.canceledError {
+                if (error as NSError).urlError == .canceled {
                     result = .canceled
                 } else {
                     result = .error(error)
@@ -232,7 +228,7 @@ public class HttpSessionCore: NSObject {
 
             let result: Result
             if let error = error {
-                if error as NSError == HttpSessionCore.canceledError {
+                if (error as NSError).urlError == .canceled {
                     result = .canceled
                 } else {
                     result = .error(error)
@@ -341,7 +337,7 @@ public class HttpSessionCore: NSObject {
 
             let result: Result
             if let error = error {
-                if error as NSError == HttpSessionCore.canceledError {
+                if (error as NSError).urlError == .canceled {
                     result = .canceled
                 } else {
                     result = .error(error)
@@ -439,7 +435,7 @@ extension HttpSessionCore: URLSessionDelegate, URLSessionDataDelegate, URLSessio
                 // 418 error code is "I'm a teapot" error (which is the best error name ever).
                 result = .httpError(418)
             default:
-                if error as NSError == HttpSessionCore.canceledError {
+                if (error as NSError).urlError == .canceled {
                     result = .canceled
                 } else {
                     result = .error(error)
@@ -516,6 +512,14 @@ extension HttpSessionCore: URLSessionDownloadDelegate {
 
         if case .success = result {
             let localFileUrl = completionCb.destination
+            if FileManager.default.fileExists(atPath: localFileUrl.path) {
+                do {
+                    try FileManager.default.removeItem(atPath: localFileUrl.path)
+                } catch let error {
+                    ULog.w(.httpClientTag, "Failed to remove file at \(localFileUrl): " +
+                        error.localizedDescription)
+                }
+            }
             do {
                 try FileManager.default.createDirectory(
                     at: localFileUrl.deletingLastPathComponent(), withIntermediateDirectories: true,

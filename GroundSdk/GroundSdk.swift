@@ -156,8 +156,8 @@ public class GroundSdk: NSObject {
     ///
     /// - Parameters:
     ///    - observer: observer notified each time this list changes
-    ///    - filter: drone filter to select remote control to include into the returned list. The filter criteria
-    ///              must not change during the list reference lifecycle.
+    ///    - filter: remote control filter to select remote control to include into the returned list.
+    ///              The filter criteria must not change during the list reference lifecycle.
     ///              By default, the filter accepts all remote controls.
     /// - Returns: a reference to the requested list.
     public func getRemoteControlList(
@@ -184,7 +184,7 @@ public class GroundSdk: NSObject {
     /// - Returns: a remote control if found, `nil` otherwise
     ///
     /// - Warning: removedCallback is called as long as the returned remote control instance is referenced.
-    ///            When the drone instance is deinit, the callback is unregistered and is never called.
+    ///            When the remote control instance is deinit, the callback is unregistered and is never called.
     public func getRemoteControl(uid: String, removedCallback: @escaping (String) -> Void) -> RemoteControl? {
         return session.getRemoteControl(uid: uid, removedCallback: removedCallback)
     }
@@ -404,7 +404,7 @@ public class GSDroneListRef: NSObject {
 public class GSRemoteControlListRef: NSObject {
     private let ref: Ref<[RemoteControlListEntry]>
 
-    /// Referenced DroneListEntry array.
+    /// Referenced RemoteControlListEntry array.
     public var value: [RemoteControlListEntry]? {
         return ref.value
     }

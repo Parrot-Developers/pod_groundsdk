@@ -30,22 +30,38 @@
 import Foundation
 
 /// UserAccount backend
-protocol UserAccountBackend: class {
+protocol UserAccountBackend: AnyObject {
 
     /// Sets the user account.
     ///
     /// - Parameters:
     ///   - account: account to set or `nil` to clear the user account
-    ///   - accountlessPersonalDataPolicy:
+    ///   - dataUploadPolicy: data upload policy.
+    ///   - oldDataPolicy:
     ///         true: Already collected data without account may be uploaded.
     ///         false: Already collected data without account must not be uploaded and should be deleted.
-    func set(account: String, accountlessPersonalDataPolicy: AccountlessPersonalDataPolicy)
+    ///   - token: authentication token.
+    ///   - droneList: user drone list, APC JSON format
+    func set(account: String, dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy,
+             token: String, droneList: String)
+
+    /// Set data upload policy and old data policy
+    ///
+    /// - Parameters:
+    ///     -  dataUploadPolicy: data upload policy
+    ///     -  oldDataPolicy: oldl data policy
+    func set(dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy)
+
+    /// Sets drone list for current user account
+    ///
+    /// - Parameter droneList: user drone list, APC JSON format
+    func set(droneList: String)
 
     /// Clears any registered user account.
     ///
     /// - Parameters:
-    ///   - anonymousDataPolicy: true if anonymous data are allowed, false otherwise
-    func clear(anonymousDataPolicy: AnonymousDataPolicy)
+    ///   - dataUploadPolicy: data upload policy.
+    func clear(dataUploadPolicy: DataUploadPolicy)
 }
 
 /// Core implementation of the UserAccount facility
@@ -64,12 +80,25 @@ class UserAccountCore: FacilityCore, UserAccount {
         super.init(desc: Facilities.userAccount, store: store)
     }
 
-    func set(accountProvider: String, accountId: String,
-             accountlessPersonalDataPolicy: AccountlessPersonalDataPolicy) {
+    func set(accountProvider: String, accountId: String, dataUploadPolicy: DataUploadPolicy,
+             oldDataPolicy: OldDataPolicy, token: String, droneList: String) {
+        GroundSdkCore.logEvent(message: "EVT:ACADEMY;provider='\(accountProvider)';" +
+            "upload='\(dataUploadPolicy)';old_data='\(oldDataPolicy)'")
         backend.set(account: accountProvider + " " + accountId,
-                    accountlessPersonalDataPolicy: accountlessPersonalDataPolicy)
+                    dataUploadPolicy: dataUploadPolicy,
+                    oldDataPolicy: oldDataPolicy,
+                    token: token, droneList: droneList)
     }
-    func clear(anonymousDataPolicy: AnonymousDataPolicy) {
-        backend.clear(anonymousDataPolicy: anonymousDataPolicy)
+
+    func set(dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy) {
+        backend.set(dataUploadPolicy: dataUploadPolicy, oldDataPolicy: oldDataPolicy)
+    }
+
+    func set(droneList: String) {
+        backend.set(droneList: droneList)
+    }
+
+    func clear(dataUploadPolicy: DataUploadPolicy) {
+        backend.clear(dataUploadPolicy: dataUploadPolicy)
     }
 }

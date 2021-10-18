@@ -120,6 +120,8 @@ public class MediaItem: NSObject {
         case vertical_180
         /// Spherical panorama type.
         case spherical
+        /// Super wide panorama type.
+        case super_wide
 
         /// Debug description.
         public var description: String {
@@ -130,6 +132,8 @@ public class MediaItem: NSObject {
                 return "vertical_180"
             case .spherical:
                 return "spherical"
+            case .super_wide:
+                return "super_wide"
             }
         }
     }
@@ -194,6 +198,9 @@ public class MediaItem: NSObject {
         /// Available metaData types in this ressource.
         public let metadataTypes: Set<MetadataType>
 
+        /// Storage of the ressource.
+        public let storage: StorageType?
+
         /// Tells whether the media can be streamed from the device.
         public var streamable: Bool {
             if let availableTracks = getAvailableTracks() {
@@ -201,6 +208,9 @@ public class MediaItem: NSObject {
             }
             return false
         }
+
+        /// Tells whether the resource is signed.
+        public let signed: Bool
 
         /// Gets available tracks of media.
         /// Subclasses should override this function.
@@ -215,8 +225,10 @@ public class MediaItem: NSObject {
         ///   - location: resource creation location, may be `nil` if unavailable
         ///   - creationDate: media creation date
         ///   - metadataTypes: set of 'MetadataType' available in this ressource
+        ///   - storage: resource storage type `nil` if unavailable
+        ///   - signed: `true` if resource is signed, `false` otherwise
         init(uid: String, format: MediaItem.Format, size: UInt64, duration: TimeInterval?, location: CLLocation?,
-             creationDate: Date, metadataTypes: Set<MetadataType>) {
+             creationDate: Date, metadataTypes: Set<MetadataType>, storage: StorageType?, signed: Bool) {
             self.uid = uid
             self.format = format
             self.size = size
@@ -224,6 +236,8 @@ public class MediaItem: NSObject {
             self.location = location
             self.creationDate = creationDate
             self.metadataTypes = metadataTypes
+            self.storage = storage
+            self.signed = signed
         }
     }
 
@@ -238,6 +252,14 @@ public class MediaItem: NSObject {
 
     /// Unique identifier of the run for this media.
     public let runUid: String
+
+    /// Custom identifier defined by application if available, otherwise nil.
+    /// The custom identifier can be defined using `Camera2` component `Camera2MediaMetadata`.
+    public let customId: String?
+
+    /// Custom title defined by application if available, otherwise nil.
+    /// The custom title can be defined using `Camera2` component `Camera2MediaMetadata`.
+    public let customTitle: String?
 
     /// Media creation date.
     public let creationDate: Date
@@ -268,19 +290,23 @@ public class MediaItem: NSObject {
     ///   - name: media name
     ///   - type: media type
     ///   - runUid: unique identifier of the run for this media
+    ///   - customId: application custom identifier
+    ///   - customTitle: application custom title
     ///   - creationDate: media creation date
     ///   - expectedCount: expected number of resources in the media
     ///   - photoMode: photo mode of the media (if available and media is a photo else nil)
     ///   - panoramatype: panoramaType
     ///   - resources: available resources by formats
     ///   - metadataTypes: set of 'MetadataType' available in this media
-    init(uid: String, name: String, type: MediaType, runUid: String, creationDate: Date, expectedCount: UInt64?,
-         photoMode: MediaItem.PhotoMode?, panoramaType: PanoramaType?, resources: [Resource],
-         metadataTypes: Set<MetadataType>) {
+    init(uid: String, name: String, type: MediaType, runUid: String, customId: String?, customTitle: String?,
+         creationDate: Date, expectedCount: UInt64?, photoMode: MediaItem.PhotoMode?,
+         panoramaType: PanoramaType?, resources: [Resource], metadataTypes: Set<MetadataType>) {
         self.uid = uid
         self.name = name
         self.type = type
         self.runUid = runUid
+        self.customId = customId
+        self.customTitle = customTitle
         self.creationDate = creationDate
         self.expectedCount = expectedCount
         self.photoMode = photoMode

@@ -62,7 +62,7 @@ public enum CrashReportDownloadCompletionStatus: Int, CustomStringConvertible {
 public class CrashReportDownloaderState: NSObject {
     /// Current completion status of the crash report downloader.
     ///
-    /// The completion status changes to either `.interrupted` or `.success` when the download interrupted or
+    /// The completion status changes to either `.interrupted` or `.success` when the download has been interrupted or
     /// completes successfully,
     /// then remains in this state until another crash report download begins, where it switches back to `.none`.
     public internal(set) var status: CrashReportDownloadCompletionStatus

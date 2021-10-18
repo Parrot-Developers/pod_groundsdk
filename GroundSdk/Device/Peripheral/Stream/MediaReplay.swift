@@ -59,9 +59,9 @@ public class MediaReplaySourceFactory: NSObject {
     /// - Parameters:
     ///    - resource: media resource to stream
     ///    - track: stream track identifier
-    /// - Returns: media replay source
+    /// - Returns: media replay source, or nil if the resource is invalid
     @objc(videoTrackOf:track:)
-    public static func videoTrackOf(resource: MediaItem.Resource, track: MediaItem.Track) -> MediaReplaySource {
+    public static func videoTrackOf(resource: MediaItem.Resource, track: MediaItem.Track) -> MediaReplaySource? {
         return MediaSourceCore(resource: resource as! MediaItemResourceCore, track: track)
     }
 }

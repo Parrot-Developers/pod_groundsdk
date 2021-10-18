@@ -35,74 +35,60 @@ public class CameraLiveCore: StreamCore, CameraLive {
     /// Stream server managing the stream.
     private unowned let server: StreamServerCore
 
+    /// Camera live source being played back.
+    public let source: CameraLiveSource
+
     /// Current camera live playback state.
     public var playState: CameraLivePlayState = .none
 
     /// Constructor
     ///
-    /// - Parameter server: stream server
-    public init(server: StreamServerCore) {
+    /// - Parameters:
+    ///    - source: live source to stream
+    ///    - server: stream server
+    public init(source: CameraLiveSource, server: StreamServerCore) {
+        self.source = source
         self.server = server
         super.init()
+        self.backend = server.getStreamBackendLive(cameraType: source, streamCore: self)
         self.server.register(stream: self)
     }
 
     public func play() -> Bool {
-        return playState != .playing && queueCommand(command: .play)
-    }
-
-    public func pause() -> Bool {
-        return playState != .paused && queueCommand(command: .pause)
-    }
-
-    public override func stop() {
-        super.stop()
-    }
-
-    override func openStream(listener: SdkCoreStreamListener) -> SdkCoreStream? {
-        return server.openStream(url: "live", track: StreamCore.TRACK_DEFAULT_VIDEO, listener: listener)
-    }
-
-    override func onSuspension(suspendedCommand: Command?) -> Bool {
-        if let command = suspendedCommand {
-            switch command {
-            case .play:
-                update(playState: .playing)
-            case .pause:
-                update(playState: .paused)
-            default:
-                break
-            }
-        }
+        backend.play()
         return true
     }
 
-    override func onStop() {
-        update(playState: .none)
-        server.onStreamStopped(stream: self)
+    public func pause() -> Bool {
+        backend.pause()
+        return true
+    }
+
+    override public func stop() {
+        super.stop()
+    }
+
+    public override func interrupt() {
+        backend.enabled = false
+    }
+
+    /// Resume live stream if interrupted.
+    public override func resume() {
+        backend.enabled = true
     }
 
     override func onRelease() {
         server.unregister(stream: self)
     }
 
-    override func onPlaybackStateChanged(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval) {
-        update(playState: speed != 0 ? .playing : .paused)
-    }
-
-    /// Resume live stream if interrupted.
-    func resume() {
-        queueCommand(command: nil)
-    }
-
-    override func executeCommand(stream: SdkCoreStream, command: Command) {
-        switch command {
-        case .play:
-            stream.play()
-        case .pause:
-            stream.pause()
-        default:
-            ULog.w(.streamTag, "Unsupported command.")
+    override func onPlayStateChanged(playState: StreamPlayState) {
+        switch playState {
+        case .stopped:
+            update(playState: .none).notifyUpdated()
+        case .paused:
+            update(playState: .paused).notifyUpdated()
+        case .playing:
+            update(playState: .playing).notifyUpdated()
         }
     }
 }

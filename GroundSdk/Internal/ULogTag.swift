@@ -67,6 +67,15 @@ extension ULogTag {
     /// Logging tag of ground sdk flight log engine (internal)
     static let flightLogEngineTag = ULogTag(name: "gsdk.core.engine.flightlog")
 
+    /// Logging tag of ground sdk flight log converter engine (internal)
+    static let flightLogConverterEngineTag = ULogTag(name: "gsdk.core.engine.flightlogconverter")
+
+    /// Logging tag of ground sdk flight camera record engine (internal)
+    static let flightCameraRecordEngineTag = ULogTag(name: "gsdk.core.engine.flightcamerarecord")
+
+    /// Logging tag of ground sdk event log engine (internal)
+    static let eventLogEngineTag = ULogTag(name: "gsdk.core.engine.eventlog")
+
     /// Logging tag of ground sdk black box engine (internal)
     static let blackBoxEngineTag = ULogTag(name: "gsdk.core.engine.blackbox")
 
@@ -87,6 +96,9 @@ extension ULogTag {
 
     /// Logging tag of ground sdk flightLog reporter utility (internal)
     static let flightLogStorageTag = ULogTag(name: "gsdk.core.utility.flightlog")
+
+    /// Logging tag of ground sdk flightCameraRecord reporter utility (internal)
+    static let flightCameraRecordStorageTag = ULogTag(name: "gsdk.core.utility.flightcamerarecord")
 
     /// Logging tag of http client
     static let httpClientTag = ULogTag(name: "gsdk.core.httpclient")
@@ -112,6 +124,9 @@ extension ULogTag {
     /// Logging tag of ground sdk video stream engine (internal)
     static let videoStreamEngineTag = ULogTag(name: "gsdk.core.engine.stream")
 
+    /// Logging tag of ground sdk flight camera record collecting and upload to Parrot Cloud
+    static let parrotCloudFcrTag = ULogTag(name: "gsdk.parrotcloud.flightcamerarecord")
+
     /// tag myparrot debug
     static let myparrot = ULogTag(name: "MYPARROT-gsdkv1-")
 
@@ -119,5 +134,8 @@ extension ULogTag {
     static let hmdTag = ULogTag(name: "gsdk.hmd")
 
     /// tag MAVLink
-    static let mavlinkTag = ULogTag(name: "gsdk.mavlink")
+    static let mavlinkLegacyTag = ULogTag(name: "gsdk.mavlink-legacy")
+
+    /// tag MAVLink standard
+    static let mavlinkStandardTag = ULogTag(name: "gsdk.mavlink-standard")
 }

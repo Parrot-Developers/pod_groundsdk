@@ -35,6 +35,9 @@ public class ReplayCore: StreamCore, Replay {
     /// Current playback state.
     public var playState: ReplayPlayState = .none
 
+    /// Playback speed (multiplier), 0 when paused
+    public var speed: Double = 0.0
+
     /// Playback duration, in milliseconds.
     private var _duration: Int64 = 0
 
@@ -49,9 +52,9 @@ public class ReplayCore: StreamCore, Replay {
     /// Current playback position, in seconds.
     public var position: TimeInterval {
         var estimatedPosition = TimeInterval(Double(_position) / 1000.0)
-        if playState == .playing {
-            let timeDiff = ProcessInfo.processInfo.systemUptime - timestamp
-            estimatedPosition += timeDiff
+        if speed != 0.0 {
+            let timeDiff = TimeProvider.timeInterval - timestamp
+            estimatedPosition += speed * timeDiff
         }
         return min(estimatedPosition, duration)
     }
@@ -60,17 +63,22 @@ public class ReplayCore: StreamCore, Replay {
     private var timestamp: TimeInterval = 0
 
     public func play() -> Bool {
-        return playState != .playing
-            && (position < duration || state != .started)
-            && queueCommand(command: .play)
+        // Force a go back to the beginning, if the replay is at the ending.
+        if duration > 0 && position >= duration {
+            backend.seek(position: 0)
+        }
+        backend.play()
+        return true
     }
 
     public func pause() -> Bool {
-        return playState != .paused && queueCommand(command: .pause)
+        backend.pause()
+        return true
     }
 
     public func seekTo(position: TimeInterval) -> Bool {
-        return queueCommand(command: .seekTo(Int(position * 1000)))
+        backend.seek(position: Int(position * 1000.0))
+        return true
     }
 
     public override func stop() {
@@ -80,25 +88,31 @@ public class ReplayCore: StreamCore, Replay {
     override func onPlaybackStateChanged(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval) {
         self.timestamp = timestamp
         update(duration: duration)
-        _position = min(position, duration)
-        update(playState: speed != 0 ? .playing : .paused)
+        update(position: min(position, duration))
+        update(speed: speed)
+        update(timestamp: timestamp)
+
+        // Force pause at the end of the replay.
+        if duration > 0 && position >= duration && speed == 0 {
+            _ = pause()
+        }
     }
 
     override func onStop() {
         super.onStop()
-        timestamp = 0
-        _position = 0
-        playState = .none
+        update(position: 0)
+        update(speed: 0)
+        update(timestamp: 0)
     }
 
-    override func executeCommand(stream: SdkCoreStream, command: Command) {
-        switch command {
-        case .play:
-            stream.play()
-        case .pause:
-            stream.pause()
-        case .seekTo(let position):
-            stream.seek(to: Int32(position))
+    override func onPlayStateChanged(playState: StreamPlayState) {
+        switch playState {
+        case .stopped:
+            update(playState: .none).notifyUpdated()
+        case .paused:
+            update(playState: .paused).notifyUpdated()
+        case .playing:
+            update(playState: .playing).notifyUpdated()
         }
     }
 }
@@ -126,6 +140,45 @@ extension ReplayCore {
     public func update(duration: Int64) -> ReplayCore {
         if duration != _duration {
             _duration = duration
+            changed = true
+        }
+        return self
+    }
+
+    /// Updates playback position.
+    ///
+    /// - Parameter position: new playback position, in milliseconds
+    /// - Returns: self to allow call chaining
+    @discardableResult
+    public func update(position: Int64) -> ReplayCore {
+        if position != _position {
+            _position = position
+            changed = true
+        }
+        return self
+    }
+
+    /// Updates playback speed.
+    ///
+    /// - Parameter speed: new playback speed
+    /// - Returns: self to allow call chaining
+    @discardableResult
+    public func update(speed: Double) -> ReplayCore {
+        if speed != self.speed {
+            self.speed = speed
+            changed = true
+        }
+        return self
+    }
+
+    /// Updates playback timestamp.
+    ///
+    /// - Parameter timestamp: new playback timestamp
+    /// - Returns: self to allow call chaining
+    @discardableResult
+    public func update(timestamp: TimeInterval) -> ReplayCore {
+        if timestamp != self.timestamp {
+            self.timestamp = timestamp
             changed = true
         }
         return self

@@ -71,7 +71,7 @@ public protocol Copilot: Peripheral {
 }
 
 /// Setting to change the piloting source
-public protocol CopilotSetting: class {
+public protocol CopilotSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

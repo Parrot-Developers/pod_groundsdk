@@ -41,19 +41,20 @@ class MediaListRefCore: Ref<[MediaItem]> {
     /// Constructor
     ///
     /// - Parameters:
+    ///   - storage: the storage type
     ///   - mediaStore: media store instance
     ///   - observer: observer notified when the list changes
-    init(mediaStore: MediaStoreCore, observer: @escaping Observer) {
+    init(storage: StorageType? = nil, mediaStore: MediaStoreCore, observer: @escaping Observer) {
         self.mediaStore = mediaStore
         super.init(observer: observer)
         // register ourself on store change notifications
         mediaStoreListener = mediaStore.register {  [unowned self] in
             // store content changed, update media list
-            self.updateMediaList()
+            self.updateMediaList(storageType: storage)
         }
         setup(value: nil)
         // send the initial query
-        updateMediaList()
+        updateMediaList(storageType: storage)
     }
 
     /// destructor
@@ -65,22 +66,40 @@ class MediaListRefCore: Ref<[MediaItem]> {
     }
 
     /// Send a request to load media list
-    private func updateMediaList() {
+    private func updateMediaList(storageType: StorageType? = nil) {
         if mediaStore.published {
             if request == nil {
-                request = mediaStore.backend.browse { [weak self] medias in
+                if let storageType = storageType {
+                    request = mediaStore.backend.browse(storage: storageType, completion: { [weak self] medias in
 
-                    // weak self in case backend call callback after cancelling request
-                    if let `self` = self {
-                        `self`.request = nil
-                        // copy user data into the new items
-                        if let currentList = self.value as? [MediaItemCore] {
-                            for media in medias {
-                                media.userData = currentList.first(where: {return $0.uid == media.uid})?.userData
+                        // weak self in case backend call callback after cancelling request
+                        if let `self` = self {
+                            `self`.request = nil
+                            // copy user data into the new items
+                            if let currentList = self.value as? [MediaItemCore] {
+                                for media in medias {
+                                    media.userData = currentList.first(where: {return $0.uid == media.uid})?.userData
+                                }
                             }
+                            // update the ref with the new list
+                            `self`.update(newValue: medias)
                         }
-                        // update the ref with the new list
-                        `self`.update(newValue: medias)
+                    })
+                } else {
+                    request = mediaStore.backend.browse { [weak self] medias in
+
+                        // weak self in case backend call callback after cancelling request
+                        if let `self` = self {
+                            `self`.request = nil
+                            // copy user data into the new items
+                            if let currentList = self.value as? [MediaItemCore] {
+                                for media in medias {
+                                    media.userData = currentList.first(where: {return $0.uid == media.uid})?.userData
+                                }
+                            }
+                            // update the ref with the new list
+                            `self`.update(newValue: medias)
+                        }
                     }
                 }
             }

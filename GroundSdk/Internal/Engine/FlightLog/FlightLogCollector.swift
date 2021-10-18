@@ -77,6 +77,7 @@ class FlightLogCollector {
                 ULog.e(.flightLogEngineTag, "Failed to create folder at \(self.rootDir.path): \(err)")
                 return
             }
+            FlightLogEngineBase.createDebugDir()
 
             var toUpload: [URL] = []
             var toDelete: Set<URL> = []
@@ -94,11 +95,19 @@ class FlightLogCollector {
                     let logUrls = try? FileManager.default.contentsOfDirectory(
                         at: dir, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
                     logUrls?.forEach { logUrl in
-                        // if the report is finalized
-                        if logUrl.isAFinalizedFlightLog {
+                        if logUrl.isConverting { // if the report crashed while converting to gutma.
+                            FlightLogEngineBase.recoverFile(flightLog: logUrl)
+                            GroundSdkCore.logEvent(
+                                message: "EVT:GUTMA;event='convert';file='\(logUrl.lastPathComponent)';result='crash'")
+                        } else if logUrl.isAnonymizing { // if the report crashed while anonymizing.
+                            FlightLogEngineBase.recoverFile(flightLog: logUrl)
+                            GroundSdkCore.logEvent(
+                                message: "EVT:LOGS;event='anonymize';file='\(logUrl.lastPathComponent)';result='crash'")
+                        } else if logUrl.isAFinalizedFlightLog { // if the report is finalized
                             // keep the parent folder
                             toDelete.remove(dir)
 
+                            // remove file if processing
                             toUpload.append(logUrl)
                         } else {
                             toDelete.insert(logUrl)
@@ -132,6 +141,7 @@ class FlightLogCollector {
     /// - Note: This function **must** be called from the `ioQueue`.
     /// - Parameter url: url of the flightLog report to delete
     private func doDeleteFlightLog(at url: URL) {
+        ULog.d(.myparrot, "Delete FlightLog \(url)")
         do {
             try FileManager.default.removeItem(at: url)
         } catch let err {
@@ -145,5 +155,15 @@ private extension URL {
     /// Whether the flightLog report located at this url is finalized (i.e. fully downloaded) or not.
     var isAFinalizedFlightLog: Bool {
         return pathExtension == "bin"
+    }
+
+    /// Whether the flightLog report is converting  (i.e. converter crashed)  or not
+    var isConverting: Bool {
+        return pathExtension == "converting"
+    }
+
+    /// Whether the flightLog report is anonymizing  (i.e. anonymization crashed)  or not
+    var isAnonymizing: Bool {
+        return pathExtension == "anonymizing"
     }
 }

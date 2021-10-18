@@ -118,9 +118,22 @@ public class DeviceState: NSObject {
     /// Whether the device can be disconnected.
     public internal(set) var canBeDisconnected = false
 
+    /// Gets duration before shutdown.
+    ///
+    /// - Note: Current duration before shutdown or 0 when no shutdown is planned
+    public var durationBeforeShutDown: TimeInterval {
+        if let shutDownDate = _shutDownDate {
+            return -Date().timeIntervalSince(shutDownDate)
+        } else {
+            return 0
+        }
+    }
+
     internal var _connectors = [DeviceConnectorCore]()
 
     internal var _activeConnector: DeviceConnectorCore?
+
+    internal var _shutDownDate: Date?
 
     /// Debug description.
     override public var description: String {

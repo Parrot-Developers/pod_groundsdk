@@ -65,7 +65,7 @@ public enum GlRenderSinkPaddingFill: Int, CustomStringConvertible {
 }
 
 /// GlRenderSink listener.
-public protocol GlRenderSinkListener: class {
+public protocol GlRenderSinkListener: AnyObject {
 
     /// Called when the renderer is ready to be started.
     ///
@@ -113,11 +113,7 @@ public protocol GlRenderSink: StreamSink {
     var histogramsEnabled: Bool { get set }
 
     /// Listener for overlay rendering.
-    /// Deprecated: use `overlayer2` instead.
     var overlayer: Overlayer? { get set }
-
-    /// Listener for overlay rendering.
-    var overlayer2: Overlayer2? { get set }
 
     /// Start renderer.
     ///
@@ -136,5 +132,5 @@ public protocol GlRenderSink: StreamSink {
     ///
     /// - Parameter listener: listener notified of sink events
     /// - Returns: a new GlRenderSink configuration
-    func config(listener: GlRenderSinkListener) -> StreamSinkConfig
+    static func config(listener: GlRenderSinkListener) -> StreamSinkConfig
 }

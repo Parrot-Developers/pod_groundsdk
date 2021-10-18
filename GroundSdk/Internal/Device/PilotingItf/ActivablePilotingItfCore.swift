@@ -31,7 +31,7 @@ import Foundation
 
 /// Piloting interface backend common part.
 /// All activable piloting interfaces must be subprotocol of this protocol
-public protocol ActivablePilotingItfBackend: class {
+public protocol ActivablePilotingItfBackend: AnyObject {
     /// Deactivate this piloting interface
     /// - Returns: false if it can't be deactivated
     func deactivate() -> Bool

@@ -37,10 +37,12 @@ public class FlyingIndicatorsCore: InstrumentCore, FlyingIndicators {
     public var landedState: FlyingIndicatorsLandedState = .initializing
     /// Current flying state
     internal(set) public var flyingState: FlyingIndicatorsFlyingState = .none
+    /// Whether the drone is currently hand landing
+    internal(set) public var isHandLanding = false
 
     /// Debug description
     public override var description: String {
-        return "FlyingIndicatorsCore \(state)-\(landedState)-\(flyingState)"
+        return "FlyingIndicatorsCore \(state)-\(landedState)-\(flyingState)\(isHandLanding ? "-handLanding" : "")"
     }
 
     /// Constructor
@@ -119,6 +121,20 @@ public class FlyingIndicatorsCore: InstrumentCore, FlyingIndicators {
             if state != .landed {
                 landedState = .none
             }
+        }
+        return self
+    }
+
+    // can't be declared in the extension because it is overriden by subclasses
+    /// Changes the hand landing indication.
+    ///
+    /// - Parameter isHandLanding: whether the drone is handlanding or not
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(isHandLanding newValue: Bool) -> FlyingIndicatorsCore {
+        if isHandLanding != newValue {
+            isHandLanding = newValue
+            markChanged()
         }
         return self
     }

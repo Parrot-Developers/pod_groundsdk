@@ -30,7 +30,7 @@
 import GLKit
 
 /// The GGLShaderLoader protocol describes an OpenGL object, with the ability to load shaders.
-protocol GGLShaderLoader: class {
+protocol GGLShaderLoader: AnyObject {
 
     // Id of the GL program
     var programId: GLuint {get set}

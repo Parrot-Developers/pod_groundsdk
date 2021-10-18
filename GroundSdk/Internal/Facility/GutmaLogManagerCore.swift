@@ -30,7 +30,7 @@
 import Foundation
 
 /// Gutma Log Manager backend
-protocol GutmaLogManagerBackend: class {
+protocol GutmaLogManagerBackend: AnyObject {
     /// Deletes a gutma log.
     ///
     /// - Parameter file: URL of the file gutma log file to delete

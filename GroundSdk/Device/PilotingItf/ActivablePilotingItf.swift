@@ -52,7 +52,7 @@ public enum ActivablePilotingItfState: Int, CustomStringConvertible {
 
 /// Base protocol for the piloting interfaces components that can be activated or deactivated.
 @objc(GSActivablePilotingItf)
-public protocol ActivablePilotingItf: class {
+public protocol ActivablePilotingItf: AnyObject {
     /// Piloting interface state. There is only one piloting interface active at a time on a drone.
     var state: ActivablePilotingItfState { get }
 

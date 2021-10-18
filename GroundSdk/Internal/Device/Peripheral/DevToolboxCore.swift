@@ -30,7 +30,7 @@
 import Foundation
 
 /// Development toolbox backend part.
-public protocol DevToolboxBackend: class {
+public protocol DevToolboxBackend: AnyObject {
     /// Sets the value of a boolean debug setting.
     ///
     /// - Parameter setting: setting to set

@@ -30,7 +30,7 @@
 import Foundation
 
 /// Firmare updater backend
-public protocol UpdaterBackend: class {
+public protocol UpdaterBackend: AnyObject {
     /// Requests firmware download.
     ///
     /// - Parameters:

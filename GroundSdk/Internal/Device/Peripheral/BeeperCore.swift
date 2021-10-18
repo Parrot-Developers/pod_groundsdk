@@ -30,7 +30,7 @@
 import Foundation
 
 /// Beeper backend part.
-public protocol BeeperBackend: class {
+public protocol BeeperBackend: AnyObject {
     /// Commands the device to play alert sound.
     ///
     /// The alert sound shall be stopped with `stopAlertSound`.

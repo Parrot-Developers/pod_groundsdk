@@ -39,31 +39,20 @@ public protocol SinkCoreConfig: StreamSinkConfig {
     func openSink(stream: StreamCore) -> SinkCore
 }
 
+/// Sink backend
+public protocol SinkBackend {
+    /// Closes the sink.
+    func close()
+}
+
 /// Base stream sink.
 public class SinkCore: NSObject, StreamSink {
 
-    /// Stream core.
-    unowned let streamCore: StreamCore
+    /// Internal renderer.
+    var backend: SinkBackend!
 
-    /// Constructor
-    ///
-    /// - Parameter streamCore: sink's stream
-    public init(streamCore: StreamCore) {
-        self.streamCore = streamCore
-        super.init()
-        streamCore.register(sink: self)
-    }
-
+    /// Closes the sink.
     public func close() {
-        onSdkCoreStreamUnavailable()
-        streamCore.unregister(sink: self)
-    }
-
-    func onSdkCoreStreamAvailable(stream: SdkCoreStream) {
-        fatalError("Subclasses shall implement this method.")
-    }
-
-    func onSdkCoreStreamUnavailable() {
-        fatalError("Subclasses shall implement this method.")
+        backend.close()
     }
 }

@@ -76,7 +76,7 @@ public class DroneListRefCore: Ref<[DroneListEntry]> {
     }
 
     private func droneRemoved(_ drone: DroneCore) {
-        if let idx = value!.index(where: { $0.uid == drone.uid }) {
+        if let idx = value!.firstIndex(where: { $0.uid == drone.uid }) {
             var newList = value!
             newList.remove(at: idx)
             update(newValue: newList)
@@ -88,7 +88,7 @@ public class DroneListRefCore: Ref<[DroneListEntry]> {
         // create new entry with updated data (some entry data are value type)
         let entry = DroneListEntry(drone: drone)
         // check if the drone is already in the list
-        if let idx = value!.index(where: { $0.uid == drone.uid }) {
+        if let idx = value!.firstIndex(where: { $0.uid == drone.uid }) {
             // drone is in the list, check if it still pass the filter
             if filter(entry) {
                 newList[idx] = entry

@@ -30,7 +30,7 @@
 import Foundation
 
 /// Wifi access point backend
-public protocol WifiAccessPointBackend: class {
+public protocol WifiAccessPointBackend: AnyObject {
 
     /// Sets the access point environment
     ///

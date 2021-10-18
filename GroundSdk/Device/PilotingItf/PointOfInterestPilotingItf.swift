@@ -63,6 +63,41 @@ public enum PointOfInterestMode: Int, CustomStringConvertible {
     }
 }
 
+/// Reasons why a poi piloting interface may be unavailable.
+@objc(GSPOIIssue)
+public enum POIIssue: Int, CustomStringConvertible {
+
+    /// Drone gps is not fixed or has a poor accuracy.
+    case droneGpsInfoInaccurate
+
+    /// Drone is not calibrated.
+    case droneNotCalibrated
+
+    /// Drone is outside of the geofence.
+    case droneOutOfGeofence
+
+    /// Drone is too close to the ground.
+    case droneTooCloseToGround
+
+    /// Drone is above max altitude.
+    case droneAboveMaxAltitude
+
+    /// Drone is not flying.
+    case droneNotFlying
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .droneGpsInfoInaccurate:           return "droneGpsInfoInaccurate"
+        case .droneNotCalibrated:               return "droneNotCalibrated"
+        case .droneOutOfGeofence:               return "droneOutOfGeofence"
+        case .droneTooCloseToGround:            return "droneTooCloseToGround"
+        case .droneAboveMaxAltitude:            return "droneAboveMaxAltitude"
+        case .droneNotFlying:                   return "droneNotFlying"
+        }
+    }
+}
+
 /// Point Of Interest piloting interface.
 ///
 /// During a piloted Point Of Interest, the drone always points towards the given Point Of Interest but can be piloted
@@ -78,11 +113,107 @@ public enum PointOfInterestMode: Int, CustomStringConvertible {
 /// ```
 /// drone.getPilotingItf(PilotingItfs.poi)
 /// ```
-@objc(GSPointOfInterestPilotingItf)
 public protocol PointOfInterestPilotingItf: PilotingItf, ActivablePilotingItf {
 
     /// Current targeted Point Of Interest. `nil` if there's no piloted Point Of Interest in progress.
     var currentPointOfInterest: PointOfInterest? { get }
+
+    /// Tells why this piloting interface may currently be unavailable.
+    ///
+    /// The set of reasons that preclude this piloting interface from being available at present.
+    var availabilityIssues: Set<POIIssue>? { get }
+
+    /// Starts a piloted Point Of Interest in locked gimbal mode.
+    ///
+    /// This is equivalent to calling:
+    /// ```
+    /// start(latitude, longitude, altitude, .lockedGimbal)
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - latitude: latitude of the location (in degrees) to look at
+    ///   - longitude: longitude of the location (in degrees) to look at
+    ///   - altitude: altitude above take off point (in meters) to look at
+    func start(latitude: Double, longitude: Double, altitude: Double)
+
+    /// Starts a piloted Point Of Interest.
+    ///
+    /// - Parameters:
+    ///   - latitude: latitude of the location (in degrees) to look at
+    ///   - longitude: longitude of the location (in degrees) to look at
+    ///   - altitude: altitude above take off point (in meters) to look at
+    ///   - mode: point of interest mode
+    func start(latitude: Double, longitude: Double, altitude: Double, mode: PointOfInterestMode)
+
+    /// Sets the current pitch value.
+    ///
+    /// Expressed as a signed percentage of the max pitch/roll setting (`maxPitchRoll`), in range [-100, 100].
+    /// * -100 corresponds to a pitch angle of max pitch/roll towards ground (copter will fly forward)
+    /// * 100 corresponds to a pitch angle of max pitch/roll towards sky (copter will fly backward)
+    ///
+    /// - Note: This value may be clamped if necessary, in order to respect the maximum supported physical tilt of
+    /// the copter.
+    ///
+    /// - Parameter pitch: the new pitch value to set
+    func set(pitch: Int)
+
+    /// Sets the current roll value.
+    ///
+    /// Expressed as a signed percentage of the max pitch/roll setting (`maxPitchRoll`), in range [-100, 100].
+    /// * -100 corresponds to a roll angle of max pitch/roll to the left (copter will fly left)
+    /// * 100 corresponds to a roll angle of max pitch/roll to the right (copter will fly right)
+    ///
+    /// - Note: This value may be clamped if necessary, in order to respect the maximum supported physical tilt of
+    /// the copter.
+    ///
+    /// - Parameter roll: the new roll value to set
+    func set(roll: Int)
+
+    /// Sets the current vertical speed value.
+    ///
+    /// Expressed as a signed percentage of the max vertical speed setting (`maxVerticalSpeed`), in range [-100, 100].
+    /// * -100 corresponds to max vertical speed towards ground
+    /// * 100 corresponds to max vertical speed towards sky
+    ///
+    /// - Parameter verticalSpeed: the new vertical speed value to set
+    func set(verticalSpeed: Int)
+}
+
+// MARK: - objc compatibility
+
+/// Objective-C version of PointOfInterestPilotingItf.
+///
+/// During a piloted Point Of Interest, the drone always points towards the given Point Of Interest but can be piloted
+/// normally. However, yaw value is not settable.
+///
+/// There are two variants of piloted Point Of Interest:
+///   - In `.lockedGimbal` mode, the gimbal always looks at the Point Of Interest. Gimbal control command is ignored by
+///     the drone.
+///   - In `.freeGimbal` mode, the gimbal initially looks at the Point Of Interest, and is then freely controllable by
+///     the gimbal command.
+///
+/// - Note: This class is for Objective-C only and must not be used in Swift.
+@objc
+public protocol GSPointOfInterestPilotingItf: PilotingItf, ActivablePilotingItf {
+    /// Current targeted Point Of Interest. `nil` if there's no piloted Point Of Interest in progress.
+    @objc(currentPointOfInterest)
+    var currentPointOfInterest: PointOfInterest? { get }
+
+    /// If the interface is `unavailable`, each POIIssue case can be tested.
+    ///
+    /// - Parameter issue: issue to be tested
+    /// - Returns: `true` if the issue is present, `false` otherwise
+    func availabilityIssuesContains( _ issue: POIIssue) -> Bool
+
+    /// Tells if at least one availabilityIssue is present
+    ///
+    /// - Returns: `true` if there is no availability POIIssue, `false` otherwise
+    func availabilityIssuesIsEmpty() -> Bool
+
+    /// Tells if availability is supported
+    ///
+    /// - Returns: `true` if availability is supported, `false` otherwise
+    func availabilitySupported() -> Bool
 
     /// Starts a piloted Point Of Interest in locked gimbal mode.
     ///

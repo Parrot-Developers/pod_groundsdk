@@ -29,30 +29,57 @@
 
 import Foundation
 
-/// Video stream backend part.
-public protocol StreamServerBackend: class {
+/// Stream Source Backend.
+public protocol StreamSourceBackend: AnyObject {
+    /// Opens the source.
+    func open()
+}
 
-    /// Open an internal stream instance.
+/// Video stream server backend.
+public protocol StreamServerBackend: AnyObject {
+
+    /// 'true' when streaming is enabled.
+    var enabled: Bool { get set }
+
+    /// Retrieves live stream backend.
     ///
     /// - Parameters:
-    ///    - url: url of the stream to open
-    ///    - track: track of the stream to open
-    ///    - listener: listener for stream events
-    /// - Returns: a new stream instance on success, otherwise 'nil'
-    func openStream(url: String, track: String, listener: SdkCoreStreamListener) -> SdkCoreStream?
+    ///    - cameraType: camera type of the live stream to open
+    ///    - stream: stream owner of the backend
+    /// - Returns: a new live stream backend
+    func getStreamBackendLive(cameraType: CameraLiveSource, stream: StreamCore) -> StreamBackend
+
+    /// Retrieves media stream backend.
+    ///
+    /// - Parameters:
+    ///    - url: url of the media stream to open
+    ///    - trackName: track name of the stream to open
+    ///    - stream: stream owner of the backend
+    /// - Returns: a new media stream backend
+    func getStreamBackendMedia(url: String, trackName: String?, stream: StreamCore) -> StreamBackend
+
+    /// Registers a stream.
+    ///
+    /// - Parameter stream: stream to register
+    func register(stream: StreamCore)
+
+    /// Unregisters a stream.
+    ///
+    /// - Parameter stream: stream to unregister
+    func unregister(stream: StreamCore)
+
+    /// Retrieves a camera live stream.
+    ///
+    /// - Parameter source: the camera live source of the live stream to retrieve
+    /// - Returns: the camera live stream researched or `nil` if there not already exists
+    func getCameraLive(source: CameraLiveSource) -> CameraLiveCore?
 }
 
 /// Internal stream server peripheral implementation
 public class StreamServerCore: PeripheralCore, StreamServer {
 
     /// Implementation backend.
-    private let backend: StreamServerBackend
-
-    /// Live stream unique instance.
-    private var cameraLive: CameraLiveCore?
-
-    /// Open streams (including 'cameraLive').
-    private var streams: Set<StreamCore> = []
+    private unowned let backend: StreamServerBackend
 
     /// 'true' when streaming is enabled.
     private var _enabled = false
@@ -63,18 +90,7 @@ public class StreamServerCore: PeripheralCore, StreamServer {
             return _enabled
         }
         set (enabled) {
-            if enabled != _enabled {
-                _enabled = enabled
-                markChanged()
-                if _enabled {
-                    resumeLive()
-                } else {
-                    for stream in streams {
-                        stream.interrupt()
-                    }
-                }
-                notifyUpdated()
-            }
+            backend.enabled = enabled
         }
     }
 
@@ -88,35 +104,46 @@ public class StreamServerCore: PeripheralCore, StreamServer {
         super.init(desc: Peripherals.streamServer, store: store)
     }
 
+    /// Retrieves default live stream and registers an observer notified each time it changes.
+    ///
+    /// - Parameters:
+    ///    - observer: observer notified each time this stream changes
+    /// - Returns: reference to the default live stream
     public func live(observer: @escaping (CameraLive?) -> Void) -> Ref<CameraLive> {
-        return CameraLiveRefCore(observer: observer, stream: getCameraLive())
+        return live(source: CameraLiveSource.unspecified, observer: observer)
     }
 
+    /// Retrieves live stream and registers an observer notified each time it changes.
+    ///
+    /// - Parameters:
+    ///    - source: type of camera live source to stream
+    ///    - observer: observer notified each time this stream changes
+    /// - Returns: reference to the requested live stream
+    public func live(source: CameraLiveSource, observer: @escaping (CameraLive?) -> Void) -> Ref<CameraLive> {
+        return CameraLiveRefCore(observer: observer, stream: getCameraLive(source: source))
+    }
+
+    /// Retrieves replay stream and registers an observer notified each time it changes.
+    ///
+    /// - Parameters:
+    ///    - source: media replay source to stream
+    ///    - observer: observer notified each time this stream changes
+    /// - Returns: reference to the requested replay stream
     public func replay(source: MediaReplaySource, observer: @escaping (MediaReplay?) -> Void) -> Ref<MediaReplay>? {
         return MediaReplayRefCore(observer: observer,
                                   stream: newMediaReplay(source: source as! MediaSourceCore))
     }
 
-    /// Called when the component is unpublished
-    override func reset() {
-        cameraLive?.releaseStream()
-        cameraLive?.unpublish()
-        cameraLive = nil
-        for stream in streams {
-            stream.unpublish()
-        }
-        streams.removeAll()
-    }
-
     /// Get shared camera live stream
     ///
+    /// - Parameter resource: live source to be streamed
     /// - Returns: shared camera live stream instance
-    func getCameraLive() -> CameraLiveCore {
-        if cameraLive == nil {
-            cameraLive = CameraLiveCore(server: self)
-            streams.insert(cameraLive!)
+    func getCameraLive(source: CameraLiveSource) -> CameraLiveCore {
+        if let live = backend.getCameraLive(source: source) {
+            return live
+        } else {
+            return CameraLiveCore(source: source, server: self)
         }
-        return cameraLive!
     }
 
     /// Create a new media replay stream
@@ -127,51 +154,39 @@ public class StreamServerCore: PeripheralCore, StreamServer {
         return MediaReplayCore(server: self, source: source)
     }
 
-    /// Open an internal stream instance.
+    /// Retrieves live stream backend.
     ///
     /// - Parameters:
-    ///    - url: url of the stream to open
-    ///    - track: track of the stream to open
-    ///    - listener: listener for stream events
-    /// - Returns: a new stream instance on success, otherwise 'nil'
-    func openStream(url: String, track: String, listener: SdkCoreStreamListener) -> SdkCoreStream? {
-        return _enabled ? backend.openStream(url: url, track: track, listener: listener) : nil
+    ///    - cameraType: camera type of the live stream to open
+    ///    - stream: stream owner of the backend
+    /// - Returns: a new live stream backend
+    func getStreamBackendLive(cameraType: CameraLiveSource, streamCore: StreamCore) -> StreamBackend {
+        return backend.getStreamBackendLive(cameraType: cameraType, stream: streamCore)
+    }
+
+    /// Retrieves media stream backend.
+    ///
+    /// - Parameters:
+    ///    - url: url of the media stream to open
+    ///    - trackName: track name of the stream to open
+    ///    - stream: stream owner of the backend
+    /// - Returns: a new media stream backend
+    func getStreamBackendMedia(url: String, trackName: String?, streamCore: StreamCore) -> StreamBackend {
+        return backend.getStreamBackendMedia(url: url, trackName: trackName, stream: streamCore)
     }
 
     /// Register a stream.
     ///
     /// - Parameter stream: stream to register
     func register(stream: StreamCore) {
-        streams.insert(stream)
+        backend.register(stream: stream)
     }
 
     /// Unregister a stream.
     ///
     /// - Parameter stream: stream to unregister
     func unregister(stream: StreamCore) {
-        streams.remove(stream)
-    }
-
-    /// Called when a stream has stopped.
-    ///
-    /// In case all other stream are stopped, resumes interrupted live stream if appropriate.
-    ///
-    /// - Parameter stream: stream that stopped
-    func onStreamStopped(stream: StreamCore) {
-        for stream in streams {
-            let state = stream.state
-            if state != .suspended, state != .stopped {
-                return
-            }
-        }
-        resumeLive()
-    }
-
-    /// Resume live stream in case it is interrupted
-    private func resumeLive() {
-        if let stream = cameraLive {
-            stream.resume()
-        }
+        backend.unregister(stream: stream)
     }
 }
 
@@ -187,6 +202,7 @@ extension StreamServerCore {
         if enable != _enabled {
             _enabled = enable
             markChanged()
+            notifyUpdated()
         }
         return self
     }
@@ -195,8 +211,9 @@ extension StreamServerCore {
 /// Extension that implements the StreamServer protocol for the Objective-C API
 extension StreamServerCore: GSStreamServer {
 
-    public func live(observer: @escaping (CameraLive?) -> Void) -> GSCameraLiveRef {
-        return GSCameraLiveRef(ref: live(observer: observer))
+    public func live(source: CameraLiveSource,
+                     observer: @escaping (_ stream: CameraLive?) -> Void) -> GSCameraLiveRef {
+        return GSCameraLiveRef(ref: live(source: source, observer: observer))
     }
 
     public func replay(source: MediaReplaySource, observer: @escaping (MediaReplay?) -> Void) -> GSMediaReplayRef? {

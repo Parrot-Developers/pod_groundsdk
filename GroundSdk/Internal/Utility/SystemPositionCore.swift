@@ -288,23 +288,20 @@ class SystemPositionCoreImpl: SystemPositionCore {
 
         self.systemLocationObserver = systemObserver
         // set CallBacks in systemObsesver
-        self.systemLocationObserver.locationDidChange = {
-            [unowned self] (newLocation) in
+        self.systemLocationObserver.locationDidChange = { [unowned self] (newLocation) in
             if newLocation != self.userLocation {
                 // the didSet of self.userLocation will notify
                 self.userLocation = newLocation
             }
         }
 
-        self.systemLocationObserver.authorizedDidChange  = {
-            [unowned self] (newAuthorized) in
+        self.systemLocationObserver.authorizedDidChange  = { [unowned self] (newAuthorized) in
             if newAuthorized != self.authorized {
                 // the didSet of authorized will notify
                 self.authorized = newAuthorized
             }
         }
-        self.systemLocationObserver.headingDidChange = {
-            [unowned self] (newHeading) in
+        self.systemLocationObserver.headingDidChange = { [unowned self] (newHeading) in
             if newHeading != self.heading {
                 // the didSet of self.heading will notify
                 self.heading = newHeading

@@ -55,6 +55,12 @@ public class Alarm: NSObject {
         /// Battery is too cold.
         case batteryTooCold
 
+        /// Battery gauge software update required.
+        case batteryGaugeUpdateRequired
+
+        /// Battery authentication has failed.
+        case batteryAuthenticationFailure
+
         /// Hovering is difficult due to a lack of GPS positioning and not enough light to use its vertical camera.
         case hoveringDifficultiesNoGpsTooDark
 
@@ -100,13 +106,9 @@ public class Alarm: NSObject {
         case strongVibrations
 
         /// A magnetic element disturbs the drone's magnetometer and alters the drone ability to fly safely.
-        ///
-        /// Deprecated: use `headingLock` instead.
         case magnetometerPertubation
 
         /// The local terrestrial magnetic field is too weak to allow to fly safely.
-        ///
-        /// Deprecated: use `headingLock` instead.
         case magnetometerLowEarthField
 
         /// Drone heading lock altered by magnetic perturbations.
@@ -120,36 +122,107 @@ public class Alarm: NSObject {
         /// Location information sent by the controller is unreliable.
         case unreliableControllerLocation
 
+        /// Drone started three motors flight as one motor is not currently working.
+        case threeMotorsFlight
+
+        /// Drone is avoiding an obstacle and distance from nominal trajectory exceeds threshold.
+        case highDeviation
+
+        /// Drone is stuck by a presumably large obstacle.
+        case droneStuck
+
+        /// Obstacle avoidance is disabled because perception system is unplugged or not working properly.
+        case obstacleAvoidanceDisabledStereoFailure
+
+        /// Obstacle avoidance is disabled because perception system lens is dirty or broken.
+        case obstacleAvoidanceDisabledStereoLensFailure
+
+        /// Obstacle avoidance is disabled because gimbal is not stabilized in direction of motion.
+        case obstacleAvoidanceDisabledGimbalFailure
+
+        /// Obstacle avoidance is disabled because environment is too dark for perception system or vertical camera.
+        case obstacleAvoidanceDisabledTooDark
+
+        /// Obstacle avoidance is disabled because GPS and vertical camera do not provide reliable data.
+        case obstacleAvoidanceDisabledEstimationUnreliable
+
+        /// Obstacle avoidance is disabled because perception system is not calibrated.
+        case obstacleAvoidanceDisabledCalibrationFailure
+
+        /// Obstacle avoidance is available and enabled but in degraded mode due to strong wind.
+        case obstacleAvoidanceStrongWind
+
+        /// Obstacle avoidance is available and enabled but in degraded mode due to poor gps.
+        case obstacleAvoidancePoorGps
+
+        /// Obstacle avoidance is unavailable and disabled but failed to compute trajectories.
+        case obstacleAvoidanceComputationalError
+
+        /// Obstacle avoidance is available and enabled but the perception system is blind in the current motion
+        /// direction.
+        case obstacleAvoidanceBlindMotionDirection
+
+        /// Drone inclination is to high to fly safely.
+        case inclinationTooHigh
+
+        /// Horizontal geofence reached.
+        case horizontalGeofenceReached
+
+        /// Vertical geofence reached.
+        case verticalGeofenceReached
+
         /// Debug description.
         public var description: String {
             switch self {
-            case .power:                            return "power"
-            case .motorCutOut:                      return "motorCutOut"
-            case .userEmergency:                    return "userEmergency"
-            case .motorError:                       return "motorError"
-            case .batteryTooHot:                    return "batteryTooHot"
-            case .batteryTooCold:                   return "batteryTooCold"
-            case .hoveringDifficultiesNoGpsTooDark: return "hoveringDifficultiesNoGpsTooDark"
-            case .hoveringDifficultiesNoGpsTooHigh: return "hoveringDifficultiesNoGpsTooHigh"
-            case .automaticLandingBatteryIssue:     return "automaticLandingBatteryIssue"
-            case .wind:                             return "wind"
-            case .verticalCamera:                   return "verticalCamera"
-            case .strongVibrations:                 return "strongVibrations"
-            case .magnetometerPertubation:          return "magnetometerPertubation"
-            case .magnetometerLowEarthField:        return "magnetometerLowEarthField"
-            case .headingLock:                      return "headingLock"
-            case .unreliableControllerLocation:     return "unreliableControllerLocation"
+            case .power:                                         return "power"
+            case .motorCutOut:                                   return "motorCutOut"
+            case .userEmergency:                                 return "userEmergency"
+            case .motorError:                                    return "motorError"
+            case .batteryTooHot:                                 return "batteryTooHot"
+            case .batteryTooCold:                                return "batteryTooCold"
+            case .batteryGaugeUpdateRequired:                    return "batteryGaugeUpdateRequired"
+            case .batteryAuthenticationFailure:                  return "batteryAuthenticationFailure"
+            case .hoveringDifficultiesNoGpsTooDark:              return "hoveringDifficultiesNoGpsTooDark"
+            case .hoveringDifficultiesNoGpsTooHigh:              return "hoveringDifficultiesNoGpsTooHigh"
+            case .automaticLandingBatteryIssue:                  return "automaticLandingBatteryIssue"
+            case .wind:                                          return "wind"
+            case .verticalCamera:                                return "verticalCamera"
+            case .strongVibrations:                              return "strongVibrations"
+            case .magnetometerPertubation:                       return "magnetometerPertubation"
+            case .magnetometerLowEarthField:                     return "magnetometerLowEarthField"
+            case .headingLock:                                   return "headingLock"
+            case .unreliableControllerLocation:                  return "unreliableControllerLocation"
+            case .threeMotorsFlight:                             return "threeMotorsFlight"
+            case .highDeviation:                                 return "highDeviation"
+            case .droneStuck:                                    return "droneStuck"
+            case .obstacleAvoidanceDisabledStereoFailure:        return "obstacleAvoidanceDisabledStereoFailure"
+            case .obstacleAvoidanceDisabledStereoLensFailure:    return "obstacleAvoidanceDisabledStereoLensFailure"
+            case .obstacleAvoidanceDisabledGimbalFailure:        return "obstacleAvoidanceDisabledGimbalFailure"
+            case .obstacleAvoidanceDisabledTooDark:              return "obstacleAvoidanceDisabledTooDark"
+            case .obstacleAvoidanceDisabledEstimationUnreliable: return "obstacleAvoidanceDisabledEstimationUnreliable"
+            case .obstacleAvoidanceDisabledCalibrationFailure:   return "obstacleAvoidanceDisabledCalibrationFailure"
+            case .obstacleAvoidanceStrongWind:                   return "obstacleAvoidanceStrongWind"
+            case .obstacleAvoidancePoorGps:                      return "obstacleAvoidancePoorGps"
+            case .obstacleAvoidanceComputationalError:           return "obstacleAvoidanceComputationalError"
+            case .obstacleAvoidanceBlindMotionDirection:         return "obstacleAvoidanceBlindMotionDirection"
+            case .inclinationTooHigh:                            return "inclinationTooHigh"
+            case .horizontalGeofenceReached:                     return "horizontalGeofenceReached"
+            case .verticalGeofenceReached:                       return "verticalGeofenceReached"
             }
         }
 
-        /// Set containing all possible kind of alarm.
-        public static let allCases: Set<Kind> = [.power, .motorCutOut, .userEmergency, .motorError, .batteryTooHot,
-                                                 .batteryTooCold, .hoveringDifficultiesNoGpsTooDark,
-                                                 .hoveringDifficultiesNoGpsTooHigh,
-                                                 .automaticLandingBatteryIssue, .wind,
-                                                 .verticalCamera, .strongVibrations, .magnetometerPertubation,
-                                                 .magnetometerLowEarthField, .unreliableControllerLocation,
-                                                 .headingLock]
+        /// Set containing all possible kinds of alarm.
+        public static let allCases: Set<Kind> = [
+            .power, .motorCutOut, .userEmergency, .motorError, .batteryTooHot, .batteryTooCold,
+            .batteryGaugeUpdateRequired, .batteryAuthenticationFailure, .hoveringDifficultiesNoGpsTooDark,
+            .hoveringDifficultiesNoGpsTooHigh, .automaticLandingBatteryIssue, .wind, .verticalCamera, .strongVibrations,
+            .magnetometerPertubation, .magnetometerLowEarthField, .unreliableControllerLocation, .headingLock,
+            .threeMotorsFlight, .highDeviation, .droneStuck, .obstacleAvoidanceDisabledStereoFailure,
+            .obstacleAvoidanceDisabledStereoLensFailure, .obstacleAvoidanceDisabledGimbalFailure,
+            .obstacleAvoidanceDisabledTooDark, .obstacleAvoidanceDisabledEstimationUnreliable,
+            .obstacleAvoidanceDisabledCalibrationFailure, .obstacleAvoidanceStrongWind, .obstacleAvoidancePoorGps,
+            .obstacleAvoidanceComputationalError, .obstacleAvoidanceBlindMotionDirection,
+            .inclinationTooHigh, .horizontalGeofenceReached, .verticalGeofenceReached]
     }
 
     /// Alarm level.

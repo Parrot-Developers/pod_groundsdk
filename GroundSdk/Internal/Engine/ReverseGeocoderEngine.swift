@@ -87,8 +87,12 @@ private class Placemark: CustomStringConvertible {
     /// Get the Placemak as a property list
     ///
     /// - Returns: property list
-    fileprivate func asPropertyList() -> [String: Any] {
-        return [PlacemarkKeys.placemark.rawValue: NSKeyedArchiver.archivedData(withRootObject: placemark),
+    fileprivate func asPropertyList() -> [String: Any]? {
+        guard let archivedData = try? NSKeyedArchiver.archivedData(
+            withRootObject: placemark, requiringSecureCoding: true) else {
+                return nil
+        }
+        return [PlacemarkKeys.placemark.rawValue: archivedData,
                 PlacemarkKeys.locationOrigin.rawValue: locationOrigin.rawValue,
                 PlacemarkKeys.timeStamp.rawValue: timeStamp]
     }
@@ -145,8 +149,12 @@ private class Location: CustomStringConvertible {
     /// Get the Location as a property list
     ///
     /// - Returns: property list
-    fileprivate func asPropertyList() -> [String: Any] {
-        return [LocationKeys.location.rawValue: NSKeyedArchiver.archivedData(withRootObject: location),
+    fileprivate func asPropertyList() -> [String: Any]? {
+        guard let archivedData = try? NSKeyedArchiver.archivedData(
+            withRootObject: location, requiringSecureCoding: true) else {
+                return nil
+        }
+        return [LocationKeys.location.rawValue: archivedData,
                 LocationKeys.locationOrigin.rawValue: locationOrigin.rawValue]
     }
     /// Debug description.

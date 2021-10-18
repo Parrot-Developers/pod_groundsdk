@@ -85,7 +85,7 @@ public class TargetDetectionInfo: NSObject {
 /// Target framing setting.
 ///
 /// Allows to configure positioning of the tracked target in the drone video stream.
-public protocol TargetFramingSetting: class {
+public protocol TargetFramingSetting: AnyObject {
     /// Whether the setting is currently updating.
     var updating: Bool { get }
 

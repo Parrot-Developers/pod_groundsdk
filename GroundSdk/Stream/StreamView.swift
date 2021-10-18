@@ -142,7 +142,7 @@ open class StreamView: GLKView {
     /// 'true' to enable the zebras of overexposure zone.
     public var zebrasEnabled: Bool {
         get {
-            return _zebrasEnabled
+            _zebrasEnabled
         }
         set {
             _zebrasEnabled = newValue
@@ -170,7 +170,7 @@ open class StreamView: GLKView {
     /// Histograms will be received by the call of renderOverlay(OverlayerData).
     public var histogramsEnabled: Bool {
         get {
-            return _histogramsEnabled
+            _histogramsEnabled
         }
         set {
             _histogramsEnabled = newValue
@@ -183,28 +183,11 @@ open class StreamView: GLKView {
     private var _histogramsEnabled = false
 
     /// Rendering overlayer.
-    /// Deprecated: use `overlayer2` instead.
     public weak var overlayer: Overlayer? {
-        didSet {
-            if let overlayer = overlayer {
-                overlayerWrapper = OverlayerWrapper(overlayer1: overlayer)
-                overlayer2 = overlayerWrapper
-            } else {
-                overlayerWrapper = nil
-                overlayer2 = nil
-            }
-        }
-    }
-
-    /// Rendering overlayer.
-    public weak var overlayer2: Overlayer2? {
         didSet {
             applyOverlayer()
         }
     }
-
-    /// Wrapper of  `Overlayer` to `Overlayer2`.
-    private var overlayerWrapper: OverlayerWrapper?
 
     /// Rendering texture loader.
     public weak var textureLoader: TextureLoader? {
@@ -318,7 +301,7 @@ open class StreamView: GLKView {
     private func applyOverlayer() {
         if let renderer = renderer {
             bindDrawable()
-            renderer.overlayer2 = overlayer2
+            renderer.overlayer = overlayer
         }
     }
 
@@ -347,7 +330,7 @@ open class StreamView: GLKView {
         self.stream = stream
 
         if let stream = self.stream {
-            sink = stream.openSink(config: GlRenderSinkCore.Config(listener: self))
+            sink = stream.openSink(config: GlRenderSinkCore.config(listener: self))
         }
     }
 }
@@ -379,21 +362,5 @@ extension StreamView: GlRenderSinkListener {
 
     public func onContentZoneChange(contentZone: CGRect) {
         self.contentZone = contentZone
-    }
-}
-
-/// Wrapper of  old `Overlayer` to `Overlayer2`.
-private class OverlayerWrapper: Overlayer2 {
-
-    /// Overlayer v1
-    let overlayer1: Overlayer
-
-    init(overlayer1: Overlayer) {
-        self.overlayer1 = overlayer1
-    }
-
-    public func overlay(overlayContext: OverlayContext) {
-        overlayer1.overlay(renderPos: overlayContext.renderZoneHandle, contentPos: overlayContext.contentZoneHandle,
-                          histogram: overlayContext.histogram)
     }
 }

@@ -78,7 +78,7 @@ public class RemoteControlListRefCore: Ref<[RemoteControlListEntry]> {
     }
 
     private func remoteControlRemoved(_ remoteControl: RemoteControlCore) {
-        if let idx = value!.index(where: { $0.uid == remoteControl.uid }) {
+        if let idx = value!.firstIndex(where: { $0.uid == remoteControl.uid }) {
             var newList = value!
             newList.remove(at: idx)
             update(newValue: newList)
@@ -90,7 +90,7 @@ public class RemoteControlListRefCore: Ref<[RemoteControlListEntry]> {
         // create new entry with updated data (some entry data are value type)
         let entry = RemoteControlListEntry(remoteControl: remoteControl)
         // check if the remoteControl is already in the list
-        if let idx = value!.index(where: { $0.uid == remoteControl.uid }) {
+        if let idx = value!.firstIndex(where: { $0.uid == remoteControl.uid }) {
             // remoteControl is in the list, check if it still pass the filter
             if filter(entry) {
                 newList[idx] = entry

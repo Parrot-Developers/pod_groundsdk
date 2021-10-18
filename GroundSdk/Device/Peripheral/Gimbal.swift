@@ -72,68 +72,6 @@ public enum FrameOfReference: Int, CustomStringConvertible {
     public static let allCases: Set<FrameOfReference> = [.absolute, .relative]
 }
 
-/// Gimbal error.
-@objc(GSGimbalError)
-public enum GimbalError: Int, CustomStringConvertible {
-    /// Calibration error.
-    ///
-    /// May happen during manual or automatic calibration.
-    ///
-    /// Application should inform the user that the gimbal is currently inoperable and suggest to verify that
-    /// nothing currently hinders proper gimbal movement.
-    ///
-    /// The device will retry calibration regularly; after several failed attempts, it will escalate the current
-    /// error to `.critical` level, at which point the gimbal becomes inoperable until both the issue
-    /// is fixed and the device is restarted.
-    case calibration
-    /// Overload error.
-    ///
-    /// May happen during normal operation of the gimbal.
-    ///
-    /// Application should inform the user that the gimbal is currently inoperable and suggest to verify that
-    /// nothing currently hinders proper gimbal movement.
-    ///
-    /// The device will retry stabilization regularly; after several failed attempts, it will escalate the current
-    /// error to `.critical` level, at which point the gimbal becomes inoperable until both the issue
-    /// is fixed and the device is restarted.
-    case overload
-    /// Communication error.
-    ///
-    /// Communication with the gimbal is broken due to some unknown software and/or hardware issue.
-    ///
-    /// Application should inform the user that the gimbal is currently inoperable.
-    /// However, there is nothing the application should recommend the user to do at that point: either the issue
-    /// will hopefully resolve itself (most likely a software issue), or it will escalate to critical level
-    /// (probably hardware issue) and the application should recommend the user to send back the device for repair.
-    ///
-    /// The device will retry stabilization regularly; after several failed attempts, it will escalate the current
-    /// error to `.critical` level, at which point the gimbal becomes inoperable until both the issue
-    /// is fixed and the device is restarted.
-    case communication
-    /// Critical error.
-    ///
-    /// May occur at any time; in particular, occurs when any of the other errors persists after
-    /// multiple retries from the device.
-    ///
-    /// Application should inform the user that the gimbal has become completely inoperable until the issue is
-    /// fixed and the device is restarted, as well as suggest to verify that nothing currently hinders proper gimbal
-    /// movement and that the gimbal is not damaged in any way.
-    case critical
-
-    /// Debug description.
-    public var description: String {
-        switch self {
-        case .calibration:      return "calibration"
-        case .overload:         return "overload"
-        case .communication:    return "communication"
-        case .critical:         return "critical"
-        }
-    }
-
-    /// Set containing all axes.
-    public static let allCases: Set<GimbalError> = [.calibration, .overload, .communication, critical]
-}
-
 /// Way of controlling the gimbal.
 @objc(GSGimbalControlMode)
 public enum GimbalControlMode: Int, CustomStringConvertible {
@@ -147,38 +85,6 @@ public enum GimbalControlMode: Int, CustomStringConvertible {
         switch self {
         case .position: return "position"
         case .velocity: return "velocity"
-        }
-    }
-}
-
-/// Gimbal calibration process state.
-@objc(GSGimbalCalibrationProcessState)
-public enum GimbalCalibrationProcessState: Int, CustomStringConvertible {
-    /// No ongoing calibration process.
-    case none
-    /// Calibration process in progress.
-    case calibrating
-    /// Calibration was successful.
-    ///
-    /// This result is transient, calibration state will change back to `.none` immediately after success is notified.
-    case success
-    /// Calibration failed.
-    ///
-    /// This result is transient, calibration state will change back to `.none` immediately after failure is notified.
-    case failure
-    /// Calibration was canceled.
-    ///
-    /// This result is transient, calibration state will change back to `.none` immediately after canceled is notified.
-    case canceled
-
-    /// Debug description.
-    public var description: String {
-        switch self {
-        case .none: return "none"
-        case .calibrating: return "calibrating"
-        case .success: return "success"
-        case .failure: return "failure"
-        case .canceled: return "canceled"
         }
     }
 }
@@ -231,24 +137,10 @@ public class GimbalOffsetsCorrectionProcess: NSObject {
 /// ```
 /// device.getPeripheral(Peripherals.gimbal)
 /// ```
-public protocol Gimbal: Peripheral {
+public protocol Gimbal: CalibratableGimbal {
     /// Set of supported axes, i.e. axis that can be controlled.
     var supportedAxes: Set<GimbalAxis> { get }
 
-    /// Set of current errors.
-    ///
-    /// When empty, the gimbal can be operated normally, otherwise, it is currently inoperable.
-    /// In case the returned set contains the `.critical` error, then gimbal has become completely inoperable
-    /// until both all other reported errors are fixed and the device is restarted.
-    var currentErrors: Set<GimbalError> { get }
-
-    /// Set of currently locked axes.
-    /// While an axis is locked, you cannot set a speed or a position.
-    ///
-    /// An axis can be locked because the drone is controlling this axis on itself, thus it does not allow the
-    /// controller to change its orientation. This might be the case during a FollowMe or when the
-    /// `PointOfInterestPilotingItf` is active.
-    ///
     /// Only contains supported axes.
     var lockedAxes: Set<GimbalAxis> { get }
 
@@ -273,13 +165,6 @@ public protocol Gimbal: Peripheral {
     /// `stopOffsetsCorrectionProcess()`).
     var offsetsCorrectionProcess: GimbalOffsetsCorrectionProcess? { get }
 
-    /// Whether the gimbal is calibrated.
-    var calibrated: Bool { get }
-
-    /// Calibration process state.
-    /// See `startCalibration()` and `cancelCalibration()`
-    var calibrationProcessState: GimbalCalibrationProcessState { get }
-
     /// Controls the gimbal.
     ///
     /// Unit of the `yaw`, `pitch`, `roll` values depends on the value of the `mode` parameter:
@@ -297,6 +182,11 @@ public protocol Gimbal: Peripheral {
     ///   - roll: target on the roll axis. `nil` if you want to keep the current value.
     func control(mode: GimbalControlMode, yaw: Double?, pitch: Double?, roll: Double?)
 
+    /// Resets the attitude of the gimbal.
+    ///
+    /// The orientation of the gimbal is set back to its default value on each axis in its current frame of reference.
+    func resetAttitude()
+
     /// Starts the offsets correction process.
     ///
     /// When offset correction is started, `offsetsCorrectionProcess` is not nil and correctable offsets can be
@@ -307,14 +197,6 @@ public protocol Gimbal: Peripheral {
     ///
     /// `offsetsCorrectionProcess` will be set to nil.
     func stopOffsetsCorrectionProcess()
-
-    /// Starts calibration process.
-    /// Does nothing when `calibrationProcessState` is `calibrating`.
-    func startCalibration()
-
-    /// Cancels the current calibration process.
-    /// Does nothing when `calibrationProcessState` is not `calibrating`.
-    func cancelCalibration()
 
     /// Gets the current attitude for a given frame of reference.
     ///
@@ -333,30 +215,17 @@ public protocol Gimbal: Peripheral {
 ///
 /// - Note: This class is for Objective-C only and must not be used in Swift.
 @objc
-public protocol GSGimbal: Peripheral {
+public protocol GSGimbal: GSCalibratableGimbal {
     /// Offset correction process.
     /// Not nil when offset correction is started (see `startOffsetsCorrectionProcess()` and
     /// `stopOffsetsCorrectionProcess()`).
     var offsetsCorrectionProcess: GimbalOffsetsCorrectionProcess? { get }
-
-    /// Whether the gimbal is calibrated.
-    var calibrated: Bool { get }
-
-    /// Calibration process state.
-    /// See `startCalibration()` and `cancelCalibration()`
-    var calibrationProcessState: GimbalCalibrationProcessState { get }
 
     /// Tells whether a given axis is supported
     ///
     /// - Parameter axis: the axis to query
     /// - Returns: `true` if the axis is supported, `false` otherwise
     func isAxisSupported(_ axis: GimbalAxis) -> Bool
-
-    /// Tells whether the gimbal currently has the given error.
-    ///
-    /// - Parameter error: the error to query
-    /// - Returns: `true` if the error is currently happening
-    func hasError(_ error: GimbalError) -> Bool
 
     /// Tells whether a given axis is currently locked.
     ///
@@ -435,12 +304,6 @@ public protocol GSGimbal: Peripheral {
     ///
     /// `offsetsCorrectionProcess` will be set to nil.
     func stopOffsetsCorrectionProcess()
-
-    /// Starts calibration process.
-    func startCalibration()
-
-    /// Cancels the current calibration process.
-    func cancelCalibration()
 }
 
 /// Extension of the GimbalOffsetsCorrectionProcess that adds Objective-C missing vars and functions support.

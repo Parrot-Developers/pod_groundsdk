@@ -39,7 +39,7 @@ class GutmaLogEngine: EngineBaseCore {
     /// This directory is located in the /Library folder of the phone/tablet.
     ///
     /// This directory may contain:
-    /// - the current work directory (see `workDir`) , which may itself contain temporary flight data files (GUTMAs)
+    /// - the current work directory (see `workDir`), which may itself contain temporary flight data files (GUTMAs)
     ///   (being currently converted from remote devices) and finalized
     /// - previous work directories, that may themselves contain finalized GUTMAs, or temporary GUTMAs that failed to
     ///   be converted completely.

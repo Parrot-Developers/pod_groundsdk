@@ -390,7 +390,7 @@ class FirmwareDownloaderCoreImpl: FirmwareDownloaderCore {
     ///
     /// - Parameter firmware: identifies the downloaded firmware
     private func downloadDidSuccess(firmware: FirmwareIdentifier) {
-        if let index = sortedDownloadQueue.index(of: firmware) {
+        if let index = sortedDownloadQueue.firstIndex(of: firmware) {
             sortedDownloadQueue.remove(at: index)
         }
         downloadQueue.removeValue(forKey: firmware)?.forEach {
@@ -403,7 +403,7 @@ class FirmwareDownloaderCoreImpl: FirmwareDownloaderCore {
     ///
     /// - Parameter firmware: identifies the firmware whose download did fail.
     private func downloadDidFail(firmware: FirmwareIdentifier) {
-        if let index = sortedDownloadQueue.index(of: firmware) {
+        if let index = sortedDownloadQueue.firstIndex(of: firmware) {
             sortedDownloadQueue.remove(at: index)
         }
         downloadQueue.removeValue(forKey: firmware)?.forEach {
@@ -416,7 +416,7 @@ class FirmwareDownloaderCoreImpl: FirmwareDownloaderCore {
     ///
     /// - Parameter firmware: identifies the firmware whose download was canceled.
     private func downloadDidCancel(firmware: FirmwareIdentifier) {
-        if let index = sortedDownloadQueue.index(of: firmware) {
+        if let index = sortedDownloadQueue.firstIndex(of: firmware) {
             sortedDownloadQueue.remove(at: index)
         }
         downloadQueue.removeValue(forKey: firmware)?.forEach {

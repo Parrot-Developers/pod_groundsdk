@@ -107,7 +107,7 @@ public enum ThermalRenderingMode: Int, CustomStringConvertible, CaseIterable {
 }
 
 /// Setting to change the thermal control mode.
-public protocol ThermalControlSetting: class {
+public protocol ThermalControlSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
@@ -119,7 +119,7 @@ public protocol ThermalControlSetting: class {
 }
 
 /// Setting to change the sensitivity range.
-public protocol ThermalSensitivityRangeSetting: class {
+public protocol ThermalSensitivityRangeSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
@@ -131,7 +131,7 @@ public protocol ThermalSensitivityRangeSetting: class {
 }
 
 /// Thermal camera calibration.
-public protocol ThermalCalibration: class {
+public protocol ThermalCalibration: AnyObject {
     /// Tells if the calibration mode value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
@@ -462,7 +462,7 @@ public class ThermalControlDesc: NSObject, PeripheralClassDesc {
 
 /// Thermal camera calibration.
 /// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSThermalCalibration: class {
+@objc public protocol GSThermalCalibration: AnyObject {
     /// Tells if the calibration mode value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

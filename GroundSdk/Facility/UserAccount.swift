@@ -31,21 +31,44 @@ import Foundation
 
 /// Policy to observe with regard to non-anonymous user data that were collected in the absence of a registered
 /// user account, upon registration of such an account.
-@objc(GSAccountlessPersonalDataPolicy)
-public enum AccountlessPersonalDataPolicy: Int, Codable {
+@objc(GSOldDataPolicy)
+public enum OldDataPolicy: Int, Codable, CustomStringConvertible {
     /// Already collected data must not be uploaded and should be deleted.
     case denyUpload
     /// Already collected data may be uploaded.
     case allowUpload
+
+    public var description: String {
+        switch self {
+        case .denyUpload: return "denyUpload"
+        case .allowUpload: return "allowUpload"
+        }
+    }
 }
 
-/// Anonymous data upload policy.
-@objc(GSAnonymousDataPolicy)
-public enum AnonymousDataPolicy: Int, Codable {
-    /// Uploading anonymous data is authorized.
-    case allow
+/// Data upload policy.
+@objc(GSDataUploadPolicy)
+public enum DataUploadPolicy: Int, Codable, CustomStringConvertible {
     /// Uploading anonymous is forbidden.
     case deny
+    /// Anonymous
+    case anonymous
+    /// No gps.
+    case noGps
+    /// Full but without sending FCRs
+    case noMedia
+     /// Full
+    case full
+
+    public var description: String {
+        switch self {
+        case .deny: return "deny"
+        case .anonymous: return "anonymous"
+        case .noGps: return "noGps"
+        case .noMedia: return "noMedia"
+        case .full: return "full"
+        }
+    }
 }
 
 /// Facility that allows the application to register some user account identifier.
@@ -64,21 +87,48 @@ public protocol UserAccount: Facility {
 
     /// Registers an user account.
     ///
-    /// * Only one user account may be registered, calling this method erase any previously set user account.
+    /// * Only one user account may be registered, calling this method with a different account provider or account id
+    /// will erase any previously set user account.
     ///
     /// - Parameters:
     ///   - accountProvider: accountProvider identifies the account provider
     ///   - accountId: accountId identifies the account
-    ///   - accountlessPersonalDataPolicy:
+    ///   - dataUploadPolicy: data upload policy.
+    ///   - oldDataPolicy:
     ///         true: Already collected data without account may be uploaded.
     ///         false: Already collected data without account must not be uploaded and should be deleted.
-    @objc(setAccountProvider:accountId:accountlessPersonalDataPolicy:)
-    func set(accountProvider: String, accountId: String, accountlessPersonalDataPolicy: AccountlessPersonalDataPolicy)
+    ///   - token: token.
+    ///   - droneList: user drone list, APC JSON format
+    @objc(setAccountProvider:accountId:dataUploadPolicy:oldDataPolicy:token:droneList:)
+    func set(accountProvider: String, accountId: String, dataUploadPolicy: DataUploadPolicy,
+             oldDataPolicy: OldDataPolicy, token: String, droneList: String)
+
+    /// Sets data policies.
+    ///
+    /// In case a user account is present and data upload becomes allowed at any anonymization level, the specified old
+    /// data policy informs GroundSdk about what to do with user data that have already been collected on the user's
+    /// device while data upload was denied.
+    ///
+    /// In case no user account is present, only dataUploadPolicy (deny) and dataUploadPolicy (anonymous) upload
+    /// policies are allowed and old data policy is ignored.
+    /// - Parameters:
+    ///     -  dataUploadPolicy: policy to observe with regard to data upload from now on
+    ///     -   oldDataPolicy: policy to observe with regard to data that were collected so far
+    func set(dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy)
+
+    /// Sets drone list for current user account
+    ///
+    /// - Parameter droneList: user drone list, APC JSON format
+    /// - Note: drone list is updated only if user account exists.
+    func set(droneList: String)
 
     /// Clears any registered user account.
     ///
-    /// - Parameter anonymousDataPolicy: `true` if anonymous data are allowed, `false` otherwise
-    func clear(anonymousDataPolicy: AnonymousDataPolicy)
+    /// Only dataUploadPolicy .deny  and .anonymous values are meaningful here, any other value will be treated in the
+    /// same way as .anonymous
+    ///
+    /// - Parameter dataUploadPolicy: data upload policy
+    func clear(dataUploadPolicy: DataUploadPolicy)
 }
 
 /// :nodoc:

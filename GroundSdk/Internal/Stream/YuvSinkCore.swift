@@ -29,6 +29,10 @@
 
 import Foundation
 
+public protocol YuvSinkBackend: SinkBackend {
+
+}
+
 /// Internal YuvSink implementation.
 public class YuvSinkCore: SinkCore {
 
@@ -60,13 +64,7 @@ public class YuvSinkCore: SinkCore {
     private let config: Config
 
     /// Stream backend, 'nil' if the stream is not opened.
-    private weak var sdkCoreStream: SdkCoreStream?
-
-    /// Sink backend.
-    private var sdkCoreSink: SdkCoreSink?
-
-    /// Listener notified of stream YUV media availability.
-    private var mediaListener: YuvMediaListener!
+    private var stream: StreamBackend?
 
     /// Constructor
     ///
@@ -75,12 +73,8 @@ public class YuvSinkCore: SinkCore {
     ///    - config: configuration
     public init(stream: StreamCore, config: Config) {
         self.config = config
-        super.init(streamCore: stream)
-        sdkCoreSink = SdkCoreSink(queueSize: 1,
-                                  policy: .dropEldest,
-                                  format: .unspecified,
-                                  listener: self)
-        mediaListener = YuvMediaListener(sinkCore: self)
+        super.init()
+        backend = stream.getYuvSinkBackend(yuvSink: self)
     }
 
     /// Create a YUV sink configuration.
@@ -93,72 +87,35 @@ public class YuvSinkCore: SinkCore {
         return YuvSinkCore.Config(queue: queue, listener: listener)
     }
 
-    override public func close() {
-        sdkCoreSink?.stop()
-        sdkCoreSink = nil
-        super.close()
-    }
-
-    override func onSdkCoreStreamAvailable(stream: SdkCoreStream) {
-        sdkCoreStream = stream
-        streamCore.subscribeToMedia(listener: mediaListener, mediaType: .yuv)
-    }
-
-    override func onSdkCoreStreamUnavailable() {
-        sdkCoreStream = nil
-        sdkCoreSink?.stop()
-        streamCore.unsubscribeFromMedia(listener: mediaListener, mediaType: .yuv)
-    }
-
-    ///  YUV media listener implementation.
-    private class YuvMediaListener: MediaListener {
-
-        /// YUV sink core instance.
-        private unowned let sinkCore: YuvSinkCore
-
-        override func onMediaAvailable(mediaInfo: SdkCoreMediaInfo) {
-            sinkCore.config.queue.async { [weak self] in
-                guard let self = self else {
-                    return
-                }
-                self.sinkCore.config.listener?.didStart(sink: self.sinkCore)
-            }
-            if let sdkCoreSink = sinkCore.sdkCoreSink {
-                sinkCore.sdkCoreStream?.start(sdkCoreSink, mediaId: UInt32(mediaInfo.mediaId))
-            }
-        }
-
-        override func onMediaUnavailable() {
-            sinkCore.sdkCoreSink?.stop()
-        }
-
-        /// Constructor
-        ///
-        /// - Parameter sinkCore: YUV sink core
-        init(sinkCore: YuvSinkCore) {
-            self.sinkCore = sinkCore
-        }
-    }
 }
 
-/// Extension to listen to internal sink events.
-extension YuvSinkCore: SdkCoreSinkListener {
+// Backend callback
+extension YuvSinkCore {
 
-    public func onFrame(_ frame: SdkCoreFrame) {
+    public func didStart() {
         config.queue.async { [weak self] in
             guard let self = self else {
                 return
             }
-            self.config.listener?.frameReady(sink: self, frame: frame)
+            self.config.listener?.didStart(sink: self)
         }
     }
 
-    public func onStop() {
+    public func didStop() {
         config.queue.async { [weak self] in
             guard let self = self else {
                 return
             }
             self.config.listener?.didStop(sink: self)
+        }
+    }
+
+    public func frameReady(_ frame: SdkCoreFrame) {
+        config.queue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+            self.config.listener?.frameReady(sink: self, frame: frame)
         }
     }
 }

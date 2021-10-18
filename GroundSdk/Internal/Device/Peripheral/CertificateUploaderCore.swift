@@ -30,7 +30,7 @@
 import Foundation
 
 /// Certificate Uploader backend part.
-public protocol CertificateUploaderBackend: class {
+public protocol CertificateUploaderBackend: AnyObject {
     /// Uploads a certificate file to the drone.
     ///
     /// When the upload ends, the drone will restart

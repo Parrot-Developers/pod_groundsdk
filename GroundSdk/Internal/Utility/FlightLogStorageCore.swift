@@ -45,7 +45,7 @@ public protocol FlightLogStorageCore: UtilityCore {
     /// Multiple downloaders may be assigned the same download directory. As a consequence, flightLog  directories
     /// that a downloader may create should have a name as unique as possible to avoid collision.
     ///
-    /// The directory in question might not be existing, and the caller as the responsibility to create it if necessary,
+    /// The directory in question might not exist, and the caller has the responsibility to create it if necessary,
     /// but should ensure to do so on a background thread.
     var workDir: URL { get }
 
@@ -77,7 +77,7 @@ class FlightLogStorageCoreImpl: FlightLogStorageCore {
     }
 
     func notifyFlightLogReady(flightLogUrl: URL) {
-        guard flightLogUrl.deletingLastPathComponent() == workDir else {
+        guard flightLogUrl.deletingLastPathComponent().absoluteString == workDir.absoluteString else {
             ULog.w(.flightLogStorageTag, "flightLogUrl \(flightLogUrl) is not located in the flighLog directory " +
                 "\(workDir)")
             return

@@ -30,7 +30,7 @@
 import Foundation
 
 /// Camera alignment backend.
-protocol CameraAlignmentBackend: class {
+protocol CameraAlignmentBackend: AnyObject {
 
     /// Sets alignment offsets.
     ///

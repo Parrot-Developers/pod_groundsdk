@@ -66,6 +66,8 @@ public enum AnimationType: Int {
     case vertical180PhotoPanorama
     /// Spherical Photo panorama animation. Animation of this type can be cast to "SphericalPhotoPanoramaAnimation".
     case sphericalPhotoPanorama
+    /// Super wide photo panorama animation. Animation of this type can be safely cast to "SuperWidePhotoAnimation".
+    case superWidePhotoPanorama
 
     /// Debug description.
     public var description: String {
@@ -86,6 +88,7 @@ public enum AnimationType: Int {
         case .horizontal180PhotoPanorama:  return "horizontal180PhotoPanorama"
         case .vertical180PhotoPanorama:    return "vertical180PhotoPanorama"
         case .sphericalPhotoPanorama:   return "sphericalPhotoPanorama"
+        case .superWidePhotoPanorama:   return "superWidePhotoPanorama"
         }
     }
 }
@@ -135,14 +138,14 @@ public enum AnimationStatus: Int {
 /// When one of this method is called, the drone will use the provided parameter value instead of its own default,
 /// if possible.
 @objc(GSAnimationConfig)
-public protocol AnimationConfig: class {
+public protocol AnimationConfig: AnyObject {
     /// Type of the configured animation.
     var type: AnimationType { get }
 }
 
 /// Base interface for an Animation.
 @objc(GSAnimation)
-public protocol Animation: class {
+public protocol Animation: AnyObject {
     /// Animation type.
     var type: AnimationType { get }
 

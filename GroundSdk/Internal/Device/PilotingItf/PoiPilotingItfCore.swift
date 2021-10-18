@@ -108,6 +108,9 @@ public class PoiPilotingItfCore: ActivablePilotingItfCore, PointOfInterestPiloti
     /// Internal implementation of currentPointOfInterest
     private var _currentPointOfInterest: PointOfInterestCore?
 
+    /// The set of availability issues that preclude this piloting interface from being available at present.
+    public private(set) var availabilityIssues: Set<POIIssue>?
+
     /// Super class backend as PoiPilotingItfBackend
     private var poiBackend: PoiPilotingItfBackend {
         return backend as! PoiPilotingItfBackend
@@ -166,5 +169,59 @@ extension PoiPilotingItfCore {
             markChanged()
         }
         return self
+    }
+
+    /// Change availabilityIssues
+    ///
+    /// - Parameter availabilityIssues: new set of availabilityIssues
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(availabilityIssues value: Set<POIIssue>?) -> PoiPilotingItfCore {
+        if availabilityIssues != value {
+            availabilityIssues = value
+            markChanged()
+        }
+        return self
+    }
+}
+
+// MARK: Objective-C API
+/// - Note: this protocol is for Objective-C only. Swift must use the protocol `PoiPilotingItfCore`
+extension PoiPilotingItfCore: GSPointOfInterestPilotingItf {
+    /// Tells whether an availability issue is present.
+    ///
+    /// - Parameter issue: issue to check
+    /// - Returns: `true` if the issue is present, `false` otherwise
+    @objc
+    public func availabilityIssuesContains(_ issue: POIIssue) -> Bool {
+        if let availabilityIssues = availabilityIssues {
+            return availabilityIssues.contains(issue)
+        } else {
+            return false
+        }
+    }
+
+    /// Tells whether the list of quality issues is empty.
+    ///
+    /// - Returns: `true` if the list of availability issues is empty, `false` otherwise
+    @objc
+    public func availabilityIssuesIsEmpty() -> Bool {
+        if let availabilityIssues = availabilityIssues {
+            return availabilityIssues.isEmpty
+        } else {
+            return false
+        }
+    }
+
+    /// Tells whether availability is supported
+    ///
+    /// - Returns: `true`if availability is supported, `false` otherwise
+    @objc
+    public func availabilitySupported() -> Bool {
+        if availabilityIssues != nil {
+            return true
+        } else {
+            return false
+        }
     }
 }

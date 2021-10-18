@@ -59,6 +59,32 @@ public enum ConnectionSecurity: Int {
     }
 }
 
+/// Drone visibility over wifi or cellular network.
+@objc(GSDroneVisibility)
+public enum DroneVisibility: Int, CustomStringConvertible {
+
+    /// Drone is hidden.
+    case hidden
+
+    /// Drone is unreachable.
+    case unreachable
+
+    /// Drone is visible.
+    case visible
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .hidden:
+            return "hidden"
+        case .unreachable:
+            return "unreachable"
+        case .visible:
+            return "visible"
+        }
+    }
+}
+
 /// Represents a remote drone seen during discovery.
 @objcMembers
 @objc(GSDiscoveredDrone)
@@ -76,11 +102,17 @@ public class DiscoveredDrone: NSObject {
     /// Rssi in dBm, usually between -30 (good signal) and -80 (very bad signal level).
     public let rssi: Int
 
-    /// Whether the drone known.
+    /// Whether the drone is known by the remote control.
     public let known: Bool
 
     /// Connection security.
     public let connectionSecurity: ConnectionSecurity
+
+    /// True if the drone is visible over wifi network.
+    public let wifiVisibility: Bool
+
+    /// True if the drone is visible over cellular network.
+    public let cellularOnLine: Bool
 
     /// Constructor.
     /// - Parameters:
@@ -90,20 +122,24 @@ public class DiscoveredDrone: NSObject {
     ///    - known: is the drone known
     ///    - rssi: rssi in dBm
     ///    - connectionSecurity: connection security
+    ///    - wifiVisibility: drone visibility over wifi
+    ///    - cellularOnLine: drone cellular network is online
     init(uid: String, model: Drone.Model, name: String, known: Bool, rssi: Int,
-         connectionSecurity: ConnectionSecurity) {
+         connectionSecurity: ConnectionSecurity, wifiVisibility: Bool, cellularOnLine: Bool) {
         self.uid = uid
         self.model = model
         self.name = name
         self.known = known
         self.rssi = rssi
         self.connectionSecurity = connectionSecurity
+        self.wifiVisibility = wifiVisibility
+        self.cellularOnLine = cellularOnLine
     }
 
     /// Debug description.
     override open var description: String {
         return "DiscoveredDrone \(uid) \(model) \(name) \(known ? "known " : "") " +
-        "rssi:\(rssi) secutity:\(connectionSecurity)"
+        "rssi:\(rssi) security:\(connectionSecurity) wifi:\(wifiVisibility) cellular:\(cellularOnLine)"
     }
 }
 

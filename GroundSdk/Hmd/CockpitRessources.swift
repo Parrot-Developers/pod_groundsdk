@@ -152,7 +152,7 @@ class CockpitRessources {
         // Magic
         var index = 20 // magic size
 
-        //1 byte: version (1)
+        // 1 byte: version (1)
         version = Int(data.subdata(in: index ..< (index + 1)).int8Data())
         index += 1
 

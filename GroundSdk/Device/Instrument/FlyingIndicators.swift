@@ -127,6 +127,9 @@ public protocol FlyingIndicators: Instrument {
 
     /// Flying detail state, when state is `.flying`.
     var flyingState: FlyingIndicatorsFlyingState { get }
+
+    /// Whether the drone is currently hand landing.
+    var isHandLanding: Bool { get }
 }
 
 /// :nodoc:

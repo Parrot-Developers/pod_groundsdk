@@ -77,6 +77,15 @@ class AutoConnectionEngine: EngineBaseCore {
     /// `true` when a device list change notification was received while `processing` is `true`.
     private var shouldProcessAgain = false
 
+    /// Auto connect timer.
+    private var timerAutoConnect: Timer?
+
+    /// Autoconnect process latest date.
+    private var latestDateAutoConnectProcess: Date?
+
+    /// Minimum time between processing.
+    let minTimeBetweenProcessing = TimeInterval(1)
+
     /// Constructor.
     ///
     /// - Parameter enginesController: engines controller
@@ -146,6 +155,8 @@ class AutoConnectionEngine: EngineBaseCore {
         autoConnectionStarted = false
         autoConnection.update(state: .stopped).update(drone: nil).update(remoteControl: nil).notifyUpdated()
         ULog.d(.autoConnectEngineTag, "Stopped auto connection.")
+        timerAutoConnect?.invalidate()
+        timerAutoConnect = nil
     }
 
     /// Notified when a device is either added, removed or changes. Triggers an auto-connection pass.
@@ -154,14 +165,36 @@ class AutoConnectionEngine: EngineBaseCore {
     ///  while devices are connected or disconnected by that method.
     ///  The auto-connection would (and should) work the same if `processDeviceList` was called directly.
     private func deviceListDidChange() {
+        // Check if there is no timer auto connect.
+        guard timerAutoConnect == nil else {
+            return
+        }
+
         if processing {
             shouldProcessAgain = true
         } else {
+            let date = Date()
+            // Check latest time processDeviceList was called, to not call it more than once per second.
+            if let latestDateAutoConnectProcess = latestDateAutoConnectProcess,
+                   date.timeIntervalSince(latestDateAutoConnectProcess) < minTimeBetweenProcessing {
+                // Create a timer with the time difference to do it at a minimum of one time per second.
+                timerAutoConnect = Timer.scheduledTimer(
+                    withTimeInterval: minTimeBetweenProcessing - date.timeIntervalSince(latestDateAutoConnectProcess),
+                    repeats: false) { [weak self] _ in
+                    self?.timerAutoConnect = nil
+                    if self?.autoConnectionStarted == true {
+                        self?.deviceListDidChange()
+                    }
+                }
+                return
+            }
+
             processing = true
             repeat {
                 shouldProcessAgain = false
                 processDeviceList()
             } while shouldProcessAgain
+            latestDateAutoConnectProcess = Date()
             processing = false
         }
     }
@@ -238,6 +271,7 @@ class AutoConnectionEngine: EngineBaseCore {
                     } else {
                         bestDroneDisconnected = droneToDisconnect
                     }
+
                     _ = droneToDisconnect.disconnect()
                     ULog.d(.autoConnectEngineTag, "Disconnect from \(droneToDisconnect) because it is not connected " +
                         "through \(currentRc).")
@@ -396,6 +430,7 @@ class AutoConnectionEngine: EngineBaseCore {
     /// Disconnect all devices that can be disconnected.
     private func disconnectAllDevices() {
         ULog.d(.autoConnectEngineTag, "Disconnection all devices.")
+
         rcStore.getDevices().forEach {
             if $0.stateHolder.state.canBeDisconnected {
                 _ = $0.disconnect()
@@ -413,6 +448,7 @@ class AutoConnectionEngine: EngineBaseCore {
     /// Also sets `latestDirectlyConnectedDrone` with the last connected/connecting drone in order to try
     /// to connect to it when the rc connection will be done
     private func disconnectAllDirectlyConnectedDrones() {
+
         getConnectingOrConnectedDrones().filter {
             $0.stateHolder.state.canBeDisconnected && $0.stateHolder.state.activeConnector!.connectorType == .local
             }.forEach {
@@ -428,6 +464,11 @@ class AutoConnectionEngine: EngineBaseCore {
                 _ = $0.disconnect()
         }
     }
+
+    deinit {
+        timerAutoConnect?.invalidate()
+        timerAutoConnect = nil
+    }
 }
 
 /// Extension of the Autoconnection engine that implements the autoconnection facility backend.
@@ -436,16 +477,17 @@ extension AutoConnectionEngine: AutoConnectionBackend {
         guard !autoConnectionStarted else {
             return false
         }
-
+        latestDateAutoConnectProcess = nil
         doStartAutoConnection()
         return true
     }
 
     public func stopAutoConnection() -> Bool {
+        timerAutoConnect?.invalidate()
+        timerAutoConnect = nil
         guard autoConnectionStarted else {
             return false
         }
-
         doStopAutoConnection()
         return true
     }

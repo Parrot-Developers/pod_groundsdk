@@ -30,7 +30,7 @@
 import Foundation
 
 /// Delegate executing action on Device.
-public protocol DeviceCoreDelegate: class {
+public protocol DeviceCoreDelegate: AnyObject {
 
     /// Removes the device from known devices list and clear all its stored data.
     ///

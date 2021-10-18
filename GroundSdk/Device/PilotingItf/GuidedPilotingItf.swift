@@ -93,9 +93,11 @@ public enum OrientationDirective: Equatable, CustomStringConvertible {
     case toTarget
 
     /// Orientation for which the drone will orientate itself to the given heading before moving to the location.
+    /// The parameter is the heading relative to the North in degrees (clockwise).
     case headingStart(Double)
 
     /// Orientation for which the drone will orientate itself to the given heading while moving to the location.
+    /// The parameter is the heading relative to the North in degrees (clockwise).
     case headingDuring(Double)
 
     /// Equatable.

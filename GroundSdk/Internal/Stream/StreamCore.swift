@@ -29,6 +29,62 @@
 
 import Foundation
 
+/// Stream play state.
+public enum StreamPlayState: Int {
+    /// Stream stopped, nothing reserved on the drone.
+    case stopped
+    /// Stream paused, pipeline ready on the drone.
+    case paused
+    /// Stream Playing, drone sentds frames.
+    case playing
+
+    /// Description.
+    public var description: String {
+        switch self {
+        case .stopped: return "stopped"
+        case .paused: return "paused"
+        case .playing: return "playing"
+        }
+    }
+}
+
+/// Stream backend.
+public protocol StreamBackend {
+
+    /// If `false` the stream is forced to stop regardless of the `state`,
+    /// if `true` the stream is enabled and the `state` is effective.
+    var enabled: Bool { get set }
+
+    /// Stream play state
+    var state: StreamPlayState { get }
+
+    /// Plays the stream.
+    func play()
+
+    /// Pauses the stream.
+    func pause()
+
+    /// Seeks to a time position.
+    ///
+    /// - Parameter position: position to seek, in second
+    func seek(position: Int)
+
+    /// Stops the stream.
+    func stop()
+
+    /// Retrieves RendererSink backend.
+    ///
+    /// - Parameter renderSink: GlRenderSinkCore owner of this backend.
+    /// - returns: new GlRenderSink backend
+    func getRenderSinkBackend(renderSink: GlRenderSinkCore) -> GlRenderSinkBackend
+
+    /// Retrieves YuvSink backend.
+    ///
+    /// - Parameter yuvSink: YuvSinkCore owner of this backend.
+    /// - returns: new YuvSink backend
+    func getYuvSinkBackend(yuvSink: YuvSinkCore) -> YuvSinkBackend
+}
+
 /// Internal Stream implementation.
 public class StreamCore: NSObject, Stream {
 
@@ -57,30 +113,8 @@ public class StreamCore: NSObject, Stream {
         }
     }
 
-    /// Stream command
-    enum Command {
-        /// Play stream.
-        case play
-        /// Pause stream.
-        case pause
-        /// Seek to time position.
-        case seekTo(Int)
-    }
-
-    /// Video stream core, nil when closed.
-    private var sdkCoreStream: SdkCoreStream?
-
-    /// Media registry
-    private var medias = MediaRegistry()
-
-    /// Stream sinks.
-    private var sinks: Set<SinkCore> = []
-
-    /// 'true' when 'sdkCoreStream' is completely open.
-    private var coreStreamOpen = false
-
-    /// Latest requested command, 'nil' if none.
-    private var command: Command?
+    /// Video stream backend, nil when closed.
+    var backend: StreamBackend!
 
     /// Current stream state.
     public var state: StreamState = .stopped
@@ -106,13 +140,27 @@ public class StreamCore: NSObject, Stream {
     public func openSink(config: StreamSinkConfig) -> StreamSink {
         let config = config as! SinkCoreConfig
         let sink = config.openSink(stream: self)
-        if coreStreamOpen, let sdkCoreStream = sdkCoreStream {
-            sink.onSdkCoreStreamAvailable(stream: sdkCoreStream)
-        }
         return sink
     }
+
     public func openYuvSink(queue: DispatchQueue, listener: YuvSinkListener) -> StreamSink {
         return openSink(config: YuvSinkCore.config(queue: queue, listener: listener))
+    }
+
+    /// Retrieves RendererSink backend.
+    ///
+    /// - Parameter renderSink: GlRenderSinkCore owner of this backend.
+    /// - returns : new GlRenderSink backend
+    public func getRenderSinkBackend(renderSink: GlRenderSinkCore) -> GlRenderSinkBackend {
+        return backend.getRenderSinkBackend(renderSink: renderSink)
+    }
+
+    /// Retrieves YuvSink backend.
+    ///
+    /// - Parameter yuvSink: YuvSinkCore owner of this backend.
+    /// - returns: new YuvSink backend
+    public func getYuvSinkBackend(yuvSink: YuvSinkCore) -> YuvSinkBackend {
+        return backend.getYuvSinkBackend(yuvSink: yuvSink)
     }
 
     /// Register a new listener.
@@ -136,44 +184,6 @@ public class StreamCore: NSObject, Stream {
         listeners.remove(listener)
     }
 
-    /// Register a sink.
-    ///
-    /// - Parameter sink: sink to register
-    func register(sink: SinkCore) {
-        sinks.insert(sink)
-    }
-
-    /// Unregister a sink.
-    ///
-    /// - Parameter sink: sink to unregister
-    func unregister(sink: SinkCore) {
-        sinks.remove(sink)
-    }
-
-    /// Subscribe to stream media availability changes.
-    ///
-    /// In case a media of the requested kind is available when this method is called,
-    /// 'MediaListener.onMediaAvailable()' is called immediately.
-    ///
-    /// - Parameters:
-    ///    - listener: listener notified of media availability changes
-    ///    - mediaType: type of media to listen
-    func subscribeToMedia(listener: MediaListener, mediaType: SdkCoreMediaType) {
-        medias.registerListener(listener: listener, mediaType: mediaType)
-    }
-
-    /// Unsubscribe from stream media availability changes.
-    ///
-    /// In case a media of the subscribed kind is still available when this method is called,
-    /// {@code listener.}{@link MediaListener#onMediaUnavailable()} onMediaUnavailable()} is called immediately.
-    ///
-    /// - Parameters:
-    ///    - listener: listener to unsubscribe
-    ///    - mediaType: type of media that was listened
-    func unsubscribeFromMedia(listener: MediaListener, mediaType: SdkCoreMediaType) {
-        medias.unregisterListener(listener: listener, mediaType: mediaType)
-    }
-
     /// Get number of registered listeners.
     ///
     /// Only for testing purpose.
@@ -194,36 +204,68 @@ public class StreamCore: NSObject, Stream {
     }
 
     /// Unpublish the stream.
-    public func unpublish() {
+    private func unpublish() {
         listeners.forEach {
             $0.unpublish()
         }
     }
 
-    /// Open a new 'SdkCoreStream' for this stream.
-    ///
-    /// - Parameter listener: listener that will receive stream events
-    /// - Returns: a new 'SdkCoreStream' instance on success, otherwise 'nil'
-    func openStream(listener: SdkCoreStreamListener) -> SdkCoreStream? {
-        fatalError("Subclasses shall implement this method.")
+    /// Interrupts the stream, allowing it (if supported) to be resumed automatically later.
+    /// Default impementation just stop the stream.
+    /// Subclasses may override this method to properly interrupt the stream.
+    public func interrupt() {
+        if released {
+            ULog.w(.streamTag, "interrupt failed: stream already released.")
+            return
+        }
+
+        backend.enabled = false
+        backend.stop()
     }
 
-    /// Notifies that this stream is about to be suspended.
-    /// Default implementation does not support suspension and returns 'false'.
-    ///
-    /// - Parameter suspendedCommand: command that will be executed upon resuming, 'nil' if none
-    /// - Returns: 'true' to proceed with suspension, 'false' to stop the stream instead
-    func onSuspension(suspendedCommand: Command?) -> Bool {
-        return false
+    /// Resumes the stream (if supported), after have been interrupted.
+    /// Default impementation do nothing.
+    /// Subclasses may override this method to properly resume the stream.
+    public func resume() {
+        backend.enabled = true
     }
+
+    /// Stops the stream.
+    public func stop() {
+        if released {
+            ULog.w(.streamTag, "stop failed: stream already released.")
+            return
+        }
+
+        backend.stop()
+    }
+
+    /// Release the stream, stopping it if required.
+    ///
+    /// Stream must not be used after this method is called.
+    public func releaseStream() {
+        if released {
+            ULog.w(.streamTag, "release failed: stream already released.")
+            return
+        }
+        backend.stop()
+        released = true
+        unpublish()
+        listeners.removeAll()
+        onRelease()
+    }
+
+    /// Notifies that the stream playback starts.
+    /// Subclasses may override this method to properly update their own state.
+    func onStart() {}
 
     /// Notifies that the stream playback stops.
     /// Subclasses may override this method to properly update their own state.
     func onStop() {}
 
-    /// Notifies that the stream has been released.
+    /// Notifies that this stream is about to be suspended.
     /// Subclasses may override this method to properly update their own state.
-    func onRelease() {}
+    func onSuspension() {}
 
     /// Notifies that the stream playback state changed.
     ///
@@ -236,117 +278,16 @@ public class StreamCore: NSObject, Stream {
     ///    - timestamp: state collection timestamp, based on time provided by 'ProcessInfo.processInfo.systemUptime'
     func onPlaybackStateChanged(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval) {}
 
-    /// Queue a playback command for execution on this stream
+    /// Notifies that the stream play state changed.
     ///
-    /// - Parameter command: command to execute, 'nil' to re-execute latest command, if any
-    /// - Returns: 'true' if the command could be queued, otherwise 'false'
-    @discardableResult
-    func queueCommand(command: Command?) -> Bool {
-        if released {
-            ULog.w(.streamTag, "Cannot queue command: stream is closed.")
-            return false
-        }
-        if command != nil {
-            self.command = command
-        }
-        if self.command == nil {
-            ULog.w(.streamTag, "Cannot queue command: no command set before starting stream.")
-            return false
-        }
-        if sdkCoreStream == nil {
-            sdkCoreStream = openStream(listener: self)
-            if sdkCoreStream == nil {
-                return trySuspend()
-            }
-            update(state: .starting)
-            notifyUpdated()
-        } else if coreStreamOpen {
-            executeCommand(stream: sdkCoreStream!, command: command!)
-        }
-        return true
-    }
-
-    /// Execute a command.
+    /// Subclasses may override this method to properly update their own state.
     ///
-    /// - Parameters:
-    ///    - stream: stream on which the command is applied
-    ///    - command: command to execute
-    func executeCommand(stream: SdkCoreStream, command: Command) {
-        preconditionFailure("This method must be overridden")
-    }
+    /// - Parameter playState: stream play state
+    func onPlayStateChanged(playState: StreamPlayState) {}
 
-    /// Interrupt the stream, allowing it (if supported) to be resumed automatically later.
-    func interrupt() {
-        stop(reason: .interrupted)
-    }
-
-    /// Stops the stream.
-    public func stop() {
-        stop(reason: .userRequested)
-    }
-
-    /// Release the stream, stopping it if required.
-    ///
-    /// Stream must not be used after this method is called.
-    func releaseStream() {
-        if released {
-            ULog.w(.streamTag, "release failed: stream already released.")
-            return
-        }
-        stop(reason: .userRequested)
-        released = true
-        sinks.removeAll()
-        onRelease()
-    }
-
-    /// Stops this stream.
-    ///
-    /// - Parameter reason: reason why the stream is stopped
-    private func stop(reason: SdkCoreStreamCloseReason) {
-        if released {
-            ULog.w(.streamTag, "Cannot stop stream: stream is closed.")
-            return
-        }
-        sdkCoreStream?.close(reason)
-        handleSdkCoreStreamClosing(reason: reason)
-    }
-
-    /// Called when 'sdkCoreStream' is closing.
-    ///
-    /// - Returns: reason why the stream is closed
-    private func handleSdkCoreStreamClosing(reason: SdkCoreStreamCloseReason) {
-        if coreStreamOpen {
-            coreStreamOpen = false
-            for sink in sinks {
-                sink.onSdkCoreStreamUnavailable()
-            }
-        }
-        if reason != .interrupted || command == nil || !trySuspend() {
-            command = nil
-            update(state: .stopped)
-            notifyUpdated()
-        }
-    }
-
-    /// Called when 'sdkCoreStream' is fully closed.
-    func handleSdkCoreStreamClose() {
-        sdkCoreStream = nil
-    }
-
-    /// Try to move the stream to '.suspended' state in case it supports suspension.
-    ///
-    /// - Returns: 'true' if the stream could be suspended, otherwise 'false'
-    private func trySuspend() -> Bool {
-        guard let command = self.command else {
-            return false
-        }
-        if onSuspension(suspendedCommand: command) {
-            update(state: .suspended)
-            notifyUpdated()
-            return true
-        }
-        return false
-    }
+    /// Notifies that the stream has been released.
+    /// Subclasses may override this method to properly update their own state.
+    func onRelease() {}
 }
 
 /// Backend callback methods.
@@ -361,59 +302,41 @@ extension StreamCore {
         if state != self.state {
             self.state = state
             changed = true
-            if state == .stopped {
+            if state == .started {
+                onStart()
+            } else if state == .stopped {
                 onStop()
+            } else if state == .suspended {
+                onSuspension()
             }
         }
         return self
     }
-}
 
-/// Implementation of core stream listener.
-extension StreamCore: SdkCoreStreamListener {
-
-    public func streamDidOpen(_ sdkCoreStream: SdkCoreStream) {
-        if command == nil {
-            ULog.e(.streamTag, "No command set before starting stream.")
-            return
-        }
-        coreStreamOpen = true
-        for sink in sinks {
-            sink.onSdkCoreStreamAvailable(stream: sdkCoreStream)
-        }
-        executeCommand(stream: sdkCoreStream, command: command!)
-        update(state: .started).notifyUpdated()
+    /// Notifies that the stream play state changed.
+    ///
+    /// - Parameter playState: stream play state
+    public func streamPlayStateDidChange(playState: StreamPlayState) {
+        onPlayStateChanged(playState: playState)
     }
 
-    public func streamDidClosing(_ sdkCoreStream: SdkCoreStream, reason: SdkCoreStreamCloseReason) {
-        if !sdkCoreStream.isEqual(self.sdkCoreStream) { // another stream may have been open in the meantime
-            return
-        }
-        handleSdkCoreStreamClosing(reason: reason)
-    }
-
-    public func streamDidClose(_ sdkCoreStream: SdkCoreStream, reason: SdkCoreStreamCloseReason) {
-        handleSdkCoreStreamClose()
-    }
-
-    public func streamPlaybackStateDidChange(_ stream: SdkCoreStream,
-                                             duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval) {
-        onPlaybackStateChanged(duration: duration, position: position, speed: speed, timestamp: timestamp)
-        update(state: .started)
-        notifyUpdated()
-    }
-
-    public func mediaAdded(_ stream: SdkCoreStream, mediaInfo: SdkCoreMediaInfo) {
-        medias.addMedia(info: mediaInfo)
-    }
-
-    public func mediaRemoved(_ stream: SdkCoreStream, mediaInfo: SdkCoreMediaInfo) {
-        medias.removeMedia(info: mediaInfo)
+    /// Notifies that the stream playback state changed.
+    ///
+    /// - Parameters:
+    ///    - duration: stream duration, in milliseconds, 0 when irrelevant
+    ///    - position: playback position, in milliseconds
+    ///    - speed: playback speed (multiplier), 0 when paused
+    ///    - timestamp: state collection timestamp, based on time provided by 'ProcessInfo.processInfo.systemUptime'
+    public func streamPlaybackStateDidChange(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval) {
+        onPlaybackStateChanged(duration: duration,
+                               position: position,
+                               speed: speed,
+                               timestamp: timestamp)
     }
 }
 
 /// TextureLoaderFrame backend part.
-public protocol TextureLoaderFrameBackend: class {
+public protocol TextureLoaderFrameBackend: AnyObject {
     /// Handle on the frame.
     var frame: UnsafeRawPointer? {get}
 
@@ -445,8 +368,8 @@ public class TextureLoaderFrameCore: TextureLoaderFrame {
         return backend.userDataLen
     }
 
-    /// Handle on the session metadata
-    public var sessionMetadata: UnsafeRawPointer?
+    /// Handle on  media information.
+    public var mediaInfo: UnsafeRawPointer?
 
     /// Constructor
     ///
@@ -457,7 +380,7 @@ public class TextureLoaderFrameCore: TextureLoaderFrame {
 }
 
 /// Histogram backend part.
-public protocol HistogramBackend: class {
+public protocol HistogramBackend: AnyObject {
 
     /// Histogram channel red.
     var histogramRed: [Float32]? {get}
@@ -507,7 +430,7 @@ public class HistogramCore: Histogram {
 }
 
 /// Overlay context backend part.
-public protocol OverlayContextBackend: class {
+public protocol OverlayContextBackend: AnyObject {
     /// Area where the frame was rendered (including any padding introduced by scaling).
     var renderZone: CGRect {get}
 
@@ -520,20 +443,17 @@ public protocol OverlayContextBackend: class {
     /// Render zone handle.
     var contentZoneHandle: UnsafeRawPointer {get}
 
-    /// Session info handle.
-    var sessionInfoHandle: UnsafeRawPointer {get}
+    /// Media Info handle
+    var mediaInfoHandle: UnsafeRawPointer {get}
 
-    /// Session metadata handle.
-    var sessionMetadataHandle: UnsafeRawPointer {get}
-
-    /// Frame metadata handler.
+    /// Frame metadata handle.
     var frameMetadataHandle: UnsafeRawPointer? {get}
 
     /// Histogram.
     var histogram: Histogram? {get}
 }
 
-/// Internal histogram implementation.
+/// Internal context implementation.
 public class OverlayContextCore: OverlayContext {
 
     /// Implementation backend.
@@ -555,12 +475,8 @@ public class OverlayContextCore: OverlayContext {
         return backend.contentZoneHandle
     }
 
-    public var sessionInfoHandle: UnsafeRawPointer {
-        return backend.sessionInfoHandle
-    }
-
-    public var sessionMetadataHandle: UnsafeRawPointer {
-        return backend.sessionMetadataHandle
+    public var mediaInfoHandle: UnsafeRawPointer {
+        return backend.mediaInfoHandle
     }
 
     public var frameMetadataHandle: UnsafeRawPointer? {

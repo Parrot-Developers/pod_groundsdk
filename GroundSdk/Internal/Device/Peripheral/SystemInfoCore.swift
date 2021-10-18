@@ -30,7 +30,7 @@
 import Foundation
 
 /// System info backend part.
-public protocol SystemInfoBackend: class {
+public protocol SystemInfoBackend: AnyObject {
     /// Asks to the device to do a settings reset.
     ///
     /// - Returns: true if the reset factory is in progress

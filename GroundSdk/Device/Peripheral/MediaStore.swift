@@ -190,6 +190,25 @@ public enum DownloadDestination {
     case directory(path: String)
 }
 
+/// Storage type
+@objc(GSStorageType)
+public enum StorageType: Int, CustomStringConvertible {
+    /// The removable storage.
+    case removable
+    /// The internal storage.
+    case `internal`
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .removable:
+            return "removable"
+        case .internal:
+            return "internal"
+        }
+    }
+}
+
 /// Media downloader, containing info on a download medias task
 ///
 /// - Seealso: `MediaStore.newDownloader`
@@ -220,6 +239,9 @@ public class MediaDownloader: NSObject {
     /// Url of downloaded file (if exists) when status is fileDownloaded, nil in other cases.
     public let fileUrl: URL?
 
+    /// Url of downloaded file signature (if exists) when status is fileDownloaded, nil in other cases.
+    public let signatureUrl: URL?
+
     /// Current downloading media.
     public let currentMedia: MediaItem?
 
@@ -234,9 +256,10 @@ public class MediaDownloader: NSObject {
     ///   - progress: total download progress between 0.0 (0%) and 1.0 (100%)
     ///   - status: download progress status
     ///   - fileUrl : url of downloaded file when progress is at 1.0, nil in other cases
+    ///   - signatureUrl : url of downloaded file signature, if exists, when progress is at 1.0, nil in other cases
     init(totalMedia: Int, countMedia: Int, totalResources: Int, countResources: Int,
          currentFileProgress: Float, progress: Float, status: MediaTaskStatus,
-         currentMedia: MediaItem? = nil, fileUrl: URL? = nil) {
+         currentMedia: MediaItem? = nil, fileUrl: URL? = nil, signatureUrl: URL? = nil) {
         self.totalMediaCount = totalMedia
         self.currentMediaCount = countMedia
         self.totalResourceCount = totalResources
@@ -245,6 +268,7 @@ public class MediaDownloader: NSObject {
         self.totalProgress = progress
         self.status = status
         self.fileUrl = fileUrl
+        self.signatureUrl = signatureUrl
         self.currentMedia = currentMedia
     }
 }
@@ -279,6 +303,20 @@ public protocol MediaStore: Peripheral {
     /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
     ///   called.
     func newList(observer: @escaping (_ medias: [MediaItem]?) -> Void) -> Ref<[MediaItem]>
+
+    /// Creates a new Media list for a specific storage.
+    ///
+    /// This function starts loading the media store content on  a specific storage, and notify when it has been loaded
+    /// and each time the content changes.
+    ///
+    /// - Parameters:
+    ///   - storage: storage type on which the Media list will be created
+    ///   - observer: observer  notified when the media list has been loaded or has change.
+    ///   - medias: list media, `nil` if the store has been removed
+    /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
+    ///   called.
+    /// - Note: if storage is `nil`, the MediaItem in any storage are returned in medias.
+    func newList(storage: StorageType?, observer: @escaping (_ medias: [MediaItem]?) -> Void) -> Ref<[MediaItem]>
 
     /// Creates a new media thumbnail downloader.
     ///
@@ -511,7 +549,7 @@ public protocol GSMediaStore: Peripheral {
 
     /// Creates a new Media list.
     ///
-    /// This function starts loading the media store content, and notify when the it has been loaded and each time
+    /// This function starts loading the media store content, and notify when it has been loaded and each time
     /// the content changes.
     ///
     /// - Parameters:
@@ -520,8 +558,25 @@ public protocol GSMediaStore: Peripheral {
     /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
     ///   called.
     /// - Note: This function is for Objective-C only.
+    ///     If storage is `nil`, the MediaItem in any storage are returned in medias.
     @objc(newList:)
     func newListRef(observer: @escaping (_ medias: [MediaItem]?) -> Void) -> GSMediaListRef
+
+    /// Creates a new Media list for a specific storage.
+    ///
+    /// This function starts loading the media store content on  a specific storage, and notify when it has been loaded
+    /// and each time the content changes.
+    ///
+    /// - Parameters:
+    ///   - storage: storage type on which the Media list will be created
+    ///   - observer: observer  notified when the media list has been loaded or has change.
+    ///   - medias: list media, `nil` if the store has been removed
+    /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
+    ///   called.
+    /// - Note: This function is for Objective-C only.
+    @objc(newList:storage:)
+    func newListRef(storage: StorageType,
+                    observer: @escaping (_ medias: [MediaItem]?) -> Void) -> GSMediaListRef
 
     /// Creates a new thumbnail downloader.
     ///

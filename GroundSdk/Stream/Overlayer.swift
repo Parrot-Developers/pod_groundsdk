@@ -46,44 +46,25 @@ public protocol Histogram {
     var histogramLuma: [Float32]? {get}
 }
 
-/// Listener for rendering an overlay over a stream.
-///
-/// Such a listener can be passed to a 'StreamView' by setting 'StreamView.overlayer'.
-/// Deprecated: use `Overlayer2` instead.
-@objc(GSOverlayer)
-public protocol Overlayer {
-
-    /// Called to render a GL overlay over a stream frame.
-    ///
-    /// - Parameters:
-    ///    - renderPos: Render position
-    ///    - contentPos: Content position
-    ///    - histogram: Frame histogram
-    func overlay(renderPos: UnsafeRawPointer, contentPos: UnsafeRawPointer, histogram: Histogram?)
-}
-
 /// Overlay context data.
 @objc(GSOverlayContext)
 public protocol OverlayContext {
-    /** Area where the frame was rendered (including any padding introduced by scaling). */
+    /// Area where the frame was rendered (including any padding introduced by scaling).
     var renderZone: CGRect {get}
 
-    /** Render zone handle; pointer of const struct pdraw_rect. */
+    /// Render zone handle; pointer to const struct pdraw_rect.
     var renderZoneHandle: UnsafeRawPointer {get}
 
-    /** Area where frame content was rendered (excluding any padding introduced by scaling). */
+    /// Area where frame content was rendered (excluding any padding introduced by scaling).
     var contentZone: CGRect {get}
 
-    /** Content zone handle; pointer of const struct pdraw_rect. */
+    /// Content zone handle; pointer to const struct pdraw_rect.
     var contentZoneHandle: UnsafeRawPointer {get}
 
-    /** Session info handle; pointer of const struct pdraw_session_info. */
-    var sessionInfoHandle: UnsafeRawPointer {get}
+    /// Media info handle; pointer to const struct pdraw_media_info.
+    var mediaInfoHandle: UnsafeRawPointer {get}
 
-    /** Session metadata handle; pointer of const struct vmeta_session. */
-    var sessionMetadataHandle: UnsafeRawPointer {get}
-
-    /** Session metadata handle; pointer of const struct vmeta_session. */
+    /// Frame metadata handle; pointer to const struct pdraw_media_info.
     var frameMetadataHandle: UnsafeRawPointer? {get}
 
     /// Histogram.
@@ -93,8 +74,8 @@ public protocol OverlayContext {
 /// Listener for rendering an overlay over a stream.
 ///
 /// Such a listener can be passed to a 'StreamView' by setting 'StreamView.overlayer'.
-@objc(GSOverlayer2)
-public protocol Overlayer2 {
+@objc(GSOverlayer)
+public protocol Overlayer {
 
     /// Called to render a GL overlay over a stream frame.
     ///

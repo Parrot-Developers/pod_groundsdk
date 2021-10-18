@@ -119,15 +119,15 @@ public protocol TextureLoaderFrame {
     /// Length of the frame user data.
     var userDataLen: Int {get}
 
-    /// Handle on the session metadata
-    var sessionMetadata: UnsafeRawPointer? {get}
+    /// Handle on  media information.
+    var mediaInfo: UnsafeRawPointer? {get}
 }
 
 /// Listener for rendering stream frames.
 ///
 /// Such a listener can be passed to a 'StreamView' by setting 'StreamView.textureLoader'.
 @objc(GSTextureLoader)
-public protocol TextureLoader: class {
+public protocol TextureLoader: AnyObject {
 
     /// Texture specification.
     var textureSpec: TextureSpec {get}

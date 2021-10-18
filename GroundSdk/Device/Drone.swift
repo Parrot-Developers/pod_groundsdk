@@ -42,6 +42,8 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
         case anafi4k
         /// Anafi Thermal.
         case anafiThermal
+        /// Anafi 2.
+        case anafi2
         /// Anafi UA.
         case anafiUa
         /// Anafi USA.
@@ -52,6 +54,7 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
             switch self {
             case .anafi4k:      return 0x0914
             case .anafiThermal: return 0x0919
+            case .anafi2:       return 0x091a
             case .anafiUa:      return 0x091b
             case .anafiUsa:     return 0x091e
             }
@@ -62,13 +65,14 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
             switch self {
             case .anafi4k:      return "anafi4k"
             case .anafiThermal: return "anafiThermal"
+            case .anafi2:       return "anafi2"
             case .anafiUa:      return "anafiUa"
             case .anafiUsa:     return "anafiUsa"
             }
         }
 
         /// Set containing all possible values of drone model.
-        static let allCases: Set<Model> = [.anafi4k, .anafiThermal, .anafiUa, .anafiUsa]
+        static let allCases: Set<Model> = [.anafi4k, .anafiThermal, .anafi2, .anafiUa, .anafiUsa]
     }
 
     /// Drone unique identifier, persistant between sessions.

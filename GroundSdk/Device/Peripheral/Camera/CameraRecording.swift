@@ -200,8 +200,9 @@ public enum CameraRecordingFramerate: Int, CustomStringConvertible, Comparable {
 
     /// Set containing all possible values.
     public static let allCases: Set<CameraRecordingFramerate> = [
-        .fps8_6, .fps9, .fps10, .fps15, .fps20, .fps24, .fps25, .fps30, .fps48, .fps50, .fps60, .fps96, .fps100,
-        .fps120, .fps192, .fps200, .fps240]
+        .fps8_6, .fps9, .fps10, .fps15, .fps20, .fps24,
+        .fps25, .fps30, .fps48, .fps50, .fps60, .fps96,
+        .fps100, .fps120, .fps192, .fps200, .fps240]
 }
 
 /// Camera hyperlapse values for recording mode `hyperlapse`.
@@ -307,7 +308,7 @@ public enum CameraRecordingFunctionState: Int, CustomStringConvertible {
 /// - Recording resolution,
 /// - Recording framerate,
 /// - Hyperalpse value for hyperlapse mode.
-public protocol CameraRecordingSettings: class {
+public protocol CameraRecordingSettings: AnyObject {
     /// Tells if a setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

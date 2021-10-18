@@ -68,7 +68,7 @@ public enum CameraExposureLockMode: Equatable, CustomStringConvertible {
 /// Camera exposure lock.
 ///
 ///  Allows to lock/unlock the exposure according to a given mode.
-public protocol CameraExposureLock: class {
+public protocol CameraExposureLock: AnyObject {
     /// Tells if the mode has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
@@ -81,7 +81,7 @@ public protocol CameraExposureLock: class {
     /// Locks exposure on a given region of interest defined by its center (taken from the video stream).
     ///
     /// - Parameters:
-    ///   - centerX: Horizontal position in the video (relative position, from left (0.0) to right (1.0))
+    ///   - centerX: horizontal position in the video (relative position, from left (0.0) to right (1.0))
     ///   - centerY: vertical position in the video (relative position, from bottom (0.0) to top (1.0))
     func lockOnRegion(centerX: Double, centerY: Double)
 

@@ -80,7 +80,7 @@ public enum AntiflickerValue: Int, CustomStringConvertible {
 }
 
 /// Setting to change the anti-flickering mode.
-public protocol AntiflickerSetting: class {
+public protocol AntiflickerSetting: AnyObject {
     /// Whether the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

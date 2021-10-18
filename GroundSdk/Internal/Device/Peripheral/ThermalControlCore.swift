@@ -30,7 +30,7 @@
 import Foundation
 
 /// Thermal control backend part.
-public protocol ThermalControlBackend: class {
+public protocol ThermalControlBackend: AnyObject {
     /// Sets thermal control mode
     ///
     /// - Parameter mode: the new thermal control mode

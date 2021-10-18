@@ -48,7 +48,7 @@ public enum CameraMode: Int, CustomStringConvertible, CaseIterable {
 }
 
 /// Setting to change the camera mode.
-public protocol CameraModeSetting: class {
+public protocol CameraModeSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

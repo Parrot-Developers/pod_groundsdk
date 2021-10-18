@@ -31,14 +31,18 @@ import Foundation
 
 /// Core class for media replay source.
 public class MediaSourceCore: MediaReplaySource {
+
+    /// Track to select.
     public var track: MediaItem.Track
 
+    /// Media unique identifier.
     public var mediaUid: String?
 
+    /// Resource unique identifier.
     public var resourceUid: String?
 
-    /// url to play
-    public var streamUrl: String?
+    /// Url to stream.
+    public var streamUrl: String
 
     /// Name of the track of the stream
     public var streamTrackName: String?
@@ -48,19 +52,16 @@ public class MediaSourceCore: MediaReplaySource {
     /// - Parameters:
     ///    - resource: resource to be played
     ///    - track: track to select
-    init(resource: MediaItemResourceCore, track: MediaItem.Track) {
+    init?(resource: MediaItemResourceCore, track: MediaItem.Track) {
+        guard let streamUrl = resource.streamUrl else {
+            return nil
+        }
+
         self.mediaUid = resource.media?.uid
         self.streamTrackName = resource.getStreamTrackIdFor(track: track)
-        self.streamUrl = resource.streamUrl
+        self.streamUrl = streamUrl
         self.track = track
         self.resourceUid = resource.uid
-    }
-
-    func openStream(server: StreamServerCore, listener: SdkCoreStreamListener) -> SdkCoreStream? {
-        if let streamUrl = streamUrl, let streamTrackName = streamTrackName {
-            return server.openStream(url: streamUrl, track: streamTrackName, listener: listener)
-        }
-        return nil
     }
 
 }

@@ -88,7 +88,7 @@ public class OffScreenStreamRender {
     /// Histograms will be received by the call of renderOverlay(OverlayerData).
     public var histogramsEnabled: Bool {
         get {
-            return _histogramsEnabled
+            _histogramsEnabled
         }
         set {
             _histogramsEnabled = newValue
@@ -101,19 +101,7 @@ public class OffScreenStreamRender {
     private var _histogramsEnabled = false
 
     /// Rendering overlayer.
-    /// Deprecated: use `overlayer2` instead.
     public weak var overlayer: Overlayer? {
-        didSet {
-            if overlayer != nil {
-                overlayer2 = self
-            } else {
-                overlayer2 = nil
-            }
-        }
-    }
-
-    /// Rendering overlayer.
-    public weak var overlayer2: Overlayer2? {
         didSet {
             applyOverlayer()
         }
@@ -123,7 +111,7 @@ public class OffScreenStreamRender {
     /// 'true' to enable the zebras of overexposure zone.
     public var zebrasEnabled: Bool {
         get {
-            return _zebrasEnabled
+            _zebrasEnabled
         }
         set {
             _zebrasEnabled = newValue
@@ -166,19 +154,32 @@ public class OffScreenStreamRender {
     }
 
     /// Frame Buffer Object where each frame are rendered.
-    public var fbo: GGLFbo
+    public private (set) var fbo: GGLFbo
 
     /// Constructor
     ///
     /// - Parameters:
-    ///   - context: OpenGl context to used
-    ///   - size: Sized of the FBO where the stream will be rendered
+    ///   - context: OpenGl context to used.
+    ///   - size: Size of the FBO where the stream will be rendered.
     init? (context: EAGLContext, size: CGSize) {
         EAGLContext.setCurrent(context)
         if let fbo = GGLFbo(context: context, size: size) {
             self.fbo = fbo
         } else {
             return nil
+        }
+    }
+
+    /// Define a new render size for the FBO.
+    ///
+    /// - Parameter newSize: Size of the FBO where the stream will be rendered.
+    /// - Returns: true if the FBO as been updated, false otherwise.
+    @discardableResult public func changeSize(newSize: CGSize) -> Bool {
+        if let context = fbo.context, let fbo = GGLFbo(context: context, size: newSize) {
+            self.fbo = fbo
+            return true
+        } else {
+            return false
         }
     }
 
@@ -264,7 +265,7 @@ public class OffScreenStreamRender {
         self.stream = stream
 
         if let stream = self.stream {
-            sink = stream.openSink(config: GlRenderSinkCore.Config(listener: self))
+            sink = stream.openSink(config: GlRenderSinkCore.config(listener: self))
         }
     }
 
@@ -278,16 +279,8 @@ public class OffScreenStreamRender {
     /// Applies configured overlayer to renderer.
     private func applyOverlayer() {
         if let renderer = renderer {
-            renderer.overlayer2 = overlayer2
+            renderer.overlayer = overlayer
         }
-    }
-}
-
-/// Extension to convert old `Overlayer` to `Overlayer2`.
-extension OffScreenStreamRender: Overlayer2 {
-    public func overlay(overlayContext: OverlayContext) {
-        overlayer?.overlay(renderPos: overlayContext.renderZoneHandle, contentPos: overlayContext.contentZoneHandle,
-                          histogram: overlayContext.histogram)
     }
 }
 

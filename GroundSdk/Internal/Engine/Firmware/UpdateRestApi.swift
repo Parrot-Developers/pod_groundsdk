@@ -157,7 +157,7 @@ class UpdateRestApi {
 
     /// Response of a list request
     fileprivate struct ListRequestResponse: Decodable {
-        //swiftlint:disable:next nesting
+        // swiftlint:disable:next nesting
         enum CodingKeys: String, CodingKey {
             case firmwares = "firmware"
             case blacklistedVersions = "blacklist"
@@ -171,7 +171,7 @@ class UpdateRestApi {
 
     /// Firmware information extracted from a list request
     fileprivate struct HttpFirmwareInfo: Decodable {
-        //swiftlint:disable:next nesting
+        // swiftlint:disable:next nesting
         enum CodingKeys: String, CodingKey {
             case product
             case version

@@ -42,7 +42,7 @@ public protocol Altimeter: Instrument {
     var takeoffRelativeAltitude: Double? { get }
 
     /// Altitude of the drone relative to the ground (in meters).
-    ///` nil` if not available. This can happen if the drone does not know or provide this information.
+    /// `nil` if not available. This can happen if the drone does not know or provide this information.
     ///
     /// This is the fusion of barometer and ultrasounds.
     /// - Note: May be wrong at high altitude and jump brutally when getting closer to the ground.

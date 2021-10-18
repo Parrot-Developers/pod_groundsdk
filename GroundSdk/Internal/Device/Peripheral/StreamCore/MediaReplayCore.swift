@@ -31,14 +31,12 @@ import Foundation
 
 /// Core class for MediaReplay.
 public class MediaReplayCore: ReplayCore, MediaReplay {
+
     /// Stream server managing the stream.
     private unowned let server: StreamServerCore
 
     /// Played back media resource.
-    public var source: MediaReplaySource {
-        return _source
-    }
-    private var _source: MediaSourceCore
+    public var source: MediaReplaySource
 
     /// Constructor
     ///
@@ -47,23 +45,13 @@ public class MediaReplayCore: ReplayCore, MediaReplay {
     ///    - resource: media source to be played back
     public init(server: StreamServerCore, source: MediaSourceCore) {
         self.server = server
-        self._source = source
+        self.source = source
+
         super.init()
+
+        backend = server.getStreamBackendMedia(url: source.streamUrl, trackName: source.streamTrackName,
+                                               streamCore: self)
         self.server.register(stream: self)
-    }
-
-    override func openStream(listener: SdkCoreStreamListener) -> SdkCoreStream? {
-        if let url = _source.streamUrl {
-            return server.openStream(url: url,
-                    track: (_source.streamTrackName != nil ? _source.streamTrackName!: StreamCore.TRACK_DEFAULT_VIDEO),
-                    listener: listener)
-        }
-        return nil
-    }
-
-    override func onStop() {
-        super.onStop()
-        server.onStreamStopped(stream: self)
     }
 
     override func onRelease() {

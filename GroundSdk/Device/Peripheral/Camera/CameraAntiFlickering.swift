@@ -55,7 +55,7 @@ public enum CameraAntiFlickeringMode: Int, CustomStringConvertible {
 }
 
 /// Settings to configure camera anti-flickering options.
-public protocol CameraAntiFlickeringSettings: class {
+public protocol CameraAntiFlickeringSettings: AnyObject {
     /// Tells if a setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

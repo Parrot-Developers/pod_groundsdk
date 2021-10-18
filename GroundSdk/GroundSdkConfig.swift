@@ -39,8 +39,6 @@ import Foundation
 /// the following content:
 ///  - `Wifi` (Bool): enable local wifi support. Default is `true`.
 ///  - `Usb` (Bool): enable Usb support (for sky controllers). Default is `true`.
-///  - `UsbDebug` (Bool): enable usb debug bridge support. Default is `false`.
-///  - `Ble` (Bool): enable deprecated Ble support. Default is `false`.
 ///
 ///  - `SupportedDevices` (Array of String): List of all supported devices by the application. Default is all.
 ///     The devices name that should be given are the `description` of each `DeviceModel` you want to support.
@@ -56,8 +54,20 @@ import Foundation
 ///
 ///  - `FlightData` (Bool): enable download flight data files from drone. Default is `true`.
 ///
-///  - `FlightLog` (Bool): enable flight logs (from drone or remote control) to be shared with Parrot. Default is
-///     `true`.
+///  - `FlightLogServer` (String): URL of flight log server. This should be set to enable flight log upload and
+///     event log generation and upload
+///
+///  - `FlightLog` (Bool): enable support of flight logs (from drone or remote control) and event logs
+///     (from application). Default is `true`.
+///
+///  - `FlightCameraRecordServer` (String): URL of flight camera record server. This should be set to enable flight
+///     camera record upload and event log generation and upload
+///
+///  - `FcrAnonymizerFqn` (String): Name of the class that will respond to the protocol
+///  FcrAnonymizerFqn (full qualified name)
+///
+///  - `FlightCameraRecord` (Bool): enable support of flight camera records (from drone)
+///     and event logs (from application). Default is `true`.
 ///
 ///  - `GutmaLog` (Bool): enable convert flight data files from drone to GUTMA. Default is `true`.
 ///
@@ -86,11 +96,13 @@ import Foundation
 ///
 ///  - `DevToolbox` (Bool): enable development toolbox. Default is `false`.
 ///
-/// Example: Enable Usb debug and disable offline settings
+///  - `CellularCellularLogsKb` (Number): Maximum memroy size used by cellular log messages, in kilobytes.
+///
+/// Example: Enable auto-connection at GroundSdk startup and disable offline settings
 ///
 ///     <key>GroundSdk</key>
 ///      <dict>
-///        <key>UsbDebug</key> <true/>
+///        <key>AutoConnectionAtStartup</key> <true/>
 ///        <key>OfflineSettings</key> <string>off</string>
 ///     </dict>
 @objcMembers
@@ -141,20 +153,6 @@ public class GroundSdkConfig: NSObject {
         }
     }
 
-    /// Whether Usb debug backend is enabled.
-    public var enableUsbDebug = false {
-        willSet(newValue) {
-            checkLocked()
-        }
-    }
-
-    /// Whether BLE backend is enabled.
-    public var enableBle = false {
-        willSet(newValue) {
-            checkLocked()
-        }
-    }
-
     /// Enable offline settings and send them to the drone at connection.
     public var offlineSettings = OfflineSettingsMode.model {
         willSet(newValue) {
@@ -184,8 +182,22 @@ public class GroundSdkConfig: NSObject {
         }
     }
 
+    /// Enable FlightCameraRecord.
+    public var enableFlightCameraRecord = true {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
     /// Enable gutma log
     public var enableGutmaLog = true {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
+    /// Enable certificate download
+    public var enableCertificateDownload = true {
         willSet(newValue) {
             checkLocked()
         }
@@ -215,6 +227,26 @@ public class GroundSdkConfig: NSObject {
         }
     }
 
+    /// Flight log server.
+    public var flightLogServer: String? {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
+    /// Flight camera record server.
+    public var flightCameraRecordServer: String? {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
+    /// Flight camera record anonymizer full qualified name protocol.
+    public var fcrAnonymizerFqn: String? {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
     /// List of all supported devices
     public var supportedDevices = DeviceModel.allDevices {
         willSet(newValue) {
@@ -250,8 +282,15 @@ public class GroundSdkConfig: NSObject {
         }
     }
 
-    /// Flight log quota in mega bytes.
+    /// Flight log and event log quota in mega bytes.
     public var flightLogQuotaMb: Int? {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
+    /// Flight camera record and event log quota in mega bytes.
+    public var flightCameraRecordQuotaMb: Int? {
         willSet(newValue) {
             checkLocked()
         }
@@ -285,8 +324,22 @@ public class GroundSdkConfig: NSObject {
         }
     }
 
+    /// Black box buffer capacity.
+    public var blackboxBufferCapacity: Int? {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
     /// Whether development toobox is enabled.
     public var enableDevToolbox = false {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
+    /// Maximum memroy size used by cellular log messages, in kilobytes.
+    public var cellularCellularLogsKb: UInt? {
         willSet(newValue) {
             checkLocked()
         }
@@ -344,12 +397,6 @@ public class GroundSdkConfig: NSObject {
         if let enableUsb = config?[Keys.enableUsb.rawValue] as? Bool {
             self.enableUsb = enableUsb
         }
-        if let enableUsbDebug = config?[Keys.enableUsbDebug.rawValue] as? Bool {
-            self.enableUsbDebug = enableUsbDebug
-        }
-        if let enableBle = config?[Keys.enableBle.rawValue] as? Bool {
-            self.enableBle = enableBle
-        }
         if let offlineSettingsStr = config?[Keys.offlineSettings.rawValue] as? String,
             let offlineSettings = OfflineSettingsMode(offlineSettingsStr) {
             self.offlineSettings = offlineSettings
@@ -363,6 +410,9 @@ public class GroundSdkConfig: NSObject {
         if let enableFlightLog = config?[Keys.enableFlightLog.rawValue] as? Bool {
             self.enableFlightLog = enableFlightLog
         }
+        if let enableFlightCameraRecord = config?[Keys.enableFlightCameraRecord.rawValue] as? Bool {
+            self.enableFlightCameraRecord = enableFlightCameraRecord
+        }
         if let enableGutmaLog = config?[Keys.enableGutmaLog.rawValue] as? Bool {
             self.enableGutmaLog = enableGutmaLog
         }
@@ -372,9 +422,25 @@ public class GroundSdkConfig: NSObject {
         if let enableFirmwareSynchronization = config?[Keys.enableFirmwareSynchronization.rawValue] as? Bool {
             self.enableFirmwareSynchronization = enableFirmwareSynchronization
         }
+        if let enableCertificateDownload = config?[Keys.enableCertificateDownload.rawValue] as? Bool {
+            self.enableCertificateDownload = enableCertificateDownload
+        }
         if let alternateFirmwareServer = config?[Keys.firmwareServer.rawValue] as? String,
             !alternateFirmwareServer.isEmpty {
             self.alternateFirmwareServer = alternateFirmwareServer
+        }
+        if let flightLogServer = config?[Keys.flightLogServer.rawValue] as? String,
+            !flightLogServer.isEmpty {
+            self.flightLogServer = flightLogServer
+        }
+        if let flightCameraRecordServer = config?[Keys.flightCameraRecordServer.rawValue] as? String,
+            !flightCameraRecordServer.isEmpty {
+            self.flightCameraRecordServer = flightCameraRecordServer
+        }
+
+        if let fcrAnonymizerFqn = config?[Keys.fcrAnonymizerFqn.rawValue] as? String,
+            !fcrAnonymizerFqn.isEmpty {
+            self.fcrAnonymizerFqn = fcrAnonymizerFqn
         }
         if let supportedDevicesArr = config?[Keys.supportedDevices.rawValue] as? [String] {
             var supportedDevices: Set<DeviceModel> = []
@@ -421,6 +487,9 @@ public class GroundSdkConfig: NSObject {
         if let flightLogQuotaMb = config?[Keys.flightLogQuotaMb.rawValue] as? Int {
             self.flightLogQuotaMb = flightLogQuotaMb
         }
+        if let flightCameraRecordQuotaMb = config?[Keys.flightCameraRecordQuotaMb.rawValue] as? Int {
+            self.flightCameraRecordQuotaMb = flightCameraRecordQuotaMb
+        }
         if let flightDataQuotaMb = config?[Keys.flightDataQuotaMb.rawValue] as? Int {
             self.flightDataQuotaMb = flightDataQuotaMb
         }
@@ -434,8 +503,14 @@ public class GroundSdkConfig: NSObject {
             !blackboxPublicFolder.isEmpty {
             self.blackboxPublicFolder = blackboxPublicFolder
         }
+        if let blackboxBufferCapacity = config?[Keys.blackboxBufferCapacity.rawValue] as? Int {
+            self.blackboxBufferCapacity = blackboxBufferCapacity
+        }
         if let enableDevToolbox = config?[Keys.enableDevToolbox.rawValue] as? Bool {
             self.enableDevToolbox = enableDevToolbox
+        }
+        if let cellularCellularLogsKb = config?[Keys.cellularCellularLogsKb.rawValue] as? Int {
+            self.cellularCellularLogsKb = UInt(cellularCellularLogsKb)
         }
     }
 
@@ -445,30 +520,36 @@ public class GroundSdkConfig: NSObject {
         case applicationKey = "ApplicationKey"
         case enableWifi = "Wifi"
         case enableUsb = "Usb"
-        case enableUsbDebug = "UsbDebug"
-        case enableBle = "Ble"
         case offlineSettings = "OfflineSettings"
         case enableCrashReport = "CrashReport"
         case enableFlightData = "FlightData"
         case enableGutmaLog = "GutmaLog"
+        case enableBlackBox = "BlackBox"
         case enableFirmwareSynchronization = "FirmwareSync"
         case firmwareServer = "FirmwareServer"
+        case enableCertificateDownload = "CertificateDownload"
         case supportedDevices = "SupportedDevices"
         case autoConnectionAtStartup = "AutoConnectionAtStartup"
-        case enableBlackBox = "BlackBox"
         case appDefaults = "AppDefaults"
         case embeddedFirmwares = "EmbeddedFirmwares"
         case blacklistedVersions = "BlacklistedVersions"
         case autoSelectWifiCountry = "AutoSelectWifiCountry"
         case enableEphemeris = "Ephemeris"
         case enableFlightLog = "FlightLog"
+        case enableFlightCameraRecord = "FlightCameraRecord"
         case blackBoxQuotaMb = "BlackBoxQuotaMb"
         case flightLogQuotaMb = "FlightLogQuotaMb"
+        case flightCameraRecordQuotaMb = "FlightCameraRecordQuotaMb"
         case flightDataQuotaMb = "FlightDataQuotaMb"
         case gutmaLogQuotaMb = "GutmaLogQuotaMb"
         case crashReportQuotaMb = "CrashReportQuotaMb"
         case blackboxPublicFolder = "BlackboxPublicFolder"
+        case blackboxBufferCapacity = "BlackboxBufferCapacity"
         case enableDevToolbox = "DevToolbox"
+        case flightLogServer = "FlightLogServer"
+        case flightCameraRecordServer = "FlightCameraRecordServer"
+        case fcrAnonymizerFqn = "FcrAnonymizerFqn"
+        case cellularCellularLogsKb = "CellularCellularLogsKb"
     }
 
     /// `true` if configuration is locked, i.e. the first ground sdk instance has already been created.

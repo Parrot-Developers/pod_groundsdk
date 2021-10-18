@@ -81,7 +81,7 @@ public class MediaResourceListCore: MediaResourceList {
     ///    - media: media to add a resource of
     ///    - resource: resource to add
     public func add(media: MediaItem, resource: MediaItem.Resource) {
-        if let idx = mediaResourceList.index(where: {$0.media === media}) {
+        if let idx = mediaResourceList.firstIndex(where: {$0.media === media}) {
             mediaResourceList[idx] = Entry(
                 media: mediaResourceList[idx].media,
                 resources: mediaResourceList[idx].resources + [resource as! MediaItemResourceCore])
@@ -96,7 +96,7 @@ public class MediaResourceListCore: MediaResourceList {
     /// - Parameters:
     ///    - media: media to add all resources of
     public func add(media: MediaItem) {
-        if let idx = mediaResourceList.index(where: {$0.media === media}) {
+        if let idx = mediaResourceList.firstIndex(where: {$0.media === media}) {
             mediaResourceList[idx] = Entry(
                 media: mediaResourceList[idx].media, resources: media.resources as! [MediaItemResourceCore])
         } else {
@@ -250,14 +250,17 @@ public class MediaDownloaderCore: MediaDownloader {
     ///   - status: download status
     ///   - currentMedia : current downloading media
     ///   - fileUrl : url of downloaded file when progress is at 1.0, nil in other cases
+    ///   - signatureUrl : url of downloaded signature when progress is at 1.0, nil in other cases
     public init(mediaResourceListIterator iterator: MediaResourceListCore.Iterator, currentFileProgress: Float,
-                status: MediaTaskStatus, currentMedia: MediaItem? = nil, fileUrl: URL? = nil) {
+                status: MediaTaskStatus, currentMedia: MediaItem? = nil, fileUrl: URL? = nil,
+                signatureUrl: URL? = nil) {
         let progress  = (Float(iterator.currentSize - iterator.currentResourceSize) +
             Float(iterator.currentResourceSize) * currentFileProgress) / Float(iterator.totalSize)
         super.init(totalMedia: iterator.mediaCount, countMedia: iterator.currentMediaIdx,
                    totalResources: iterator.resourceCount, countResources: iterator.currentResourceIdx,
                    currentFileProgress: currentFileProgress,
-                   progress: progress, status: status, currentMedia: currentMedia, fileUrl: fileUrl)
+                   progress: progress, status: status, currentMedia: currentMedia, fileUrl: fileUrl,
+                   signatureUrl: signatureUrl)
     }
 }
 
@@ -290,7 +293,7 @@ public class AllMediasDeleterCore: AllMediasDeleter {
 }
 
 /// MediaStore backend.
-public protocol MediaStoreBackend: class {
+public protocol MediaStoreBackend: AnyObject {
 
     /// Start watching media store content.
     ///
@@ -308,6 +311,15 @@ public protocol MediaStoreBackend: class {
     ///   - medias: list of medias
     /// - Returns: browse request, or nil if the request can't be send
     func browse(completion: @escaping (_ medias: [MediaItemCore]) -> Void) -> CancelableCore?
+
+    /// Browse medias in a specific storage.
+    ///
+    /// - Parameters:
+    ///   - storage: storage type to browse
+    ///   - completion: completion closure called when the request is terminated.
+    ///   - medias: list of medias
+    /// - Returns: browse request, or nil if the request can't be send
+    func browse(storage: StorageType?, completion: @escaping (_ medias: [MediaItemCore]) -> Void) -> CancelableCore?
 
     /// Download a thumbnail
     ///
@@ -399,6 +411,22 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
     /// - Returns: a reference on a list of MediaItem
     public func newList(observer: @escaping Ref<[MediaItem]>.Observer) -> Ref<[MediaItem]> {
         return MediaListRefCore(mediaStore: self, observer: observer)
+    }
+
+    /// Creates a new Media list for a specific storage.
+    ///
+    /// This function starts loading the media store content on  a specific storage, and notify when it has been loaded
+    /// and each time the content changes.
+    ///
+    /// - Parameters:
+    ///   - storage: storage type on which the Media list will be created
+    ///   - observer: observer  notified when the media list has been loaded or has change.
+    ///   - medias: list media, `nil` if the store has been removed
+    /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
+    ///   called.
+    public func newList(storage: StorageType?,
+                        observer: @escaping (_ medias: [MediaItem]?) -> Void) -> Ref<[MediaItem]> {
+        return MediaListRefCore(storage: storage, mediaStore: self, observer: observer)
     }
 
     /// Create a new media thumbnail downloader
@@ -517,6 +545,19 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
 /// Objective-C extension adding MediaStoreCore swift methods that can't be automatically converted.
 /// Those methods should no be used from swift
 extension MediaStoreCore: GSMediaStore {
+
+    /// Create a new Media list request for a storage.
+    ///
+    /// This function starts loading the media store content, and notify when the it has been loaded and each time
+    /// the content changes.
+    ///
+    /// - Parameters:
+    ///     - storage: the storage type where to browse
+    ///     - observer: observer  notified when the media list has been loaded or has change.
+    /// - Returns: a reference on a list of MediaItem
+    public func newListRef(storage: StorageType, observer: @escaping ([MediaItem]?) -> Void) -> GSMediaListRef {
+        return GSMediaListRef(ref: newList(storage: storage, observer: observer))
+    }
 
     /// Create a new Media list request.
     ///

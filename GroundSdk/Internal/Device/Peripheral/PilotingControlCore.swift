@@ -30,7 +30,7 @@
 import Foundation
 
 /// PilotingControl backend part.
-public protocol PilotingControlBackend: class {
+public protocol PilotingControlBackend: AnyObject {
     /// Sets piloting behaviour
     ///
     /// - Parameter behaviour: the new behaviour

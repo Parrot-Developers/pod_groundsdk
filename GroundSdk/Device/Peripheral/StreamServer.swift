@@ -57,6 +57,15 @@ public protocol StreamServer: Peripheral {
     /// - Returns: a reference to the camera live stream interface
     func live(observer: @escaping (_ stream: CameraLive?) -> Void) -> Ref<CameraLive>
 
+    /// Provides access to the drone camera live stream.
+    /// There is only one live stream instance that is shared amongst all open references.
+    /// Dereferencing the returned reference does NOT automatically stops the referenced camera live stream.
+    ///
+    /// - Parameter source: live source to stream
+    /// - Parameter observer: notified when the stream state changes
+    /// - Returns: a reference to the camera live stream interface
+    func live(source: CameraLiveSource, observer: @escaping (_ stream: CameraLive?) -> Void) -> Ref<CameraLive>
+
     /// Creates a new replay stream for a media resource.
     /// Every successful call to this method creates a new replay stream instance for the given media resource,
     /// that must be disposed by dereferencing the returned reference once that stream is not needed.
@@ -94,13 +103,15 @@ public protocol GSStreamServer {
     /// When streaming is disabled, no stream can be started.
     var enabled: Bool { get set }
 
-    /// Provides access to the drone camera live stream.
-    /// There is only one live stream instance that is shared amongst all open references.
+    /// Provides access to the drone video live  stream.
+    /// There is only one live stream instance for each CameraLive.Source source, which is shared among all open
+    /// references.
     /// Closing the returned reference does NOT automatically stops the referenced camera live stream.
     ///
+    /// - Parameter source: live source to stream
     /// - Parameter observer: notified when the stream state changes
     /// - Returns: a reference to the camera live stream interface
-    func live(observer: @escaping (_ stream: CameraLive?) -> Void) -> GSCameraLiveRef
+    func live(source: CameraLiveSource, observer: @escaping (_ stream: CameraLive?) -> Void) -> GSCameraLiveRef
 
     /// Creates a new replay stream for a media resource.
     /// Every successful call to this method creates a new replay stream instance for the given media resource,

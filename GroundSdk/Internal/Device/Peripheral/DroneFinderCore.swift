@@ -30,7 +30,7 @@
 import Foundation
 
 /// Drone finder backend part.
-public protocol DroneFinderBackend: class {
+public protocol DroneFinderBackend: AnyObject {
     /// Starts visible drones discovery.
     func discoverDrones()
     /// Connects a remote drone.
@@ -55,9 +55,13 @@ public class DiscoveredDroneCore: DiscoveredDrone {
     ///    - known: whether the drone known
     ///    - rssi: rssi in dBm
     ///    - connectionSecurity: connection security
+    ///    - wifiVisibility: drone visibility over wifi
+    ///    - cellularOnLine: drone cellular network is online
     override public init(
-        uid: String, model: Drone.Model, name: String, known: Bool, rssi: Int, connectionSecurity: ConnectionSecurity) {
-        super.init(uid: uid, model: model, name: name, known: known, rssi: rssi, connectionSecurity: connectionSecurity)
+        uid: String, model: Drone.Model, name: String, known: Bool, rssi: Int, connectionSecurity: ConnectionSecurity,
+        wifiVisibility: Bool, cellularOnLine: Bool) {
+        super.init(uid: uid, model: model, name: name, known: known, rssi: rssi, connectionSecurity: connectionSecurity,
+                   wifiVisibility: wifiVisibility, cellularOnLine: cellularOnLine)
     }
 }
 

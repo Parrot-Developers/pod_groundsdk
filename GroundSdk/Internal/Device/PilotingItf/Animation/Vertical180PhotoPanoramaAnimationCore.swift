@@ -35,6 +35,7 @@ public class Vertical180PhotoPanoramaCore: AnimationCore, Vertical180PhotoPanora
     /// Constructor.
     public init() {
         super.init(type: .vertical180PhotoPanorama)
+        matcher = self
     }
 }
 

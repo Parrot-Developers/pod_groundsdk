@@ -91,7 +91,11 @@ public class CloudServerCore: UtilityCore {
     /// - Parameters:
     ///   - baseUrl: server base url. Use default server URL if not provided.
     ///   - api: api to use
+    ///   - token: authentication token.
     ///   - query: list of params to pass to the request. Default is `nil`.
+    ///   - anonymous: whether the resquest is anonymous or not.
+    ///   - requestCustomization: closure that will be called after that the `URLRequest` has been created. This request
+    ///                           can be customized by the caller through this closure.
     ///   - completion: completion callback
     ///   - result: the request result
     ///   - data: the data that has been get. `nil` if result is not `.success`.
@@ -99,13 +103,19 @@ public class CloudServerCore: UtilityCore {
     public func getData(
         baseUrl: URL = CloudServerCore.defaultUrl,
         api: String,
+        token: String? = nil,
         query: [String: String]? = nil,
+        anonymous: Bool = false,
+        requestCustomization: (inout URLRequest) -> Void = { _ in },
         completion: @escaping (_ result: HttpSessionCore.Result, _ data: Data?) -> Void) -> CancelableCore {
 
         var urlComponents = URLComponents(url: baseUrl.appendingPathComponent(api), resolvingAgainstBaseURL: false)!
         urlComponents.queryItems = query?.map { return URLQueryItem(name: $0.key, value: $0.value) }
         var request = URLRequest(url: urlComponents.url!)
-        updateHeader(&request)
+        requestCustomization(&request)
+        if !anonymous {
+            updateHeader(&request)
+        }
         return httpSession.getData(request: request, completion: completion)
     }
 
@@ -148,6 +158,7 @@ public class CloudServerCore: UtilityCore {
     ///   - api: api to use
     ///   - fileUrl: local file url
     ///   - method: the method to use to send the file
+    ///   - anonymous: whether the request is anonymous or not.
     ///   - requestCustomization: closure that will be called after that the `URLRequest` has been created. This request
     ///                           can be customized by the caller through this closure.
     ///   - progress: progress callback
@@ -159,13 +170,20 @@ public class CloudServerCore: UtilityCore {
         baseUrl: URL = CloudServerCore.defaultUrl,
         api: String, fileUrl: URL,
         method: HttpSessionCore.SendMethod = .put,
+        anonymous: Bool = false,
         requestCustomization: (inout URLRequest) -> Void = { _ in },
         progress: @escaping (_ progressValue: Int) -> Void,
         completion: @escaping (_ result: HttpSessionCore.Result, _ data: Data?) -> Void) -> CancelableCore {
-
-        var request = URLRequest(url: baseUrl.appendingPathComponent(api))
+        var request: URLRequest
+        if !api.isEmpty {
+            request = URLRequest(url: baseUrl.appendingPathComponent(api))
+        } else {
+            request = URLRequest(url: baseUrl)
+        }
         requestCustomization(&request)
-        updateHeader(&request)
+        if !anonymous {
+            updateHeader(&request)
+        }
 
         return httpSession.sendFile(
             request: request, method: method, fileUrl: fileUrl, progress: progress, completion: completion)
@@ -257,6 +275,7 @@ public class CloudServerCore: UtilityCore {
         if let userAccountValue = userAccountUtility?.userAccountInfo?.account {
             // add the field "x-account" in the http header
             request.addValue(userAccountValue, forHTTPHeaderField: "x-account")
+            ULog.d(.myparrot, "Header: x-account \(userAccountValue)")
         }
     }
 }
@@ -271,10 +290,11 @@ private extension URLSessionConfiguration {
             "(\(UIDevice.current.systemName); \(UIDevice.identifier); \(UIDevice.current.systemVersion)) " +
         "\(AppInfoCore.sdkBundle)/\(AppInfoCore.sdkVersion)"
         var additionalHeaders = ["User-Agent": userAgent]
-
+        ULog.d(.myparrot, "Header: User-Agent \(userAgent)")
         // Application key if present
         if let applicationKey = GroundSdkConfig.sharedInstance.applicationKey {
             additionalHeaders["x-api-key"] = applicationKey
+            ULog.d(.myparrot, "Header: x-api-key \(applicationKey)")
         }
 
         httpAdditionalHeaders = additionalHeaders

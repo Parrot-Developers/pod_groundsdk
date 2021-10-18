@@ -62,7 +62,7 @@ extension FlightLogDownloaderCore {
         return self
     }
 
-    /// Updates current downloaded Count.
+    /// Updates current downloaded count.
     ///
     /// - Parameter downloadedCount: new downloaded count
     /// - Returns: self to allow call chaining

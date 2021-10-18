@@ -45,7 +45,7 @@ public protocol FlightDataStorageCore: UtilityCore {
     /// Multiple downloaders may be assigned the same download directory. As a consequence, flight data  directories
     /// that a downloader may create should have a name as unique as possible to avoid collision.
     ///
-    /// The directory in question might not be existing, and the caller as the responsibility to create it if necessary,
+    /// The directory in question might not exist, and the caller has the responsibility to create it if necessary,
     /// but should ensure to do so on a background thread.
     var workDir: URL { get }
 
@@ -77,7 +77,7 @@ class FlightDataStorageCoreImpl: FlightDataStorageCore {
     }
 
     func notifyFlightDataReady(flightDataUrl: URL) {
-        guard flightDataUrl.deletingLastPathComponent() == workDir else {
+        guard flightDataUrl.deletingLastPathComponent().absoluteString == workDir.absoluteString else {
             ULog.w(.flightDataStorageTag, "flightDataUrl \(flightDataUrl) is not located in the PUD directory " +
                 "\(workDir)")
             return

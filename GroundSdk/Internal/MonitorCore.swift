@@ -30,7 +30,7 @@
 import Foundation
 
 /// Object that monitors a monitorable class
-public protocol MonitorCore: class {
+public protocol MonitorCore: AnyObject {
     /// Stop monitoring.
     func stop()
 }

@@ -30,7 +30,7 @@
 import Foundation
 
 /// Leds backend part.
-public protocol LedsBackend: class {
+public protocol LedsBackend: AnyObject {
     /// Sets switch state
     ///
     /// - Parameter state: the new state

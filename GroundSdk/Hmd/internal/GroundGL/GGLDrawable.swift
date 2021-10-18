@@ -31,7 +31,7 @@ import GLKit
 
 /// The GGLDrawable protocol describes an OpenGL rendering object, with the initialization of the vertexes that
 /// compose it
-protocol GGLDrawable: class {
+protocol GGLDrawable: AnyObject {
     /// True or False depending on whether the object is drawn when rendering.
     var enable: Bool { get set }
 

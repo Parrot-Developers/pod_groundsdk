@@ -30,7 +30,7 @@
 import Foundation
 
 /// DRI backend part.
-public protocol DriBackend: class {
+public protocol DriBackend: AnyObject {
     /// Sets mode.
     ///
     /// - Parameter mode: the new mode. `true` to activate DRI mode

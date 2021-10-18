@@ -179,4 +179,21 @@ public class DeviceStateCore: DeviceState {
             (_activeConnector?.supportsDisconnect ?? false)
     }
 
+    /// Changes the planned shutdown date
+    ///
+    /// Note that changes are not notified until notifyUpdated() is called
+    ///
+    /// - Parameter connectors: device connectors
+    /// - Returns: self to allow call chaining
+    @discardableResult public func update(willShutDownIn milliseconds: Int) -> DeviceStateCore {
+        changed = true
+        if milliseconds == -1 {
+            // Shutdown aborted
+            self._shutDownDate = nil
+        } else {
+            // Shutdown is planned
+            self._shutDownDate = Date(timeIntervalSinceNow: TimeInterval(milliseconds/1000))
+        }
+        return self
+    }
 }

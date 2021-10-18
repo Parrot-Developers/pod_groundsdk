@@ -30,7 +30,7 @@
 import Foundation
 
 /// Copilot backend part.
-public protocol CopilotBackend: class {
+public protocol CopilotBackend: AnyObject {
     /// Sets piloting source
     ///
     /// - Parameter source: the new source

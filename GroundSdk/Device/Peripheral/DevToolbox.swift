@@ -49,7 +49,7 @@ public enum DebugSettingType: Int, CustomStringConvertible {
 }
 
 /// Debug setting.
-public protocol DebugSetting: class {
+public protocol DebugSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

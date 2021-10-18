@@ -75,7 +75,7 @@ public protocol CameraStyleParameter {
 /// Camera style settings.
 ///
 ///  Allows to set the active image style and to customize its parameters.
-public protocol CameraStyleSettings: class {
+public protocol CameraStyleSettings: AnyObject {
     /// Tells if a setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

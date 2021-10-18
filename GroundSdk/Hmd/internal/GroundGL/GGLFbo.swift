@@ -74,7 +74,7 @@ public class GGLFbo {
 
         let success: Bool
 
-        //Create the framebuffer and bind it.
+        // Create the framebuffer and bind it.
         let width = GLsizei(size.width)
         let height = GLsizei(size.height)
 

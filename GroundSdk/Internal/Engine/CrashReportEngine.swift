@@ -39,7 +39,7 @@ class CrashReportEngine: EngineBaseCore {
     /// This directory is located in the cache folder of the phone/tablet.
     ///
     /// This directory may contain:
-    /// - the current work directory (see `workDir`) , which may itself contain temporary reports
+    /// - the current work directory (see `workDir`), which may itself contain temporary reports
     ///   (being currently downloaded from remote devices) and finalized reports (that are ready to be uploaded)
     /// - previous work directories, that may themselves contain finalized reports, or temporary reports that failed to
     ///   be downloaded completely.
@@ -62,7 +62,7 @@ class CrashReportEngine: EngineBaseCore {
     /// Monitor of the userAccount changes
     private var userAccountMonitor: MonitorCore!
 
-    /// User Account information
+    /// User account information
     private var userAccountInfo: UserAccountInfoCore?
 
     /// Crash reports file collector.
@@ -116,15 +116,16 @@ class CrashReportEngine: EngineBaseCore {
         userAccountInfo = userAccountUtility.userAccountInfo
         // monitor userAccount changes
         userAccountMonitor = userAccountUtility.startMonitoring(accountDidChange: { (newUserAccountInfo) in
-            if newUserAccountInfo != self.userAccountInfo {
-                // if the account property changes and if the previous account was not nil, we delete all files
-                // (a new user was identified or a user has logout)
-                if self.userAccountInfo?.account != newUserAccountInfo?.account &&
-                    self.userAccountInfo?.account != nil {
-                    self.dropReports()
-                }
-                self.userAccountInfo = newUserAccountInfo
+            // If the user account changes and if old data upload is denied, we delete all files
+            if newUserAccountInfo?.account != nil
+                && newUserAccountInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
+                && newUserAccountInfo?.oldDataPolicy == .denyUpload
+                && newUserAccountInfo?.changeDate != self.userAccountInfo?.changeDate {
+                ULog.d(.crashReportEngineTag, "User account change with old data upload denied -> delete all reports")
+                self.dropReports()
             }
+            self.userAccountInfo = newUserAccountInfo
+            self.startReportUploadProcess()
         })
 
         if spaceQuotaInMb != 0 {
@@ -182,8 +183,8 @@ class CrashReportEngine: EngineBaseCore {
 
     /// Start the uploading process of crash report files
     ///
-    /// if an upload is already start we are only updating the pending count
-    /// uploading process is only start when it is not already uploading files.
+    /// if an upload is already started we are only updating the pending count
+    /// uploading process is only started when it is not already uploading files.
     private func startReportUploadProcess() {
         guard !crashReporter.isUploading else {
             crashReporter.update(pendingCount: pendingReportUrls.count)
@@ -195,11 +196,10 @@ class CrashReportEngine: EngineBaseCore {
     /// Try to upload the first report of the list.
     ///
     /// It will only start the upload if the engine is not currently uploading a report, if Internet connectivity
-    /// is available, if user account is present, or if anonymous data is allowed.
+    /// is available, if data upload is allowed.
     private func processNextReport() {
         crashReporter.update(pendingCount: pendingReportUrls.count)
-        if (self.userAccountInfo?.account == nil
-            && self.userAccountInfo?.anonymousDataPolicy != AnonymousDataPolicy.allow)
+        if (self.userAccountInfo?.dataUploadPolicy == DataUploadPolicy.deny)
         || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
             crashReporter.update(isUploading: false).notifyUpdated()
             return
@@ -207,18 +207,21 @@ class CrashReportEngine: EngineBaseCore {
         if let uploader = uploader,
             currentUploadRequest == nil {
             if let crashReport = pendingReportUrls.first {
-                // don't upload full crash report if no account & only anonymousDataPolicy allow
-                if self.userAccountInfo?.account == nil
-                    && self.userAccountInfo?.anonymousDataPolicy == AnonymousDataPolicy.allow
+                // don't upload full crash report if no account & only dataUploadPolicy is different from .deny
+                if self.userAccountInfo?.dataUploadPolicy != DataUploadPolicy.full
+                    && self.userAccountInfo?.dataUploadPolicy != DataUploadPolicy.noMedia
                     && crashReport.pathExtension == "gz" {
                     pendingReportUrls.removeFirst()
                     self.processNextReport()
                     return
                 }
-                if self.userAccountInfo?.account != nil {
-                    let toRemove: Bool
-                    if self.userAccountInfo!.accountlessPersonalDataPolicy == .denyUpload {
-                        // check if the file is before the authentification date
+                if self.userAccountInfo?.dataUploadPolicy == DataUploadPolicy.full
+                || self.userAccountInfo?.dataUploadPolicy == DataUploadPolicy.noMedia {
+                    var toRemove: Bool = false
+                    if crashReport.pathExtension != "gz" {
+                        toRemove = true
+                    } else if self.userAccountInfo!.oldDataPolicy == .denyUpload {
+                        // check if the file is before the authentication date
                         // if yes, we remove the file because the user did not accept the download of the data collected
                         // before the authentication
                         if let attrs = try? FileManager.default.attributesOfItem(
@@ -228,9 +231,6 @@ class CrashReportEngine: EngineBaseCore {
                         } else {
                             toRemove = true
                         }
-                    } else {
-                        // remove light report since user account exist. only full report are uploaded
-                        toRemove = crashReport.pathExtension != "gz"
                     }
                     if toRemove {
                         self.deleteCrashReport(at: crashReport)
@@ -280,7 +280,7 @@ class CrashReportEngine: EngineBaseCore {
         } else {
             ULog.w(.crashReportEngineTag, "Uploaded report is not the first one of the pending")
             // fallback
-            if let index: Int = self.pendingReportUrls.index(where: {$0 == reportUrl}) {
+            if let index: Int = self.pendingReportUrls.firstIndex(where: {$0 == reportUrl}) {
                 self.pendingReportUrls.remove(at: index)
             }
         }
@@ -289,7 +289,7 @@ class CrashReportEngine: EngineBaseCore {
 
         if reportUrl.pathExtension == "gz" {
             let urlLight = URL(fileURLWithPath: reportUrl.path + ".anon")
-            if let index: Int = self.pendingReportUrls.index(where: {$0 == urlLight}) {
+            if let index: Int = self.pendingReportUrls.firstIndex(where: {$0 == urlLight}) {
                 self.pendingReportUrls.remove(at: index)
                 self.collector.deleteCrashReport(at: urlLight)
             }

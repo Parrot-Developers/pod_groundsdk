@@ -46,6 +46,8 @@ public class MediaItemCore: MediaItem {
     ///   - name: media name
     ///   - type: media type
     ///   - runUid: unique identifier of the run for this media
+    ///   - customId: application custom identifier
+    ///   - customTitle: application custom title
     ///   - creationDate: media creation date
     ///   - expectedCount: expected number of resources in the media
     ///   - photoMode: photo mode of the media (if available and media is a photo else nil)
@@ -54,13 +56,16 @@ public class MediaItemCore: MediaItem {
     ///   - resources: available resources, by format
     ///   - backendData: backend media data
     ///   - metadataTypes: set of 'MetadataType' available in this media
-    public init(uid: String, name: String, type: MediaType, runUid: String, creationDate: Date, expectedCount: UInt64?,
-                photoMode: MediaItem.PhotoMode?, panoramaType: PanoramaType?, streamUrl: String? = nil,
-                resources: [Resource], backendData: Any? = nil, metadataTypes: Set<MetadataType> = Set()) {
+    public init(uid: String, name: String, type: MediaType, runUid: String, customId: String?,
+                customTitle: String?, creationDate: Date,
+                expectedCount: UInt64?, photoMode: MediaItem.PhotoMode?, panoramaType: PanoramaType?,
+                streamUrl: String? = nil, resources: [Resource], backendData: Any? = nil,
+                metadataTypes: Set<MetadataType> = Set()) {
         self.streamUrl = streamUrl
         self.backendData = backendData
 
-        super.init(uid: uid, name: name, type: type, runUid: runUid, creationDate: creationDate,
+        super.init(uid: uid, name: name, type: type, runUid: runUid, customId: customId,
+                   customTitle: customTitle, creationDate: creationDate,
                    expectedCount: expectedCount, photoMode: photoMode, panoramaType: panoramaType,
                    resources: resources, metadataTypes: metadataTypes)
         resources.forEach { ($0 as! MediaItemResourceCore).media = self }
@@ -94,9 +99,12 @@ public class MediaItemResourceCore: MediaItem.Resource {
     ///   - location: resource creation location, may be nil if unavailable
     ///   - creationDate: media creation date
     ///   - metadataTypes: set of 'MediaItem.MetadataType' available in this ressource
+    ///   - storage: the storage type
+    ///   - signed: `true` if resource is signed, `false` otherwise
     public init(uid: String, format: MediaItem.Format, size: UInt64, duration: TimeInterval? = nil,
                 streamUrl: String? = nil, backendData: Any? = nil, location: CLLocation?, creationDate: Date,
-                metadataTypes: Set<MediaItem.MetadataType> = Set()) {
+                metadataTypes: Set<MediaItem.MetadataType> = Set(), storage: StorageType? = nil,
+                signed: Bool = false) {
         self.streamUrl = streamUrl
         self.backendData = backendData
         self.tracks = [:]
@@ -108,7 +116,8 @@ public class MediaItemResourceCore: MediaItem.Resource {
             }
         }
         super.init(uid: uid, format: format, size: size, duration: duration, location: location,
-                   creationDate: creationDate, metadataTypes: metadataTypes)
+                   creationDate: creationDate, metadataTypes: metadataTypes, storage: storage,
+                   signed: signed)
     }
 
     /// Get available tracks for media

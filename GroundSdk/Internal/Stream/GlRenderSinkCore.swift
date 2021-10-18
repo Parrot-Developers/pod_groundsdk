@@ -29,6 +29,58 @@
 
 import Foundation
 
+public protocol GlRenderSinkBackend: SinkBackend {
+
+    /// Rendering area.
+    var renderZone: CGRect {get set}
+
+    /// Rendering scale type.
+    var scaleType: GlRenderSinkScaleType {get set}
+
+    /// Rendering padding mode.
+    var paddingFill: GlRenderSinkPaddingFill {get set}
+
+    /// Enables zebras of overexposure image zones.
+    /// 'true' to enable the zebras of overexposure zone, otherwise no zebras.
+    /// Must be called in the GL thread.
+    /// see setZebrasThreshold(float)
+    var zebrasEnabled: Bool {get set}
+
+    /// Sets overexposure threshold for zebras.
+    ///  Must be called in the GL thread.
+    ///
+    /// @param threshold: threshold of overexposure used by zebras, in range [0.0, 1.0].
+    /// '0.0' for the maximum of zebras and '1.0' for the minimum.
+    ///
+    /// see enableZebras(BOOL)
+    var zebrasThreshold: Double {get set}
+
+    /// Enables Histograms computing.
+    /// Must be called in the GL thread.
+    /// `true` to enable histograms computing.
+    var histogramsEnabled: Bool {get set}
+
+    /// Rendering overlayer.
+    /// `nil` to disable rendering overlay
+    var overlayer: Overlayer? {get set}
+
+    /// Texture loader to use for custom texture loading, `nil` to disable custom texture loading.
+    var textureLoader: TextureLoader? {get set}
+
+    /// Starts renderer.
+    ///
+    /// - Returns `true` if the renderer could be started, otherwise `false`
+    func start() -> Bool
+
+    /// Stops renderer.
+    ///
+    /// - Returns `true` if the renderer could be stopped, otherwise `false`
+    func stop() -> Bool
+
+    /// Render a frame.
+    func renderFrame()
+}
+
 /// Core class for GlRenderSink.
 public class GlRenderSinkCore: SinkCore, GlRenderSink {
 
@@ -41,10 +93,14 @@ public class GlRenderSinkCore: SinkCore, GlRenderSink {
         /// Constructor
         ///
         /// - Parameter listener: renderer listener
-        public init(listener: GlRenderSinkListener) {
+        init(listener: GlRenderSinkListener) {
             self.listener = listener
         }
 
+        /// Opens a new sink.
+        ///
+        /// - Parameter stream: sink's stream
+        /// - Returns: the new sink
         public func openSink(stream: StreamCore) -> SinkCore {
             return GlRenderSinkCore(streamCore: stream, config: self)
         }
@@ -53,97 +109,91 @@ public class GlRenderSinkCore: SinkCore, GlRenderSink {
     /// Sink config.
     private let config: Config
 
-    /// Rendered stream.
-    private weak var sdkCoreStream: SdkCoreStream?
-
     /// Internal renderer.
-    private var sdkCoreRenderer: SdkCoreRenderer?
+    private var renderSinkBackend: GlRenderSinkBackend!
 
     /// Rendering area.
-    public var renderZone: CGRect = CGRect() {
-        didSet {
-            if let renderer = sdkCoreRenderer {
-                renderer.setRenderZone(renderZone)
-            }
+    public var renderZone: CGRect {
+        get {
+            return renderSinkBackend.renderZone
+        }
+        set {
+            renderSinkBackend.renderZone = newValue
         }
     }
 
     /// Rendering scale type.
-    public var scaleType: GlRenderSinkScaleType = .fit {
-        didSet {
-            if let renderer = sdkCoreRenderer {
-                let fillMode = fillModeFrom(scaleType: scaleType, paddingFill: paddingFill)
-                renderer.setFillMode(fillMode)
-            }
+    public var scaleType: GlRenderSinkScaleType {
+        get {
+            return renderSinkBackend.scaleType
+        }
+        set {
+            renderSinkBackend.scaleType = newValue
         }
     }
 
     /// Rendering padding mode.
-    public var paddingFill: GlRenderSinkPaddingFill = .none {
-        didSet {
-            if let renderer = sdkCoreRenderer {
-                let fillMode = fillModeFrom(scaleType: scaleType, paddingFill: paddingFill)
-                renderer.setFillMode(fillMode)
-            }
+    public var paddingFill: GlRenderSinkPaddingFill {
+        get {
+            return renderSinkBackend.paddingFill
+        }
+        set {
+            renderSinkBackend.paddingFill = newValue
         }
     }
 
     /// Whether zebras are enabled.
-    public var zebrasEnabled: Bool = false {
-        didSet {
-            if let renderer = sdkCoreRenderer {
-                renderer.enableZebras(zebrasEnabled)
-            }
+    public var zebrasEnabled: Bool {
+        get {
+            return renderSinkBackend.zebrasEnabled
+        }
+        set {
+            renderSinkBackend.zebrasEnabled = newValue
         }
     }
 
     /// Zebras overexposure threshold, from 0.0 to 1.0.
-    public var zebrasThreshold: Double = 0 {
-        didSet {
-            if let renderer = sdkCoreRenderer {
-                renderer.setZebrasThreshold(Float(zebrasThreshold))
-            }
+    public var zebrasThreshold: Double {
+        get {
+            return renderSinkBackend.zebrasThreshold
+        }
+        set {
+            renderSinkBackend.zebrasThreshold = newValue
         }
     }
 
     /// Whether histograms are enabled.
-    public var histogramsEnabled: Bool = false {
-        didSet {
-            if let renderer = sdkCoreRenderer {
-                renderer.enableHistograms(histogramsEnabled)
-            }
+    public var histogramsEnabled: Bool {
+        get {
+            return renderSinkBackend.histogramsEnabled
+        }
+        set {
+            renderSinkBackend.histogramsEnabled = newValue
         }
     }
 
     /// Texture loader to render custom GL texture.
-    public weak var textureLoader: TextureLoader?
-
-    /// Texture frame.
-    private var textureFrame: TextureLoaderFrameCore
-
-    /// Texture frame backend.
-    private var textureFrameBackend = TextureLoaderFrameBackendCore()
-
-    /// Listener for overlay rendering.
-    /// Deprecated: use `overlayer2` instead.
-    public var overlayer: Overlayer? {
-        didSet {
-            if overlayer == nil {
-                overlayer2 = nil
-            } else {
-                overlayer2 = self
-            }
+    public weak var textureLoader: TextureLoader? {
+        get {
+            return renderSinkBackend.textureLoader
+        }
+        set {
+            renderSinkBackend.textureLoader = newValue
         }
     }
 
     /// Listener for overlay rendering.
-    public var overlayer2: Overlayer2?
+    public weak var overlayer: Overlayer? {
+        get {
+            return renderSinkBackend.overlayer
+        }
+        set {
+            renderSinkBackend.overlayer = newValue
+        }
+    }
 
     /// Overlay context.
     private var overlayContext: OverlayContextCore?
-
-    /// Overlay context backend.
-    private var overlayContextBackend: OverlayContextBackendCore?
 
     /// Constructor.
     ///
@@ -152,276 +202,57 @@ public class GlRenderSinkCore: SinkCore, GlRenderSink {
     ///    - config: sink configuration
     public init(streamCore: StreamCore, config: Config) {
         self.config = config
-        textureFrame = TextureLoaderFrameCore(backend: textureFrameBackend)
-        super.init(streamCore: streamCore)
+        super.init()
+        renderSinkBackend = streamCore.getRenderSinkBackend(renderSink: self)
+        backend = renderSinkBackend
     }
 
     /// Start renderer.
     ///
     /// - Returns: 'true' on success, 'false' otherwise
     public func start() -> Bool {
-        if sdkCoreRenderer != nil {
-            return false
-        }
-        guard let stream = sdkCoreStream else {
-            return false
-        }
-        let fillMode = fillModeFrom(scaleType: scaleType, paddingFill: paddingFill)
-        let textureWidth = textureLoader != nil ? textureLoader!.textureSpec.width : 0
-        let textureDarWidth = textureLoader != nil ? textureLoader!.textureSpec.ratioNumerator : 0
-        let textureDarHeight = textureLoader != nil ? textureLoader!.textureSpec.ratioDenominator : 0
-        sdkCoreRenderer = stream.startRenderer(renderZone: renderZone, fillMode: fillMode,
-                                               zebrasEnabled: zebrasEnabled, zebrasThreshold: Float(zebrasThreshold),
-                                               textureWidth: Int32(textureWidth),
-                                               textureDarWidth: Int32(textureDarWidth),
-                                               textureDarHeight: Int32(textureDarHeight),
-                                               textureLoaderlistener: textureLoader != nil ? self : nil,
-                                               histogramsEnabled: histogramsEnabled, overlayListener: self,
-                                               listener: self )
-        return sdkCoreRenderer != nil
+        return renderSinkBackend.start()
     }
 
     /// Stop renderer.
     ///
     /// - Returns: 'true' on success, 'false' otherwise
     public func stop() -> Bool {
-        if let renderer = sdkCoreRenderer {
-            renderer.stop()
-            sdkCoreRenderer = nil
-            return true
-        }
-        return false
+        return renderSinkBackend.stop()
     }
 
     /// Render a frame.
     public func renderFrame() {
-        if let renderer = sdkCoreRenderer {
-            renderer.renderFrame()
-        }
+        renderSinkBackend.renderFrame()
     }
 
-    public func config(listener: GlRenderSinkListener) -> StreamSinkConfig {
+    /// Creates a new GLRendererSink config.
+    ///
+    /// - Parameter listener: listener notified of sink events.
+    ///
+    /// - Returns: a new GLRendererSink config.
+    static public func config(listener: GlRenderSinkListener) -> StreamSinkConfig {
         return Config(listener: listener)
     }
 
-    override func onSdkCoreStreamAvailable(stream: SdkCoreStream) {
-        sdkCoreStream = stream
+}
+
+// Backend callback
+extension GlRenderSinkCore {
+
+    public func onRenderingMayStart() {
         config.listener?.onRenderingMayStart(renderer: self)
     }
 
-    override func onSdkCoreStreamUnavailable() {
-        sdkCoreStream = nil
+    public func onRenderingMustStop() {
         config.listener?.onRenderingMustStop(renderer: self)
     }
-}
-
-/// Extension to convert old `Overlayer` to `Overlayer2`.
-extension GlRenderSinkCore: Overlayer2 {
-    public func overlay(overlayContext: OverlayContext) {
-        overlayer?.overlay(renderPos: overlayContext.renderZoneHandle, contentPos: overlayContext.contentZoneHandle,
-                           histogram: overlayContext.histogram)
-    }
-}
-
-/// Extension to convert rendering scale type and padding mode to SdkCoreStreamRenderingFillMode.
-extension GlRenderSinkCore {
-
-    /// Convert rendering scale type and padding mode to SdkCoreStreamRenderingFillMode.
-    ///
-    /// - Parameters:
-    ///    - scaleType: rendering scale type
-    ///    - paddingFill: rendering padding mode
-    /// - Returns: SdkCoreStreamRenderingFillMode equivalent
-    func fillModeFrom(scaleType: GlRenderSinkScaleType, paddingFill: GlRenderSinkPaddingFill)
-        -> SdkCoreStreamRenderingFillMode {
-            switch scaleType {
-            case .fit:
-                switch paddingFill {
-                case .none:
-                    return .fit
-                case .blur_crop:
-                    return .fitPadBlurCrop
-                case .blur_extend:
-                    return .fitPadBlurExtend
-                }
-            case .crop:
-                return .crop
-            }
-    }
-}
-
-/// Implementation of renderer listener protocol.
-extension GlRenderSinkCore: SdkCoreRendererListener {
 
     public func onFrameReady() {
         config.listener?.onFrameReady(renderer: self)
     }
 
-    public func contentZoneDidUpdate(_ zone: CGRect) {
+    public func onContentZoneChange(_ zone: CGRect) {
         config.listener?.onContentZoneChange(contentZone: zone)
-    }
-}
-
-/// Implementation of texture loader listener protocol.
-extension GlRenderSinkCore: SdkCoreTextureLoaderListener {
-
-    public func loadTexture(_ width: Int32, height: Int32, frame: SdkCoreTextureLoaderFrame) -> Bool {
-        if let textureLoader = textureLoader {
-            textureFrameBackend.data = frame
-            return textureLoader.loadTexture(width: Int(width), height: Int(height), frame: textureFrame)
-        }
-        return false
-    }
-}
-
-/// Implementation of overlay rendering listener protocol.
-extension GlRenderSinkCore: SdkCoreRendererOverlayListener {
-
-    public func overlay(_ context: SdkCoreOverlayContext) {
-
-        if let overlayer = overlayer2 {
-            if let overlayContextBackend = overlayContextBackend {
-                overlayContextBackend.data = context
-            } else {
-                let backend = OverlayContextBackendCore(coreContext: context)
-                overlayContextBackend = backend
-                overlayContext = OverlayContextCore(backend: backend)
-            }
-
-            if let overlayContext = overlayContext {
-                overlayer.overlay(overlayContext: overlayContext)
-            }
-        }
-    }
-}
-/// TextureLoaderFrame backend implementation.
-class TextureLoaderFrameBackendCore: TextureLoaderFrameBackend {
-
-    /// Texture loader data core.
-    var data: SdkCoreTextureLoaderFrame?
-
-    var frame: UnsafeRawPointer? {
-        if let data = data {
-            return data.frame
-        } else {
-            return nil
-        }
-    }
-
-    var userData: UnsafeRawPointer? {
-        if let data = data {
-            return data.userData
-        } else {
-            return nil
-        }
-    }
-
-    var userDataLen: Int {
-        if let data = data {
-            return data.userDataLen
-        } else {
-            return 0
-        }
-    }
-}
-
-/// Histogram backend implementation.
-class HistogramBackendCore: HistogramBackend {
-
-    /// Histogram core
-    var data: SdkCoreHistogram?
-
-    var histogramRed: [Float32]? {
-        if let histogram = data?.histogramRed, let len = data?.histogramRedLen {
-            return Array(UnsafeBufferPointer(start: histogram, count: len))
-        } else {
-            return nil
-        }
-    }
-
-    var histogramGreen: [Float32]? {
-        if let histogram = data?.histogramGreen, let len = data?.histogramGreenLen {
-            return Array(UnsafeBufferPointer(start: histogram, count: len))
-        } else {
-            return nil
-        }
-    }
-
-    var histogramBlue: [Float32]? {
-        if let histogram = data?.histogramBlue, let len = data?.histogramBlueLen {
-            return Array(UnsafeBufferPointer(start: histogram, count: len))
-        } else {
-            return nil
-        }
-    }
-
-    var histogramLuma: [Float32]? {
-        if let histogram = data?.histogramLuma, let len = data?.histogramLumaLen {
-            return Array(UnsafeBufferPointer(start: histogram, count: len))
-        } else {
-            return nil
-        }
-    }
-}
-
-/// Overlay context backend implementation.
-class OverlayContextBackendCore: OverlayContextBackend {
-
-    /// Overlay context core
-    var data: SdkCoreOverlayContext {
-        didSet {
-            histogramBackend.data = data.histogram
-        }
-    }
-
-    /// Histogram backend.
-    private var histogramBackend = HistogramBackendCore()
-
-    /// Histogram core.
-    private var histogramCore: HistogramCore
-
-    /// Area where the frame was rendered (including any padding introduced by scaling).
-    var renderZone: CGRect {
-        return data.renderZone
-    }
-
-    /// Render zone handle; pointer of const struct pdraw_rect.
-    var renderZoneHandle: UnsafeRawPointer {
-        return data.renderZoneHandle
-    }
-
-    /// Area where frame content was rendered (excluding any padding introduced by scaling).
-    var contentZone: CGRect {
-        return data.contentZone
-    }
-
-    /// Content zone handle; pointer of const struct pdraw_rect.
-    var contentZoneHandle: UnsafeRawPointer {
-        return data.contentZoneHandle
-    }
-
-    /// Session info handle; pointer of const struct pdraw_session_info.
-    var sessionInfoHandle: UnsafeRawPointer {
-        return data.sessionInfoHandle
-    }
-
-    /// Session metadata handle; pointer of const struct vmeta_session.
-    var sessionMetadataHandle: UnsafeRawPointer {
-        return data.sessionMetadataHandle
-    }
-
-    /// Session metadata handle; pointer of const struct vmeta_session.
-    var frameMetadataHandle: UnsafeRawPointer? {
-        return data.frameMetadataHandle
-    }
-
-    /// Histogram.
-    var histogram: Histogram? {
-        return histogramCore
-    }
-
-    init(coreContext: SdkCoreOverlayContext) {
-        data = coreContext
-        histogramCore = HistogramCore(backend: histogramBackend)
     }
 }

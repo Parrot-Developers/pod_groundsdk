@@ -64,8 +64,12 @@ public class Facilities: NSObject {
     public static let userAccount = UserAccountDesc()
     /// Flight log reporter facility.
     public static let flightLogReporter = FlightLogReporterDesc()
+    /// Flight camera record reporter facility.
+    public static let flightCameraRecordReporter = FlightCameraRecordReporterDesc()
     /// Gutma log manager facility.
     public static let gutmaLogManager = GutmaLogManagerDesc()
+    /// Event logger facility.
+    public static let eventLogger = EventLoggerDesc()
 }
 
 /// Facilities uid.
@@ -80,7 +84,9 @@ enum FacilityUid: Int {
     case flightDataManager
     case userAccount
     case flightLogReporter
+    case flightCameraRecordReporter
     case gutmaLogManager
+    case eventLogger
 }
 
 /// Objective-C wrapper of Ref<Facility>. Required because swift generics can't be used from Objective-C

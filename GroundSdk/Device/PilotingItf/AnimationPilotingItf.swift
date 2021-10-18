@@ -29,6 +29,88 @@
 
 import Foundation
 
+/// Reasons why an animation may be unavailable.
+@objc(GSAnimationIssue)
+public enum AnimationIssue: Int, CustomStringConvertible {
+
+    /// Drone is not flying.
+    case droneNotFlying
+    /// Drone is not calibrated.
+    case droneNotCalibrated
+    /// Drone gps is not fixed or has a poor accuracy.
+    case droneGpsInfoInaccurate
+    /// Drone is too close to the target.
+    case droneTooCloseToTarget
+    /// Drone is too close to the ground.
+    case droneTooCloseToGround
+    /// Target gps is not fixed or has a poor accuracy.
+    case targetGpsInfoInaccurate
+    /// Target barometer data are missing.
+    case targetBarometerInfoInaccurate
+    /// External target detection information is missing.
+    case targetDetectionInfoMissing
+    /// Drone is above max altitude.
+    case droneAboveMaxAltitude
+    /// Drone is outside of the geofence.
+    case droneOutOfGeofence
+    /// Drone is too far from target.
+    case droneTooFarFromTarget
+    /// Target horizontal speed is too high.
+    case targetHorizontalSpeedKO
+    /// Target vertical speed is too high.
+    case targetVerticalSpeedKO
+    /// Target altitude has a bad accuracy.
+    case targetAltitudeAccuracyKO
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .droneNotFlying:                   return "droneNotFlying"
+        case .droneNotCalibrated:               return "droneNotCalibrated"
+        case .droneGpsInfoInaccurate:           return "droneGpsInfoInaccurate"
+        case .droneTooCloseToTarget:            return "droneTooCloseToTarget"
+        case .droneTooCloseToGround:            return "droneTooCloseToGround"
+        case .targetGpsInfoInaccurate:          return "targetGpsInfoInaccurate"
+        case .targetBarometerInfoInaccurate:    return "targetBarometerInfoInaccurate"
+        case .targetDetectionInfoMissing:       return "targetDetectionInfoMissing"
+        case .droneAboveMaxAltitude:            return "droneAboveMaxAltitude"
+        case .droneOutOfGeofence:               return "droneOutOfGeofence"
+        case .droneTooFarFromTarget:            return "droneTooFarFromTarget"
+        case .targetHorizontalSpeedKO:          return "targetHorizontalSpeedKO"
+        case .targetVerticalSpeedKO:            return "targetVerticalSpeedKO"
+        case .targetAltitudeAccuracyKO:         return "targetAltitudeAccuracyKO"
+        }
+    }
+}
+
+/// Piloting mode in which an animation may be available.
+@objc(GSPilotingMode)
+public enum PilotingMode: Int, CustomStringConvertible {
+
+    /// Manual
+    case manual
+    /// Follow me.
+    case followMe
+    /// Look at
+    case lookAt
+    /// Flight Plan
+    case flightPlan
+    /// Point of interest
+    case poi
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .manual:                   return "manual"
+        case .followMe:                 return "followMe"
+        case .lookAt:                   return "lookAt"
+        case .flightPlan:               return "flightPlan"
+        case .poi:                      return "poi"
+
+        }
+    }
+}
+
 /// Animation piloting interface.
 ///
 /// This piloting interface cannot be activated or deactivated. It is present as soon as a drone supporting animations
@@ -52,6 +134,18 @@ public protocol AnimationPilotingItf: PilotingItf {
     /// Currently executing animation.
     /// `nil` if no animation is playing.
     var animation: Animation? { get }
+
+    /// Availability issues for each animation.
+    ///
+    /// - Note: If there is no issue for an animation, it doesn't mean it is available.
+    /// It needs to be in the right mode (See supportedAnimations).
+    /// - Note: not supported by all drone models, it will always return an empty set in that case.
+    var availabilityIssues: [AnimationType: Set<AnimationIssue>]? { get }
+
+    /// Animations supported for each piloting mode.
+    ///
+    /// - Note: not supported by all drone models, it will always return an empty set in that case.
+    var supportedAnimations: [PilotingMode: Set<AnimationType>]? { get }
 
     /// Starts an animation.
     ///
@@ -94,6 +188,22 @@ public protocol GSAnimationPilotingItf: PilotingItf {
     /// - Parameter animation: the animation type to query
     /// - Returns: `true` if this type of animation is currently available
     func isAnimationAvailable(_ animation: AnimationType) -> Bool
+
+    /// Tells whether the animation has the corresponding issue.
+    ///
+    /// - Parameters:
+    ///     - animation: the animation type to query
+    ///     - requierement: requierement to fix
+    /// - Note: If there is no issue for an animation, it doesn't mean it is available.
+    /// It needs to be in the right mode.
+    func isIssuePresent(_ animation: AnimationType, requierement: AnimationIssue) -> Bool
+
+    /// Tells whether the animation is supported for a piloting mode.
+    ///
+    /// - Parameters:
+    ///     - animation: the animation type to query
+    ///     - mode: piloting mode
+    func isAnimationSupported(animation: AnimationType, mode: PilotingMode) -> Bool
 
     /// Starts an animation.
     ///

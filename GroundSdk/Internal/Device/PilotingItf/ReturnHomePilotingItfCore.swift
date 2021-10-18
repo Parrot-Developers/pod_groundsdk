@@ -296,6 +296,10 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
         return _autoStartOnDisconnectDelay
     }
 
+    public var unavailabilityReasons: Set<ReturnHomeIssue>? {
+        return _unavailabilityReasons
+    }
+
     /// return home location latitude
     private var _latitude = 0.0
     /// return home location longitude
@@ -318,6 +322,8 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
     private var _endingHoveringAltitude: DoubleSettingCore?
     /// Delay before starting return home when the controller connection is lost, in seconds
     private var _autoStartOnDisconnectDelay: IntSettingCore!
+    /// Unavailability reasons
+    private var _unavailabilityReasons: Set<ReturnHomeIssue>?
     /// return super class backend as ReturnHomePilotingItfBackend
     private var returnHomeBackend: ReturnHomePilotingItfBackend {
         return backend as! ReturnHomePilotingItfBackend
@@ -591,5 +597,28 @@ extension ReturnHomePilotingItfCore {
         _autoStartOnDisconnectDelay.cancelRollback { markChanged() }
         _minAltitude?.cancelRollback { markChanged() }
         return self
+    }
+
+    /// Updates the unavailability reasons.
+    ///
+    /// - Parameter unavailabilityReasons: new set of unavailability reasons
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(
+        unavailabilityReasons newValue: Set<ReturnHomeIssue>?) -> ReturnHomePilotingItfCore {
+
+        if _unavailabilityReasons != newValue {
+            _unavailabilityReasons = newValue
+            markChanged()
+        }
+        return self
+    }
+}
+
+/// Extension of ReturnHomePilotingItfCore that adds support of the ObjC API
+extension ReturnHomePilotingItfCore: GSReturnHomePilotingItf {
+
+    public func hasUnavailabilityReason(_ reason: ReturnHomeIssue) -> Bool {
+        return unavailabilityReasons != nil ? unavailabilityReasons!.contains(reason) : false
     }
 }

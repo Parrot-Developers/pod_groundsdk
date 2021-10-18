@@ -72,7 +72,7 @@ public enum PreciseHomeState: Int {
 }
 
 /// Setting to change the precise home mode.
-public protocol PreciseHomeSetting: class {
+public protocol PreciseHomeSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

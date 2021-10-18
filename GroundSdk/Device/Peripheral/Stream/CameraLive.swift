@@ -92,6 +92,46 @@ public protocol CameraLive: Stream {
     func stop()
 }
 
+/// Camera Live sources.
+@objc(GSCameraLiveSource)
+public enum CameraLiveSource: Int, CustomStringConvertible {
+    /// Unspecified camera video stream.
+    case unspecified
+
+    /// Front camera video stream.
+    case frontCamera
+
+    /// Stereo camera left video stream.
+    case frontStereoCameraLeft
+
+    /// Stereo camera right video stream.
+    case frontStereoCameraRight
+
+    /// Vertical camera video stream.
+    case verticalCamera
+
+    /// Disparity video stream.
+    case disparity
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .unspecified:
+            return "unspecified"
+        case .frontCamera:
+            return "frontCamera"
+        case .frontStereoCameraLeft:
+            return "frontStereoCameraLeft"
+        case .frontStereoCameraRight:
+            return "frontStereoCameraRight"
+        case .verticalCamera:
+            return "verticalCamera"
+        case .disparity:
+            return "disparity"
+        }
+    }
+}
+
 /// Objective-C wrapper of Ref<CameraLive>. Required because swift generics can't be used from Objective-C.
 /// - Note: This class is for Objective-C only and must not be used in Swift.
 @objcMembers

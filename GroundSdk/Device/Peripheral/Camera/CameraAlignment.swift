@@ -30,7 +30,7 @@
 import Foundation
 
 /// Settings to configure camera alignment.
-public protocol CameraAlignment: class {
+public protocol CameraAlignment: AnyObject {
     /// Whether the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
@@ -58,7 +58,7 @@ public protocol CameraAlignment: class {
     func reset() -> Bool
 }
 
-@objc public protocol GSCameraAlignment: class {
+@objc public protocol GSCameraAlignment: AnyObject {
     /// Whether the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 

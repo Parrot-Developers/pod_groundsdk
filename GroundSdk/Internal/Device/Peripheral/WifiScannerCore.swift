@@ -30,7 +30,7 @@
 import Foundation
 
 /// Wifi scanner backend
-public protocol WifiScannerBackend: class {
+public protocol WifiScannerBackend: AnyObject {
     /// Starts scanning channels occupation rate.
     func startScan()
 

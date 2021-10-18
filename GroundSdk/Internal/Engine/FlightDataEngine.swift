@@ -39,7 +39,7 @@ class FlightDataEngine: EngineBaseCore {
     /// This directory is located in the /Library folder of the phone/tablet.
     ///
     /// This directory may contain:
-    /// - the current work directory (see `workDir`) , which may itself contain temporary flight data files (PUDs)
+    /// - the current work directory (see `workDir`), which may itself contain temporary flight data files (PUDs)
     ///   (being currently downloaded from remote devices) and finalized
     /// - previous work directories, that may themselves contain finalized PUDs, or temporary PUDs that failed to
     ///   be downloaded completely.
@@ -62,7 +62,7 @@ class FlightDataEngine: EngineBaseCore {
     /// Flight Datas file collector.
     private var collector: FlightDataCollector!
 
-    /// space quota in megabytes
+    /// Space quota in megabytes
     private var spaceQuotaInMb: Int = 0
 
     /// Constructor
