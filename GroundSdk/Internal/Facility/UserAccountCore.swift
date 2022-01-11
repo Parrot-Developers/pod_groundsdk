@@ -52,6 +52,18 @@ protocol UserAccountBackend: AnyObject {
     ///     -  oldDataPolicy: oldl data policy
     func set(dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy)
 
+    /// Sets private mode.
+    ///
+    /// - Parameters:
+    ///     - privateMode: `true` to enable private mode or `false` to disable it
+    ///     - dataUploadPolicy: data upload policy
+    func set(privateMode: Bool, dataUploadPolicy: DataUploadPolicy)
+
+    /// Sets the authentication token.
+    ///
+    /// - Parameter token: the token
+    func set(token: String)
+
     /// Sets drone list for current user account
     ///
     /// - Parameter droneList: user drone list, APC JSON format
@@ -92,6 +104,14 @@ class UserAccountCore: FacilityCore, UserAccount {
 
     func set(dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy) {
         backend.set(dataUploadPolicy: dataUploadPolicy, oldDataPolicy: oldDataPolicy)
+    }
+
+    func set(privateMode: Bool, dataUploadPolicy: DataUploadPolicy) {
+        backend.set(privateMode: privateMode, dataUploadPolicy: dataUploadPolicy)
+    }
+
+    func set(token: String) {
+        backend.set(token: token)
     }
 
     func set(droneList: String) {

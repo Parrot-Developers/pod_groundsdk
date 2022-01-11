@@ -219,6 +219,9 @@ public protocol ApnConfigurationSetting: AnyObject {
     /// Access Point username.
     var username: String { get }
 
+    /// Access Point password.
+    var password: String { get }
+
     /// Sets the apn configuration to automatic.
     ///
     /// - Returns: `true` if the setToAuto has been sent, `false` otherwise

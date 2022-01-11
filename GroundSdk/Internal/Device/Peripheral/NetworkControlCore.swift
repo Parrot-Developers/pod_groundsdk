@@ -42,6 +42,12 @@ public protocol NetworkControlBackend: AnyObject {
     /// - Parameter maxCellularBitrate: the new maximum cellular bitrate, in kilobits per second
     /// - Returns: true if the command has been sent, false if not connected and the value has been changed immediately
     func set(maxCellularBitrate: Int) -> Bool
+
+    /// Sets direct connection mode.
+    ///
+    /// - Parameter directConnectionMode: the new mode
+    /// - Returns: true if the command has been sent, false if not connected and the value has been changed immediately
+    func set(directConnectionMode: NetworkDirectConnectionMode) -> Bool
 }
 
 /// Network routing policy setting implementation.
@@ -183,6 +189,102 @@ public class NetworkControlLinkInfoCore: NetworkControlLinkInfo, Equatable, Cust
     }
 }
 
+/// Direct connection setting implementation.
+class NetworkDirectConnectionSettingCore: NetworkDirectConnectionSetting, CustomDebugStringConvertible {
+
+    /// Delegate called when the setting value is changed by setting properties.
+    private unowned let didChangeDelegate: SettingChangeDelegate
+
+    /// Timeout object.
+    ///
+    /// Visibility is internal for testing purposes.
+    let timeout = SettingTimeout()
+
+    /// Tells if the setting value has been changed and is waiting for change confirmation.
+    var updating: Bool { return timeout.isScheduled }
+
+    /// Supported direct connection modes.
+    private(set) var supportedModes: Set<NetworkDirectConnectionMode> = []
+
+    /// Direct connection mode.
+    var mode: NetworkDirectConnectionMode {
+        get {
+            return _mode
+        }
+        set {
+            if _mode != newValue && supportedModes.contains(newValue) {
+                if backend(newValue) {
+                    let oldValue = _mode
+                    // value sent to the backend, update setting value and mark it updating
+                    _mode = newValue
+                    timeout.schedule { [weak self] in
+                        if let `self` = self, self.update(mode: oldValue) {
+                            self.didChangeDelegate.userDidChangeSetting()
+                        }
+                    }
+                    didChangeDelegate.userDidChangeSetting()
+                }
+            }
+        }
+    }
+
+    /// Direct connection mode.
+    private var _mode: NetworkDirectConnectionMode = .legacy
+
+    /// Closure to call to change the value.
+    private let backend: ((NetworkDirectConnectionMode) -> Bool)
+
+    /// Constructor.
+    ///
+    /// - Parameters:
+    ///   - didChangeDelegate: delegate called when the setting value is changed by setting properties
+    ///   - backend: closure to call to change the setting value
+    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (NetworkDirectConnectionMode) -> Bool) {
+        self.didChangeDelegate = didChangeDelegate
+        self.backend = backend
+    }
+
+    /// Updates supported modes.
+    ///
+    /// - Parameter supportedModes: new supported policies
+    /// - Returns: true if supported modes changed, false otherwise
+    func update(supportedModes newSupportedModes: Set<NetworkDirectConnectionMode>) -> Bool {
+        if supportedModes != newSupportedModes {
+            supportedModes = newSupportedModes
+            return true
+        }
+        return false
+    }
+
+    /// Updates direct connection mode.
+    ///
+    /// - Parameter mode: new mode
+    /// - Returns: true if the setting has been changed, false otherwise
+    func update(mode newMode: NetworkDirectConnectionMode) -> Bool {
+        if updating || _mode != newMode {
+            _mode = newMode
+            timeout.cancel()
+            return true
+        }
+        return false
+    }
+
+    /// Cancels any pending rollback.
+    ///
+    /// - Parameter completionClosure: block that will be called if a rollback was pending
+    func cancelRollback(completionClosure: () -> Void) {
+        if timeout.isScheduled {
+            timeout.cancel()
+            completionClosure()
+        }
+    }
+
+    /// Debug description.
+    var debugDescription: String {
+        return "mode: \(_mode) supportedModes: \(supportedModes) updating: \(updating)"
+    }
+}
+
 /// Internal NetworkControl peripheral implementation.
 public class NetworkControlCore: PeripheralCore, NetworkControl {
 
@@ -210,6 +312,12 @@ public class NetworkControlCore: PeripheralCore, NetworkControl {
     /// Maximum cellular bitrate, in kilobits per second.
     private var _maxCellularBitrate: IntSettingCore!
 
+    /// Direct connection mode setting.
+    public var directConnection: NetworkDirectConnectionSetting { _directConnection }
+
+    /// Direct connection mode setting.
+    private var _directConnection: NetworkDirectConnectionSettingCore!
+
     /// Implementation backend.
     private unowned let backend: NetworkControlBackend
 
@@ -228,6 +336,10 @@ public class NetworkControlCore: PeripheralCore, NetworkControl {
 
         _maxCellularBitrate = IntSettingCore(didChangeDelegate: self) { [unowned self] bitrate in
             self.backend.set(maxCellularBitrate: bitrate)
+        }
+
+        _directConnection = NetworkDirectConnectionSettingCore(didChangeDelegate: self) { [unowned self] mode in
+            self.backend.set(directConnectionMode: mode)
         }
     }
 }
@@ -321,6 +433,33 @@ extension NetworkControlCore {
         return self
     }
 
+    /// Updates supported direct connection modes.
+    ///
+    /// - Parameter supportedDirectConnectionModes: new supported modes
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult
+    public func update(supportedDirectConnectionModes newSupportedModes: Set<NetworkDirectConnectionMode>)
+    -> NetworkControlCore {
+        if _directConnection.update(supportedModes: newSupportedModes) {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates direct connection mode.
+    ///
+    /// - Parameter directConnectionMode: new direct connection mode
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult
+    public func update(directConnectionMode newMode: NetworkDirectConnectionMode) -> NetworkControlCore {
+        if _directConnection.update(mode: newMode) {
+            markChanged()
+        }
+        return self
+    }
+
     /// Cancels all pending settings rollbacks.
     ///
     /// - Returns: self to allow call chaining
@@ -329,6 +468,7 @@ extension NetworkControlCore {
     public func cancelSettingsRollback() -> NetworkControlCore {
         _routingPolicy.cancelRollback { markChanged() }
         _maxCellularBitrate.cancelRollback { markChanged() }
+        _directConnection.cancelRollback { markChanged() }
         return self
     }
 }

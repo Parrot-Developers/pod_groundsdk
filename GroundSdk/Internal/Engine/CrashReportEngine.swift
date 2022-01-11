@@ -115,16 +115,18 @@ class CrashReportEngine: EngineBaseCore {
         // get userInfo and monitor changes
         userAccountInfo = userAccountUtility.userAccountInfo
         // monitor userAccount changes
-        userAccountMonitor = userAccountUtility.startMonitoring(accountDidChange: { (newUserAccountInfo) in
-            // If the user account changes and if old data upload is denied, we delete all files
-            if newUserAccountInfo?.account != nil
-                && newUserAccountInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
-                && newUserAccountInfo?.oldDataPolicy == .denyUpload
-                && newUserAccountInfo?.changeDate != self.userAccountInfo?.changeDate {
-                ULog.d(.crashReportEngineTag, "User account change with old data upload denied -> delete all reports")
+        userAccountMonitor = userAccountUtility.startMonitoring(accountDidChange: { (newInfo) in
+            // If the user account changes and if private mode is set or old data upload is denied, we delete all files
+            if newInfo?.changeDate != self.userAccountInfo?.changeDate
+                && (newInfo?.privateMode == true
+                        || (newInfo?.account != nil
+                                && newInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
+                                && newInfo?.oldDataPolicy == .denyUpload)) {
+                ULog.d(.myparrot,
+                       "User account change with private mode or old data upload denied -> delete all reports")
                 self.dropReports()
             }
-            self.userAccountInfo = newUserAccountInfo
+            self.userAccountInfo = newInfo
             self.startReportUploadProcess()
         })
 
@@ -199,8 +201,8 @@ class CrashReportEngine: EngineBaseCore {
     /// is available, if data upload is allowed.
     private func processNextReport() {
         crashReporter.update(pendingCount: pendingReportUrls.count)
-        if (self.userAccountInfo?.dataUploadPolicy == DataUploadPolicy.deny)
-        || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
+        if self.userAccountInfo?.dataUploadPolicy == DataUploadPolicy.deny
+            || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
             crashReporter.update(isUploading: false).notifyUpdated()
             return
         }

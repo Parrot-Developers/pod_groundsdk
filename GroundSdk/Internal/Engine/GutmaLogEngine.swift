@@ -56,6 +56,12 @@ class GutmaLogEngine: EngineBaseCore {
     /// Name of the directory in which the converted logs should be stored
     private let gutmaLogsLocalDirName = "GutmaLogs"
 
+    /// Monitor of the userAccount changes
+    private var userAccountMonitor: MonitorCore!
+
+    /// User account information
+    private var userAccountInfo: UserAccountInfoCore?
+
     /// Converted Log files ready (converted with success)
     private var readyGutmaLogFiles = Set<URL>()
 
@@ -86,6 +92,21 @@ class GutmaLogEngine: EngineBaseCore {
     public override func startEngine() {
         ULog.d(.gutmaLogEngineTag, "Starting GutmaLogEngine.")
 
+        // Get the UserAccount Utility in order to know if the user changes
+        let userAccountUtility = utilities.getUtility(Utilities.userAccount)!
+        // get userInfo and monitor changes
+        userAccountInfo = userAccountUtility.userAccountInfo
+        // monitor userAccount changes
+        userAccountMonitor = userAccountUtility.startMonitoring(accountDidChange: { (newInfo) in
+            // If the user account changes and if private mode is set, we delete all files
+            if newInfo?.changeDate != self.userAccountInfo?.changeDate
+                && newInfo?.privateMode == true {
+                ULog.d(.myparrot, "User account change with private mode -> delete all gutma logs")
+                self.dropGutmaLogs()
+            }
+            self.userAccountInfo = newInfo
+        })
+
         if spaceQuotaInMb != 0 {
             try? FileManager.cleanOldInDirectory(url: engineDir, fileExt: "gutma",
                                                  totalMaxSizeMb: spaceQuotaInMb, includingSubfolders: true)
@@ -103,6 +124,8 @@ class GutmaLogEngine: EngineBaseCore {
 
     public override func stopEngine() {
         ULog.d(.gutmaLogEngineTag, "Stopping GutmaLogEngine.")
+        userAccountMonitor?.stop()
+        userAccountMonitor = nil
         gutmaLogManager.unpublish()
     }
 
@@ -120,6 +143,19 @@ class GutmaLogEngine: EngineBaseCore {
     /// - Note: Visibility is internal only for testing purposes.
     func createCollector() -> GutmaLogCollector {
         return GutmaLogCollector(rootDir: engineDir, gutmaLogsLocalWorkDir: workDir)
+    }
+
+    /// Deletes all locally stored gutma logs.
+    private func dropGutmaLogs() {
+        readyGutmaLogFiles.forEach { (gutmaLogUrl) in
+            collector.deleteGutmaLog(at: gutmaLogUrl)
+        }
+
+        // clear all gutma logs ready
+        readyGutmaLogFiles.removeAll()
+
+        // update the facility
+        gutmaLogManager.update(files: readyGutmaLogFiles).notifyUpdated()
     }
 }
 

@@ -160,7 +160,7 @@ public class MediaResourceListCore: MediaResourceList {
         }
 
         /// Advances to the next element and returns it, or `nil` if no next element
-        /// exists.  Once `nil` has been returned, all subsequent calls return `nil`.
+        /// exists. Once `nil` has been returned, all subsequent calls return `nil`.
         ///
         /// - Returns: next entry, nil at the end of the list
         public func next() -> (media: MediaItemCore, resource: MediaItemResourceCore)? {
@@ -169,7 +169,7 @@ public class MediaResourceListCore: MediaResourceList {
             if let resourcesIterator = resourcesIterator {
                 currentResource = resourcesIterator.next()
                 if let currentResource = currentResource {
-                    next =  (currentEntry!.media, currentResource)
+                    next = (currentEntry!.media, currentResource)
                 }
             }
             if next == nil {
@@ -181,7 +181,7 @@ public class MediaResourceListCore: MediaResourceList {
                         resourcesIterator = AnyIterator<MediaItemResourceCore>(currentEntry.resources.makeIterator())
                         currentResource = resourcesIterator!.next()
                         if let currentResource = currentResource {
-                            next =  (currentEntry.media, currentResource)
+                            next = (currentEntry.media, currentResource)
                         }
                     }
                 } while next == nil && currentEntry != nil
@@ -237,7 +237,6 @@ public class MediaResourceListCore: MediaResourceList {
             return next
         }
     }
-
 }
 
 /// Media downloader implementation
@@ -261,6 +260,36 @@ public class MediaDownloaderCore: MediaDownloader {
                    currentFileProgress: currentFileProgress,
                    progress: progress, status: status, currentMedia: currentMedia, fileUrl: fileUrl,
                    signatureUrl: signatureUrl)
+    }
+}
+
+/// Resource uploader core that makes `Core` constructor public.
+public class ResourceUploaderCore: ResourceUploader, CustomDebugStringConvertible {
+
+    /// Constructor.
+    ///
+    /// - Parameters:
+    ///   - targetMedia: target media item to attach uploaded resource files to
+    ///   - totalResourceCount: total number of resources to upload
+    ///   - uploadedResourceCount: number of already uploaded resources
+    ///   - currentFileProgress: current file upload between 0.0 (0%) and 1.0 (100%)
+    ///   - totalProgress: total upload progress between 0.0 (0%) and 1.0 (100%)
+    ///   - status: upload progress status
+    ///   - currentFileUrl: url of the file currenlty being uploaded
+    public override init(targetMedia: MediaItem, totalResourceCount: Int, uploadedResourceCount: Int,
+                         currentFileProgress: Float, totalProgress: Float, status: MediaTaskStatus,
+                         currentFileUrl: URL? = nil) {
+        super.init(targetMedia: targetMedia, totalResourceCount: totalResourceCount,
+                   uploadedResourceCount: uploadedResourceCount, currentFileProgress: currentFileProgress,
+                   totalProgress: totalProgress, status: status, currentFileUrl: currentFileUrl)
+    }
+
+    /// Debug description.
+    public var debugDescription: String { """
+        target: \(targetMedia.uid) uploaded: \(uploadedResourceCount)/\(totalResourceCount) \
+        progress: \(currentFileProgress) totalProgress: \(totalProgress) status: \(status) \
+        currentFile: \(String(describing: currentFileUrl))
+        """
     }
 }
 
@@ -340,6 +369,16 @@ public protocol MediaStoreBackend: AnyObject {
     /// - Returns: download media resources request, or nil if the request can't be send
     func download(mediaResources: MediaResourceListCore, destination: DownloadDestination,
                   progress: @escaping (MediaDownloader) -> Void) -> CancelableTaskCore?
+
+    /// Uploads media resources.
+    ///
+    /// - Parameters:
+    ///   - resources: resource files to upload
+    ///   - target: target media item to attach uploaded resource files to
+    ///   - progress: upload progress callback
+    /// - Returns: resource upload request, or `nil` if the request can't be send.
+    func upload(resources: [URL], target: MediaItemCore,
+                progress: @escaping (ResourceUploader?) -> Void) -> CancelableTaskCore?
 
     /// Delete medias resources
     ///
@@ -471,6 +510,23 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
                               observer: @escaping (MediaDownloader?) -> Void) -> Ref<MediaDownloader> {
         return MediaDownloaderRefCore(mediaStore: self, mediaResources: mediaResources as! MediaResourceListCore,
                                       destination: destination, observer: observer)
+    }
+
+    /// Creates a new media resource uploader.
+    ///
+    /// Resource files will be uploaded to the device's internal storage, in the order defined by the specified
+    /// `resources` array.
+    ///
+    /// - Parameters:
+    ///   - resources: resource files to upload
+    ///   - target: target media item to attach uploaded resource files to
+    ///   - observer: observer notified of upload progress and status
+    /// - Returns: a reference on a ResourceUploader. Caller must keep this instance referenced for the observer to be
+    ///   called.
+    public func newUploader(resources: [URL], target: MediaItem,
+                            observer: @escaping (ResourceUploader?) -> Void) -> Ref<ResourceUploader> {
+        return ResourceUploaderRefCore(mediaStore: self, resources: resources, target: target as! MediaItemCore,
+                                       observer: observer)
     }
 
     /// Create a new Media deleter, to delete a list of media

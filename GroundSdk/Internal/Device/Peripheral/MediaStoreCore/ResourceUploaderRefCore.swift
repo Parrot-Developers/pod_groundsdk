@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Parrot Drones SAS
+// Copyright (C) 2021 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,22 +29,32 @@
 
 import Foundation
 
-/// Stereo Vision Sensor peripheral interface for drones.
-///
-/// This peripheral can be retrieved by:
-/// ```
-/// device.getPeripheral(Peripherals.stereoVisionSensor)
-/// ```
-public protocol StereoVisionSensor: Peripheral {
+/// ResourceUploader Reference implementation.
+class ResourceUploaderRefCore: Ref<ResourceUploader> {
 
-    /// `true` if the device is calibrated, `false` otherwise.
-    var isCalibrated: Bool { get }
-}
+    /// Active upload request.
+    private var request: CancelableTaskCore?
 
-/// :nodoc:
-/// Peripheral descriptor
-public class StereoVisionSensorDesc: NSObject, PeripheralClassDesc {
-    public typealias ApiProtocol = StereoVisionSensor
-    public let uid = PeripheralUid.stereoVisionSensor.rawValue
-    public let parent: ComponentDescriptor? = nil
+    /// Constructor.
+    ///
+    /// - Parameters:
+    ///   - mediaStore: media store instance
+    ///   - resources: resource files to upload
+    ///   - target: target media item to attach uploaded resource files to
+    ///   - observer: observer notified of upload progress and status
+    init(mediaStore: MediaStoreCore, resources: [URL], target: MediaItemCore, observer: @escaping Observer) {
+        super.init(observer: observer)
+        self.request = mediaStore.backend
+            .upload(resources: resources, target: target) { [weak self] resourceUploader in
+                // weak self in case backend call callback after cancelling request
+                self?.update(newValue: resourceUploader)
+            }
+    }
+
+    /// Destructor.
+    deinit {
+        if let request = request {
+            request.cancel()
+        }
+    }
 }

@@ -111,22 +111,24 @@ class BlackBoxEngine: EngineBaseCore {
         // get the UserAccount Utility in order to know if BlackBoxes are allowed (if the UserAccount exists)
         let userAccountUtility = utilities.getUtility(Utilities.userAccount)!
         userAccountInfo = userAccountUtility.userAccountInfo
-        userAccountMonitor = userAccountUtility.startMonitoring(accountDidChange: { (newUserAccountInfo) in
-            // If the user account changes and if old data upload is denied, we delete all files
-            if newUserAccountInfo?.account != nil
-                && newUserAccountInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
-                && newUserAccountInfo?.oldDataPolicy == .denyUpload
-                && newUserAccountInfo?.changeDate != self.userAccountInfo?.changeDate {
-                ULog.d(.myparrot, "User account change with old data upload denied -> delete all black boxes")
+        userAccountMonitor = userAccountUtility.startMonitoring(accountDidChange: { (newInfo) in
+            // If the user account changes and if private mode is set or old data upload is denied, we delete all files
+            if newInfo?.changeDate != self.userAccountInfo?.changeDate
+                && (newInfo?.privateMode == true
+                        || (newInfo?.account != nil
+                                && newInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
+                                && newInfo?.oldDataPolicy == .denyUpload)) {
+                ULog.d(.myparrot,
+                       "User account change with private mode or old data upload denied -> delete all black boxes")
                 self.stopAndDropAllBlackBoxes()
             }
-            self.userAccountInfo = newUserAccountInfo
+            self.userAccountInfo = newInfo
             self.startBlackBoxUploadProcess()
         })
 
         if spaceQuotaInMb != 0 {
             try? FileManager.cleanOldInDirectory(url: engineDir, fileExt: "gz",
-                                                    totalMaxSizeMb: spaceQuotaInMb, includingSubfolders: true)
+                                                 totalMaxSizeMb: spaceQuotaInMb, includingSubfolders: true)
         }
 
         collector.collectBlackBoxes { [weak self] blackBoxes in
@@ -165,6 +167,9 @@ class BlackBoxEngine: EngineBaseCore {
     ///
     /// - Parameter blackBoxData: the encodable data to archive
     func archiveBlackBoxData<T: Encodable>(_ blackBoxData: T) {
+        guard userAccountInfo?.privateMode == false else {
+            return
+        }
         collector.archive(blackBoxData: blackBoxData) { [weak self] report in
             self?.pendingReports.append(report)
             ULog.d(.myparrot, "BLACKBOX append \(report)")
@@ -199,9 +204,10 @@ class BlackBoxEngine: EngineBaseCore {
     /// file created before the user account was present.
     private func processNextBlackBox() {
         blackBoxReporter.update(pendingCount: pendingReports.count)
-        if self.userAccountInfo?.account == nil || (self.userAccountInfo?.dataUploadPolicy != .full
-        && self.userAccountInfo?.dataUploadPolicy != .noMedia)
-        || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
+        if self.userAccountInfo?.account == nil
+            || (self.userAccountInfo?.dataUploadPolicy != .full
+                    && self.userAccountInfo?.dataUploadPolicy != .noMedia)
+            || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
             blackBoxReporter.update(isUploading: false).notifyUpdated()
             ULog.d(.myparrot, "BLACKBOX (no internet or no user, or upload denied))")
             return

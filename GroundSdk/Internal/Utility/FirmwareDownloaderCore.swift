@@ -366,9 +366,13 @@ class FirmwareDownloaderCoreImpl: FirmwareDownloaderCore {
                             self?.currentDownload = nil
                             switch status {
                             case .success:
-                                self?.engine.firmwareStore.changeRemoteFirmwareToLocal(
-                                    identifier: firmware, localUrl: url!)
-                                self?.downloadDidSuccess(firmware: firmware)
+                                if let url = url {
+                                    self?.engine.firmwareStore.changeRemoteFirmwareToLocal(
+                                        identifier: firmware, localUrl: url)
+                                    self?.downloadDidSuccess(firmware: firmware)
+                                } else {
+                                    self?.downloadDidFail(firmware: firmware)
+                                }
                             case .failed:
                                 self?.downloadDidFail(firmware: firmware)
                             case .canceled:

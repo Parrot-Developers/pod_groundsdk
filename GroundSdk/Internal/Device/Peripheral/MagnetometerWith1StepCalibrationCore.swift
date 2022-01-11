@@ -91,4 +91,19 @@ extension MagnetometerWith1StepCalibrationCore {
         }
         return self
     }
+
+    /// Ends the calibration process.
+    ///
+    /// No effect if the calibration process has not been started.
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult
+    public func calibrationProcessStopped() -> MagnetometerWith1StepCalibrationCore {
+        if calibrationProcessState != nil {
+            calibrationProcessState = nil
+            markChanged()
+        }
+        return self
+    }
 }

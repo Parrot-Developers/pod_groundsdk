@@ -209,7 +209,7 @@ public enum StorageType: Int, CustomStringConvertible {
     }
 }
 
-/// Media downloader, containing info on a download medias task
+/// Media downloader, containing info on a download medias task.
 ///
 /// - Seealso: `MediaStore.newDownloader`
 @objcMembers
@@ -273,6 +273,53 @@ public class MediaDownloader: NSObject {
     }
 }
 
+/// Resource uploader, containing info on a resource upload task.
+///
+/// - Seealso: `MediaStore.newUploader`
+public class ResourceUploader {
+    /// Media item with which uploaded resource files will be associated.
+    public let targetMedia: MediaItem
+
+    /// Total number of resource to upload.
+    public let totalResourceCount: Int
+
+    /// Number of already uploaded resources.
+    public let uploadedResourceCount: Int
+
+    /// Current file upload between 0.0 (0%) and 1.0 (100%).
+    public let currentFileProgress: Float
+
+    /// Total upload progress between 0.0 (0%) and 1.0 (100%).
+    public let totalProgress: Float
+
+    /// Upload progress status.
+    public let status: MediaTaskStatus
+
+    /// Url of the file currenlty being uploaded, or `nil` if not uploading.
+    public let currentFileUrl: URL?
+
+    /// Constructor.
+    ///
+    /// - Parameters:
+    ///   - targetMedia: target media item to attach uploaded resource files to
+    ///   - totalResourceCount: total number of resources to upload
+    ///   - uploadedResourceCount: number of already uploaded resources
+    ///   - currentFileProgress: current file upload between 0.0 (0%) and 1.0 (100%)
+    ///   - totalProgress: total upload progress between 0.0 (0%) and 1.0 (100%)
+    ///   - status: upload progress status
+    ///   - currentFileUrl: url of the file currenlty being uploaded
+    init(targetMedia: MediaItem, totalResourceCount: Int, uploadedResourceCount: Int, currentFileProgress: Float,
+         totalProgress: Float, status: MediaTaskStatus, currentFileUrl: URL? = nil) {
+        self.targetMedia = targetMedia
+        self.totalResourceCount = totalResourceCount
+        self.uploadedResourceCount = uploadedResourceCount
+        self.currentFileProgress = currentFileProgress
+        self.totalProgress = totalProgress
+        self.status = status
+        self.currentFileUrl = currentFileUrl
+    }
+}
+
 /// Aggregated media store.
 /// Contains information on all medias stored on a device, aggregating media on different stores.
 public protocol MediaStore: Peripheral {
@@ -298,7 +345,7 @@ public protocol MediaStore: Peripheral {
     /// the content changes.
     ///
     /// - Parameters:
-    ///   - observer: observer  notified when the media list has been loaded or has change.
+    ///   - observer: observer notified when the media list has been loaded or has change.
     ///   - medias: list media, `nil` if the store has been removed
     /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
     ///   called.
@@ -311,7 +358,7 @@ public protocol MediaStore: Peripheral {
     ///
     /// - Parameters:
     ///   - storage: storage type on which the Media list will be created
-    ///   - observer: observer  notified when the media list has been loaded or has change.
+    ///   - observer: observer notified when the media list has been loaded or has change.
     ///   - medias: list media, `nil` if the store has been removed
     /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
     ///   called.
@@ -332,7 +379,7 @@ public protocol MediaStore: Peripheral {
     ///   Then in the 'UITableViewCell.prepareForReuse' function set the 'Ref<UIImage>' to cancel the download request.
     func newThumbnailDownloader(media: MediaItem, observer: @escaping (_ thumbnail: UIImage?) -> Void) -> Ref<UIImage>
 
-    /// Create a new resource thumbnail downloader
+    /// Create a new resource thumbnail downloader.
     ///
     /// - Parameters:
     ///   - resource: resource item to download the thumbnail from
@@ -357,6 +404,20 @@ public protocol MediaStore: Peripheral {
     ///   downloaded. Setting it to nil cancel the download.
     func newDownloader(mediaResources: MediaResourceList, destination: DownloadDestination,
                        observer: @escaping (_ downloader: MediaDownloader?) -> Void) -> Ref<MediaDownloader>
+
+    /// Creates a new media resource uploader.
+    ///
+    /// Resource files will be uploaded to the device's internal storage, in the order defined by the specified
+    /// `resources` array.
+    ///
+    /// - Parameters:
+    ///   - resources: resource files to upload
+    ///   - target: target media item to attach uploaded resource files to
+    ///   - observer: observer notified of upload progress and status
+    /// - Returns: a reference on a ResourceUploader. Caller must keep this instance referenced for the observer to be
+    ///   called.
+    func newUploader(resources: [URL], target: MediaItem,
+                     observer: @escaping (_ uploader: ResourceUploader?) -> Void) -> Ref<ResourceUploader>
 
     /// Creates a new Media deleter, to delete a list of media.
     ///

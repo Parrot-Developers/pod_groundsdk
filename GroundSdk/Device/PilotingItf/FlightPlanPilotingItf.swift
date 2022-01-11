@@ -132,6 +132,9 @@ public struct RecoveryInfo: Equatable {
     /// Running time of the flightplan being executed.
     public let runningTime: TimeInterval
 
+    /// First resource id of the latest media capture requested by the flightplan.
+    public let resourceId: String
+
     /// Constructor.
     ///
     /// - Parameters:
@@ -139,11 +142,14 @@ public struct RecoveryInfo: Equatable {
     ///   - customId: custom identifier
     ///   - latestMissionItemExecuted: index of the latest mission item completed
     ///   - runningTime: running time of the flightplan being executed
-    public init(id: String, customId: String, latestMissionItemExecuted: Int, runningTime: TimeInterval) {
+    ///   - resourceId: first resource id of the latest media capture requested by the flightplan.
+    public init(id: String, customId: String, latestMissionItemExecuted: Int, runningTime: TimeInterval,
+                resourceId: String) {
         self.id = id
         self.customId = customId
         self.latestMissionItemExecuted = latestMissionItemExecuted
         self.runningTime = runningTime
+        self.resourceId = resourceId
     }
 }
 
@@ -253,7 +259,7 @@ public protocol FlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     /// - Parameter restart: `true` to force restarting the flight plan.
     ///                       If `isPaused` is `false`, this parameter will be ignored.
     /// - Returns: `true` on success, `false` if the piloting interface can't be activated
-    /// - Note: activate(restart:) will call activate(restart: type:), default value of type is `flightPlan`
+    /// - Note: activate(restart:) will call activate(restart: interpreter:) with interpreter `legacy`.
     func activate(restart: Bool) -> Bool
 
     /// Activates this piloting interface and starts executing the uploaded flight plan.

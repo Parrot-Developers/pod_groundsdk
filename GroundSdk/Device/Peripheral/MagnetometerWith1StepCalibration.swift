@@ -68,14 +68,14 @@ public class Magnetometer1StepCalibrationProcessState: NSObject {
 @objc(GSMagnetometerWith1StepCalibration)
 public protocol MagnetometerWith1StepCalibration: Magnetometer {
 
-    /// State of the calibration process.
+    /// State of the calibration process. Not `nil` if a calibration process is running, `nil` otherwise.
     ///
     /// - Note: To start a calibration process, use `startCalibrationProcess()`.
     var calibrationProcessState: Magnetometer1StepCalibrationProcessState? { get }
 
     /// Starts the calibration process.
     ///
-    /// After this call, `calibrationProcessState` should not be nil as the process has started.
+    /// After this call, `calibrationProcessState` is not `nil` as the process has started.
     /// The process ends either when all axes are recalibrated
     /// or when you call `cancelCalibrationProcess()`.
     ///
@@ -85,8 +85,7 @@ public protocol MagnetometerWith1StepCalibration: Magnetometer {
     /// Cancels the calibration process.
     ///
     /// Cancel a process that has been started with `startCalibrationProcess()`.
-    /// After this call, `calibrationProcessState()` should return a null object
-    /// as the process has ended.
+    /// After this call, `calibrationProcessState` is `nil` as the process has ended.
     ///
     /// - Note: No changes if the process is not started.
     func cancelCalibrationProcess()

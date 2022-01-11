@@ -34,7 +34,7 @@ import CoreLocation
 @objcMembers
 @objc(GSMediaItem)
 public class MediaItem: NSObject {
-    /// Types of media.
+    /// Type of media.
     @objc(GSMediaItemType)
     public enum MediaType: Int, CustomStringConvertible {
         /// Media is a photo.
@@ -49,6 +49,28 @@ public class MediaItem: NSObject {
                 return "photo"
             case .video:
                 return "video"
+            }
+        }
+    }
+
+    /// Type of resource.
+    public enum ResourceType: Int, CustomStringConvertible {
+        /// Resource is a photo.
+        case photo
+        /// Resource is a video.
+        case video
+        /// Resource is a generated panorama.
+        case panorama
+
+        /// Debug description.
+        public var description: String {
+            switch self {
+            case .photo:
+                return "photo"
+            case .video:
+                return "video"
+            case .panorama:
+                return "panorama"
             }
         }
     }
@@ -180,6 +202,9 @@ public class MediaItem: NSObject {
         /// Resource unique identifier.
         public let uid: String
 
+        /// Resource type.
+        public let type: MediaItem.ResourceType
+
         /// Resource format.
         public let format: MediaItem.Format
 
@@ -220,6 +245,7 @@ public class MediaItem: NSObject {
         ///
         /// - Parameters:
         ///   - format: resource format
+        ///   - type: resource type
         ///   - size: resource data size
         ///   - duration: resource duration in seconds (for video)
         ///   - location: resource creation location, may be `nil` if unavailable
@@ -227,9 +253,11 @@ public class MediaItem: NSObject {
         ///   - metadataTypes: set of 'MetadataType' available in this ressource
         ///   - storage: resource storage type `nil` if unavailable
         ///   - signed: `true` if resource is signed, `false` otherwise
-        init(uid: String, format: MediaItem.Format, size: UInt64, duration: TimeInterval?, location: CLLocation?,
-             creationDate: Date, metadataTypes: Set<MetadataType>, storage: StorageType?, signed: Bool) {
+        init(uid: String, type: MediaItem.ResourceType, format: MediaItem.Format, size: UInt64, duration: TimeInterval?,
+             location: CLLocation?, creationDate: Date, metadataTypes: Set<MetadataType>, storage: StorageType?,
+             signed: Bool) {
             self.uid = uid
+            self.type = type
             self.format = format
             self.size = size
             self.duration = duration

@@ -91,6 +91,7 @@ public class MediaItemResourceCore: MediaItem.Resource {
     ///
     /// - Parameters:
     ///   - uid: unique identifier
+    ///   - type: resource type
     ///   - format: resource format
     ///   - size: resource data size
     ///   - duration: resource duration for video
@@ -101,10 +102,10 @@ public class MediaItemResourceCore: MediaItem.Resource {
     ///   - metadataTypes: set of 'MediaItem.MetadataType' available in this ressource
     ///   - storage: the storage type
     ///   - signed: `true` if resource is signed, `false` otherwise
-    public init(uid: String, format: MediaItem.Format, size: UInt64, duration: TimeInterval? = nil,
-                streamUrl: String? = nil, backendData: Any? = nil, location: CLLocation?, creationDate: Date,
-                metadataTypes: Set<MediaItem.MetadataType> = Set(), storage: StorageType? = nil,
-                signed: Bool = false) {
+    public init(uid: String, type: MediaItem.ResourceType, format: MediaItem.Format, size: UInt64,
+                duration: TimeInterval? = nil, streamUrl: String? = nil, backendData: Any? = nil,
+                location: CLLocation?, creationDate: Date, metadataTypes: Set<MediaItem.MetadataType> = Set(),
+                storage: StorageType? = nil, signed: Bool = false) {
         self.streamUrl = streamUrl
         self.backendData = backendData
         self.tracks = [:]
@@ -115,7 +116,7 @@ public class MediaItemResourceCore: MediaItem.Resource {
                 self.tracks[.thermalUnblended] = StreamCore.TRACK_THERMAL_VIDEO
             }
         }
-        super.init(uid: uid, format: format, size: size, duration: duration, location: location,
+        super.init(uid: uid, type: type, format: format, size: size, duration: duration, location: location,
                    creationDate: creationDate, metadataTypes: metadataTypes, storage: storage,
                    signed: signed)
     }

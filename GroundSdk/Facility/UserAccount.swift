@@ -29,8 +29,7 @@
 
 import Foundation
 
-/// Policy to observe with regard to non-anonymous user data that were collected in the absence of a registered
-/// user account, upon registration of such an account.
+/// Policy to observe with regard to user data that were collected before the user decides to allow data upload.
 @objc(GSOldDataPolicy)
 public enum OldDataPolicy: Int, Codable, CustomStringConvertible {
     /// Already collected data must not be uploaded and should be deleted.
@@ -49,15 +48,15 @@ public enum OldDataPolicy: Int, Codable, CustomStringConvertible {
 /// Data upload policy.
 @objc(GSDataUploadPolicy)
 public enum DataUploadPolicy: Int, Codable, CustomStringConvertible {
-    /// Uploading anonymous is forbidden.
+    /// Uploading data is forbidden.
     case deny
-    /// Anonymous
+    /// Uploading anonymous data is authorized.
     case anonymous
-    /// No gps.
+    /// Uploading all except GPS data is authorized.
     case noGps
-    /// Full but without sending FCRs
+    /// Uploading all except media data (FCRs) is authorized.
     case noMedia
-     /// Full
+    /// Uploading all data is authorized.
     case full
 
     public var description: String {
@@ -73,22 +72,47 @@ public enum DataUploadPolicy: Int, Codable, CustomStringConvertible {
 
 /// Facility that allows the application to register some user account identifier.
 ///
-/// When such an identifier has been registered by the application, then flight blackboxes and full crash reports (which
-/// may contain user-related information) may be uploaded to the configured remote server. Upload HTTP requests for
-/// those data will contain this identifier.
+/// The application may register a user account in order to allow GroundSdk to upload data that may disclose
+/// user-personal information to the configured remote server. This includes:
+/// - flight blackboxes,
+/// - flight logs,
+/// - flight camera records,
+/// - full crash reports.
 ///
-/// When no identifier is registered, then:
-///  * Flight blackboxes are neither recorded nor uploaded to the configured remote server.
-///  * Only 'light' crash reports, which do not contain any user-related information, may be uploaded to the
-///  configured remote server. Furthermore, in the absence of an authenticated user, this utility allows to define
-///  the authorization to use anonymous data or not
+/// All HTTP requests that upload such data will include the registered user account identifier.
+///
+/// In the absence of such a user account, then by default GroundSdk is not allowed to upload any data to the configured
+/// remote server.
+///
+/// However, the application may authorize GroundSdk to upload anonymous data (which do not disclose any user-personal
+/// information) to the configured remote server. This includes:
+/// - anonymous crash reports.
+///
+/// The application can opt-in anonymous data upload upon clearing any registered user account, by specifying the
+/// desired data upload policy to observe.
+///
+/// Note that GroundSdk may always collect both anonymous and personal data from connected devices and will store them
+/// on the user's device, regardless of the presence of any user account.
+/// When the application eventually registers a user account, it may at that point indicate what to do with personal
+/// data that were collected beforehand, by specifying the desired old data policy to observe.
+///
+/// User account identifiers, or absence thereof, as well as whether anonymous data upload is allowed (when no user
+/// account is registered), are persisted by GroundSdk across application restarts.
+///
+/// By default, there is no registered user account (so personal data upload is denied), anonymous data upload is also
+/// denied, and private mode is disabled.
 @objc(GSUserAccount)
 public protocol UserAccount: Facility {
 
-    /// Registers an user account.
+    /// Registers a user account.
     ///
-    /// * Only one user account may be registered, calling this method with a different account provider or account id
+    /// Only one user account may be registered, calling this method with a different account provider or account id
     /// will erase any previously set user account.
+    ///
+    /// In case no user account was set beforehand, or data upload becomes allowed, the specified old data policy
+    /// informs GroundSdk about what to do with user data that have already been collected on the user's device.
+    ///
+    /// Calling this method doesn't change private mode, and upload policy is always set to `.deny` if it is enabled.
     ///
     /// - Parameters:
     ///   - accountProvider: accountProvider identifies the account provider
@@ -109,23 +133,49 @@ public protocol UserAccount: Facility {
     /// data policy informs GroundSdk about what to do with user data that have already been collected on the user's
     /// device while data upload was denied.
     ///
-    /// In case no user account is present, only dataUploadPolicy (deny) and dataUploadPolicy (anonymous) upload
-    /// policies are allowed and old data policy is ignored.
+    /// In case no user account is present, only `deny` and `anonymous` upload policies are allowed and old data policy
+    /// is ignored.
+    ///
+    /// This method has no effect if private mode is enabled.
+    ///
     /// - Parameters:
-    ///     -  dataUploadPolicy: policy to observe with regard to data upload from now on
-    ///     -   oldDataPolicy: policy to observe with regard to data that were collected so far
+    ///     - dataUploadPolicy: policy to observe with regard to data upload from now on
+    ///     - oldDataPolicy: policy to observe with regard to data that were collected so far
     func set(dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy)
 
-    /// Sets drone list for current user account
+    /// Sets private mode.
+    ///
+    /// Private mode ensures that no data is uploaded, and that no new data is collected on the user's device.
+    ///
+    /// If private mode is enabled, any collected user data are cleared, and data upload policy is ignored. Otherwise,
+    /// the given policy is applied.
+    ///
+    /// - Parameters:
+    ///     - privateMode: `true` to enable private mode and clear user data, `false` to disable it
+    ///     - dataUploadPolicy: policy to observe with regard to data upload from now on
+    func set(privateMode: Bool, dataUploadPolicy: DataUploadPolicy)
+
+    /// Sets the authentication token.
+    ///
+    /// The token can be set even if no user account is registered, e.g. for cellular pairing purpose.
+    ///
+    /// - Parameter token: the token to set
+    func set(token: String)
+
+    /// Sets drone list for current user account.
     ///
     /// - Parameter droneList: user drone list, APC JSON format
+    ///
     /// - Note: drone list is updated only if user account exists.
     func set(droneList: String)
 
     /// Clears any registered user account.
     ///
-    /// Only dataUploadPolicy .deny  and .anonymous values are meaningful here, any other value will be treated in the
-    /// same way as .anonymous
+    /// In the absence of any registered user account, the application may nevertheless specify a policy to observe with
+    /// regard to anonymous data. Only `.deny` and `.anonymous` upload policy values are meaningful here, any other
+    /// value will be treated in the same way as `.anonymous`.
+    ///
+    /// Calling this method doesn't change private mode, and upload policy is always set to `.deny` if it is enabled.
     ///
     /// - Parameter dataUploadPolicy: data upload policy
     func clear(dataUploadPolicy: DataUploadPolicy)

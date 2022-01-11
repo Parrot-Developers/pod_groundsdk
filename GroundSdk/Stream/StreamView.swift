@@ -225,6 +225,8 @@ open class StreamView: GLKView {
     override
     open func draw(_ rect: CGRect) {
         super.draw(rect)
+
+        glClear(GLbitfield(GL_COLOR_BUFFER_BIT))
         if let renderer = renderer {
             if renderWidth != drawableWidth || renderHeight != drawableHeight {
                 /// The render is resized.

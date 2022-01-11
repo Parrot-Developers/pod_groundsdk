@@ -253,8 +253,7 @@ class ApnConfigurationSettingCore: ApnConfigurationSetting, CustomStringConverti
 
     private(set) var username = ""
 
-    /// Access Point password.
-    private var password = ""
+    private(set) var password = ""
 
     /// Constructor.
     ///

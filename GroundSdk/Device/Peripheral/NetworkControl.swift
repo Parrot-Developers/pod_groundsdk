@@ -127,6 +127,30 @@ public protocol NetworkControlLinkInfo: AnyObject {
     var debugDescription: String { get }
 }
 
+/// Direct connection mode (Wifi or USB).
+public enum NetworkDirectConnectionMode: String, CustomStringConvertible, CaseIterable {
+    /// Legacy mode: secure connection is not mandatory, Wifi and USB connections can be established in any way.
+    case legacy
+    /// Only secure connections are authorized, a remote control should be used to establish the connection via Wifi,
+    /// and a certificate is necessary to establish it via USB.
+    case secure
+
+    /// Debug description.
+    public var description: String { rawValue }
+}
+
+/// Direct connection setting.
+public protocol NetworkDirectConnectionSetting: AnyObject {
+    /// Tells if the setting value has been changed and is waiting for change confirmation.
+    var updating: Bool { get }
+
+    /// Supported direct connection modes.
+    var supportedModes: Set<NetworkDirectConnectionMode> { get }
+
+    /// Direct connection mode.
+    var mode: NetworkDirectConnectionMode { get set }
+}
+
 /// Network peripheral interface.
 ///
 /// This peripheral can be retrieved by:
@@ -150,6 +174,9 @@ public protocol NetworkControl: Peripheral {
 
     /// Maximum cellular bitrate, in kilobits per second.
     var maxCellularBitrate: IntSetting { get }
+
+    /// Direct connection mode setting.
+    var directConnection: NetworkDirectConnectionSetting { get }
 }
 
 /// :nodoc:

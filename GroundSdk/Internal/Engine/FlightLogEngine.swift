@@ -77,16 +77,18 @@ class FlightLogEngine: FlightLogEngineBase {
         // get userInfo and monitor changes
         userAccountInfo = userAccountUtility.userAccountInfo
         // monitor userAccount changes
-        userAccountMonitor = userAccountUtility.startMonitoring(accountDidChange: { (newUserAccountInfo) in
-            // If the user account changes and if old data upload is denied, we delete all files
-            if newUserAccountInfo?.account != nil
-                && newUserAccountInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
-                && newUserAccountInfo?.oldDataPolicy == .denyUpload
-                && newUserAccountInfo?.changeDate != self.userAccountInfo?.changeDate {
-                ULog.d(.myparrot, "User account change with old data upload denied -> delete all flight logs")
+        userAccountMonitor = userAccountUtility.startMonitoring(accountDidChange: { (newInfo) in
+            // If the user account changes and if private mode is set or old data upload is denied, we delete all files
+            if newInfo?.changeDate != self.userAccountInfo?.changeDate
+                && (newInfo?.privateMode == true
+                        || (newInfo?.account != nil
+                                && newInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
+                                && newInfo?.oldDataPolicy == .denyUpload)) {
+                ULog.d(.myparrot,
+                       "User account change with private mode or old data upload denied -> delete all flight logs")
                 self.dropFlightLogs()
             }
-            self.userAccountInfo = newUserAccountInfo
+            self.userAccountInfo = newInfo
             self.startFlightLogUploadProcess()
         })
 
@@ -125,7 +127,11 @@ class FlightLogEngine: FlightLogEngineBase {
     /// Queue for processing flight logs
     override func queueForProcessing() {
         ULog.d(.myparrot, "FLIGHTLOG (local) \(pendingFlightLogUrls)")
-        startFlightLogUploadProcess()
+        if userAccountInfo?.privateMode == true {
+            dropFlightLogs()
+        } else {
+            startFlightLogUploadProcess()
+        }
     }
 
     /// Start the uploading process of flight log files
@@ -152,9 +158,11 @@ class FlightLogEngine: FlightLogEngineBase {
     private func processNextFlightLog() {
         ULog.d(.myparrot, "processNextFlightLog")
         flightLogReporter.update(pendingCount: pendingFlightLogUrls.count)
-        if self.userAccountInfo == nil || self.userAccountInfo!.token == nil || self.userAccountInfo!.token! == ""
-            || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false
-            || self.userAccountInfo!.dataUploadPolicy == .deny {
+        if userAccountInfo?.account == nil
+            || userAccountInfo?.token == nil
+            || userAccountInfo?.token == ""
+            || userAccountInfo?.dataUploadPolicy == .deny
+            || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
             flightLogReporter.update(isUploading: false).notifyUpdated()
             ULog.d(.myparrot, "processNextFlightLog nothing to do")
             return
@@ -163,8 +171,7 @@ class FlightLogEngine: FlightLogEngineBase {
         if uploader != nil, let baseUrl = URL(string: GroundSdkConfig.sharedInstance.flightLogServer!),
             currentUploadRequest == nil {
             if let flightLog = pendingFlightLogUrls.first {
-                if self.userAccountInfo?.account != nil
-                    && self.userAccountInfo!.oldDataPolicy == .denyUpload {
+                if userAccountInfo?.oldDataPolicy == .denyUpload {
                     // check if the file is before the authentication date
                     // if yes, we remove the file because the user did not accept the download of the data collected
                     // before the authentication
@@ -181,8 +188,8 @@ class FlightLogEngine: FlightLogEngineBase {
                         toRemove = true
                     }
                     if toRemove {
-                        self.deleteFlightLog(at: flightLog, reason: "denied")
-                        self.processNextFlightLog()
+                        deleteFlightLog(at: flightLog, reason: "denied")
+                        processNextFlightLog()
                         return
                     }
                 }
@@ -194,7 +201,7 @@ class FlightLogEngine: FlightLogEngineBase {
                 }
 
                 /// Anonymize file if necessary.
-                switch self.userAccountInfo?.dataUploadPolicy {
+                switch userAccountInfo?.dataUploadPolicy {
                 case .anonymous:
                     anonymize(baseUrl: baseUrl, flightLog: flightLog, profile: .ANONYMOUS_PROFILE)
                 case .noGps:

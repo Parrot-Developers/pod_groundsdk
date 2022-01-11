@@ -38,13 +38,25 @@ class EventLogEngine: EngineBaseCore {
     private let eventLogLocalDirName = "eventLog"
 
     /// Internal logger
-    private let logger: SdkCoreEventLogger
+    private var logger: SdkCoreEventLogger?
 
     /// Flight log storage utility
     private var flightLogStorage: FlightLogStorageCore!
 
     /// Folder monitor
     private var folderMonitor: FolderMonitor!
+
+    /// Monitor of the userAccount changes
+    private var userAccountMonitor: MonitorCore!
+
+    /// Current session id
+    private var sessionId: String?
+
+    /// Start date of the current event log
+    private var currentLogDate: Date?
+
+    /// Start date of the next event log
+    private var nextLogDate: Date?
 
     /// Background timestamp
     private var backgroundTimeStamp: Double?
@@ -55,8 +67,6 @@ class EventLogEngine: EngineBaseCore {
     public required init(enginesController: EnginesControllerCore) {
         ULog.d(.eventLogEngineTag, "Loading EventLogEngine.")
 
-        logger = SdkCoreEventLogger()
-
         super.init(enginesController: enginesController)
 
         eventLoggerFacility = EventLoggerCore(store: enginesController.facilityStore, backend: self)
@@ -66,8 +76,9 @@ class EventLogEngine: EngineBaseCore {
     override func startEngine() {
         ULog.d(.eventLogEngineTag, "Starting EventLogEngine.")
 
+        sessionId = UUID().uuidString
         let properties: Dictionary = [
-            "app.sessionid": UUID().uuidString,
+            "app.sessionid": sessionId,
             "phone.os": UIDevice.current.systemName,
             "phone.os_version": UIDevice.current.systemVersion,
             "phone.manufacturer": "Apple",
@@ -90,7 +101,18 @@ class EventLogEngine: EngineBaseCore {
         folderMonitor = FolderMonitor(url: workDir, handler: handleNewFile)
         folderMonitor.startMonitoring()
 
-        logger.start(workDir.path, properties: properties)
+        let userAccount = utilities.getUtility(Utilities.userAccount)!
+        userAccountMonitor = userAccount.startMonitoring(accountDidChange: { (userAccountInfo) in
+            if userAccountInfo?.privateMode == true {
+                self.logger?.stop()
+                self.logger = nil
+            } else if self.logger == nil {
+                self.logger = SdkCoreEventLogger()
+                self.logger?.start(workDir.path, properties: properties as [AnyHashable: Any])
+                self.currentLogDate = Date()
+            }
+        })
+
         let notificationCenter = NotificationCenter.default
         if #available(iOS 13.0, *) {
             notificationCenter.addObserver(
@@ -113,8 +135,11 @@ class EventLogEngine: EngineBaseCore {
     override func stopEngine() {
         ULog.d(.eventLogEngineTag, "Stopping EventLogEngine.")
 
+        userAccountMonitor?.stop()
+        userAccountMonitor = nil
         eventLoggerFacility.unpublish()
-        logger.stop()
+        logger?.stop()
+        logger = nil
         folderMonitor.stopMonitoring()
         let notificationCenter = NotificationCenter.default
         if #available(iOS 13.0, *) {
@@ -130,20 +155,43 @@ class EventLogEngine: EngineBaseCore {
     ///
     /// - Parameter bootId: new drone boot id
     func update(bootId: String) {
-        logger.log("PROP:app.drone.bootid=\(bootId)")
+        logger?.log("PROP:app.drone.bootid=\(bootId)")
     }
 
     /// Closes current event log session and starts a new one, creating a new log file.
     func newSession() {
-        logger.newSession()
+        logger?.newSession()
+        nextLogDate = Date()
     }
 
     /// Handles new file detected in work directory.
     ///
     /// - Parameter file: new file
     private func handleNewFile(file: URL) {
-        if file.lastPathComponent.range(of: "log-\\d+.bin", options: .regularExpression) != nil {
-            flightLogStorage?.notifyFlightLogReady(flightLogUrl: file.resolvingSymlinksInPath())
+        guard file.lastPathComponent.range(of: "log-\\d+.bin", options: .regularExpression) != nil else {
+            return
+        }
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeZone = NSTimeZone.system
+        dateFormatter.locale = NSLocale.system
+        dateFormatter.dateFormat = "yyyyMMdd'T'HHmmssZZZ"
+        let currentDateStr = dateFormatter.string(from: currentLogDate ?? Date())
+        currentLogDate = nextLogDate
+
+        let suffix = "-\(sessionId?.prefix(5) ?? "")-\(currentDateStr).bin"
+
+        let srcFile = file.resolvingSymlinksInPath()
+        let dstFile = srcFile
+            .deletingLastPathComponent()
+            .appendingPathComponent(srcFile.lastPathComponent.replacingOccurrences(of: ".bin", with: suffix))
+
+        do {
+            try FileManager.default.moveItem(at: srcFile, to: dstFile)
+            flightLogStorage?.notifyFlightLogReady(flightLogUrl: dstFile)
+        } catch {
+            ULog.e(.eventLogEngineTag, "Failed to rename event log file: \(file.absoluteString)")
+            flightLogStorage?.notifyFlightLogReady(flightLogUrl: srcFile)
         }
     }
 
@@ -153,8 +201,8 @@ class EventLogEngine: EngineBaseCore {
 
     @objc private func appMovedToForeground() {
         if let backgroundTimeStamp = backgroundTimeStamp,
-           NSDate().timeIntervalSince1970 - backgroundTimeStamp > 300 {
-            self.logger.newSession()
+           NSDate().timeIntervalSince1970 - backgroundTimeStamp > 3 {
+            newSession()
         }
         backgroundTimeStamp = nil
     }
@@ -163,7 +211,8 @@ class EventLogEngine: EngineBaseCore {
 /// Extension of the engine that implements the EventLogger backend
 extension EventLogEngine: EventLoggerBackend {
     func log(_ message: String) {
-        logger.log(message)
+        ULog.d(.eventLogEngineTag, message)
+        logger?.log(message)
     }
 }
 
