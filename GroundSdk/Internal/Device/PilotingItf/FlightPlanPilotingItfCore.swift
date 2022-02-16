@@ -38,7 +38,7 @@ public protocol FlightPlanPilotingItfBackend: ActivablePilotingItfBackend {
     ///    - interpreter: instructs how the flight plan must be interpreted by the drone.
     ///    - missionItem: index of mission item where the flight plan should start, `nil` if should start from beginning
     /// - Returns: `true` on success, false if the piloting interface can't be activated
-    func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: Int?) -> Bool
+    func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: UInt?) -> Bool
 
     /// Stops execution of current flight plan.
     ///
@@ -47,6 +47,8 @@ public protocol FlightPlanPilotingItfBackend: ActivablePilotingItfBackend {
 
     /// Uploads a given flight plan file on the drone.
     ///
+    /// If any upload is on-going it is cancelled.
+    ///
     /// - Parameters:
     ///     - filepath: local path of the file to upload
     ///     - customFlightPlanId: custom flight plan id
@@ -54,6 +56,23 @@ public protocol FlightPlanPilotingItfBackend: ActivablePilotingItfBackend {
 
     /// Clears information about the latest flight plan started by the drone prior to current connection.
     func clearRecoveryInfo()
+
+    /// Cancels any on-going upload.
+    ///
+    /// If no upload is on-going there is no effect.
+    func cancelPendingUpload()
+
+    /// Cleans media resources before recovery of a flight plan execution.
+    ///
+    /// - Parameters:
+    ///    - customId: custom identifier, as provided by `recoveryInfo`
+    ///    - resourceId: first resource identifier of media captured after the latest reached waypoint, as provided
+    ///    by `recoveryInfo`
+    ///    - completion: completion callback
+    ///    - result: media resources clean result
+    /// - Returns: a clean media resources cancelable request
+    func cleanBeforeRecovery(customId: String, resourceId: String,
+                             completion: @escaping (_ result: CleanBeforeRecoveryResult) -> Void) -> CancelableCore?
 }
 
 /// Core implementation of the `FlightPlanPilotingItf`.
@@ -61,9 +80,9 @@ public class FlightPlanPilotingItfCore: ActivablePilotingItfCore, FlightPlanPilo
 
     private(set) public var latestUploadState = FlightPlanFileUploadState.none
 
-    private(set) public var latestMissionItemExecuted: Int?
+    private(set) public var latestMissionItemExecuted: UInt?
 
-    private(set) public var latestMissionItemSkipped: Int?
+    private(set) public var latestMissionItemSkipped: UInt?
 
     private(set) public var unavailabilityReasons = Set<FlightPlanUnavailabilityReason>()
 
@@ -109,9 +128,11 @@ public class FlightPlanPilotingItfCore: ActivablePilotingItfCore, FlightPlanPilo
         return false
     }
 
-    public func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: Int) -> Bool {
+    public func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: UInt) -> Bool {
         if state == .idle && activateAtMissionItemSupported {
-            return flightPlanBackend.activate(restart: restart, interpreter: interpreter, missionItem: missionItem)
+            return flightPlanBackend.activate(restart: restart,
+                                              interpreter: interpreter,
+                                              missionItem: missionItem)
         }
         return false
     }
@@ -147,8 +168,18 @@ public class FlightPlanPilotingItfCore: ActivablePilotingItfCore, FlightPlanPilo
         flightPlanBackend.uploadFlightPlan(filepath: filepath, customFlightPlanId: customFlightPlanId)
     }
 
+    public func cancelPendingUpload() {
+        flightPlanBackend.cancelPendingUpload()
+    }
+
     public func clearRecoveryInfo() {
         flightPlanBackend.clearRecoveryInfo()
+    }
+
+    public func cleanBeforeRecovery(customId: String,
+                                      resourceId: String,
+                                      completion: @escaping (CleanBeforeRecoveryResult) -> Void) -> CancelableCore? {
+        flightPlanBackend.cleanBeforeRecovery(customId: customId, resourceId: resourceId, completion: completion)
     }
 }
 
@@ -174,7 +205,7 @@ extension FlightPlanPilotingItfCore {
     /// - Parameter latestMissionItemExecuted: new latest mission item executed
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(latestMissionItemExecuted newValue: Int?) -> FlightPlanPilotingItfCore {
+    @discardableResult public func update(latestMissionItemExecuted newValue: UInt?) -> FlightPlanPilotingItfCore {
         if latestMissionItemExecuted != newValue {
             latestMissionItemExecuted = newValue
             markChanged()
@@ -187,7 +218,7 @@ extension FlightPlanPilotingItfCore {
     /// - Parameter latestMissionItemSkipped: new latest mission item skipped
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(latestMissionItemSkipped newValue: Int?) -> FlightPlanPilotingItfCore {
+    @discardableResult public func update(latestMissionItemSkipped newValue: UInt?) -> FlightPlanPilotingItfCore {
         if latestMissionItemSkipped != newValue {
             latestMissionItemSkipped = newValue
             markChanged()
@@ -308,8 +339,8 @@ extension FlightPlanPilotingItfCore {
 
 /// Extension of FlightPlanPilotingItfCore that adds support of the ObjC API
 extension FlightPlanPilotingItfCore: GSFlightPlanPilotingItf {
-    public var gsLatestMissionItemExecuted: Int {
-        return latestMissionItemExecuted ?? -1
+    public var gsLatestMissionItemExecuted: UInt {
+        return latestMissionItemExecuted ?? 0
     }
 
     public func hasUnavailabilityReason(_ reason: FlightPlanUnavailabilityReason) -> Bool {

@@ -49,6 +49,9 @@ class EventLogEngine: EngineBaseCore {
     /// Monitor of the userAccount changes
     private var userAccountMonitor: MonitorCore!
 
+    /// Index of the current event log
+    private var index: Int = 0
+
     /// Current session id
     private var sessionId: String?
 
@@ -104,11 +107,15 @@ class EventLogEngine: EngineBaseCore {
         let userAccount = utilities.getUtility(Utilities.userAccount)!
         userAccountMonitor = userAccount.startMonitoring(accountDidChange: { (userAccountInfo) in
             if userAccountInfo?.privateMode == true {
+                ULog.d(.eventLogEngineTag, "Private mode enabled: stopping logger and deleting current event log.")
                 self.logger?.stop()
                 self.logger = nil
+                self.deleteCurrentEventLog()
             } else if self.logger == nil {
+                ULog.d(.eventLogEngineTag, "Private mode disabled: starting logger.")
                 self.logger = SdkCoreEventLogger()
                 self.logger?.start(workDir.path, properties: properties as [AnyHashable: Any])
+                self.index = 0
                 self.currentLogDate = Date()
             }
         })
@@ -168,6 +175,7 @@ class EventLogEngine: EngineBaseCore {
     ///
     /// - Parameter file: new file
     private func handleNewFile(file: URL) {
+        // Considering only files appearing after log rotation.
         guard file.lastPathComponent.range(of: "log-\\d+.bin", options: .regularExpression) != nil else {
             return
         }
@@ -176,15 +184,14 @@ class EventLogEngine: EngineBaseCore {
         dateFormatter.timeZone = NSTimeZone.system
         dateFormatter.locale = NSLocale.system
         dateFormatter.dateFormat = "yyyyMMdd'T'HHmmssZZZ"
+
         let currentDateStr = dateFormatter.string(from: currentLogDate ?? Date())
-        currentLogDate = nextLogDate
-
-        let suffix = "-\(sessionId?.prefix(5) ?? "")-\(currentDateStr).bin"
-
+        let fileName = "log-\(index)-\(sessionId?.prefix(5) ?? "")-\(currentDateStr).bin"
         let srcFile = file.resolvingSymlinksInPath()
-        let dstFile = srcFile
-            .deletingLastPathComponent()
-            .appendingPathComponent(srcFile.lastPathComponent.replacingOccurrences(of: ".bin", with: suffix))
+        let dstFile = srcFile.deletingLastPathComponent().appendingPathComponent(fileName)
+
+        index += 1 // it follows internal logger index, which is incremented on each log rotation
+        currentLogDate = nextLogDate
 
         do {
             try FileManager.default.moveItem(at: srcFile, to: dstFile)
@@ -192,6 +199,19 @@ class EventLogEngine: EngineBaseCore {
         } catch {
             ULog.e(.eventLogEngineTag, "Failed to rename event log file: \(file.absoluteString)")
             flightLogStorage?.notifyFlightLogReady(flightLogUrl: srcFile)
+        }
+    }
+
+    /// Deletes current event log file.
+    private func deleteCurrentEventLog() {
+        let fileManager = FileManager.default
+        let url = flightLogStorage.workDir.appendingPathComponent("log.bin")
+        do {
+            if fileManager.fileExists(atPath: url.path) {
+                try fileManager.removeItem(at: url)
+            }
+        } catch let err {
+            ULog.e(.eventLogEngineTag, "Failed to delete \(url.path): \(err)")
         }
     }
 

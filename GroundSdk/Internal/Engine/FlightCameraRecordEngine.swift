@@ -387,6 +387,7 @@ class FlightCameraRecordEngine: EngineBaseCore {
             case .success:
                 self.uploadFlight(baseUrl: baseUrl, fcr: fcrFile)
             case .failure:
+                FlightLogEngineBase.recover(file: fcrUrl)
                 self.deleteFlightCameraRecordFile(at: fcrFile, reason: "error")
                 self.processNextFlightCameraRecord()
             case .abort:

@@ -66,7 +66,8 @@ public enum UpdaterUpdateState: Int, CustomStringConvertible {
     /// - Note: Although the application may cancel an update operation in this state, the device will still apply the
     ///         uploaded firmware update.
     case processing
-    /// The device has switched off. Waiting for its reboot to reconnect.
+    /// Processing has been completed, now waiting for the device to reboot and reconnect. If automatic reboot has not
+    /// been requested, a manual reboot should be triggered at this state.
     case waitingForReboot
     /// All requested updates have successfully been applied.
     ///
@@ -340,9 +341,24 @@ public protocol Updater: Peripheral {
     ///
     /// This method does nothing but return `false` if `updateUnavailabilityReasons` is not empty, or if there is no
     /// `applicableFirmwares`.
+    /// This is equivalent to calling:
+    /// ```
+    /// updateToNextFirmware(reboot: true)
+    /// ```
     ///
     /// - Returns: `true` if the update started
     @discardableResult func updateToNextFirmware() -> Bool
+
+    /// Requests device update to the next currently applicable firmware version.
+    ///
+    /// This method does nothing but return `false` if `updateUnavailabilityReasons` is not empty, or if there is no
+    /// `applicableFirmwares`.
+    /// If `reboot` parameter is set to `false`, the update state will remain `.waitingForReboot` until device is
+    /// manually rebooted.
+    ///
+    /// - Parameter reboot: `true` to make the device reboot automatically at the end of the process
+    /// - Returns: `true` if the update started
+    @discardableResult func updateToNextFirmware(reboot: Bool) -> Bool
 
     /// Requests device update to the latest applicable firmware version.
     ///

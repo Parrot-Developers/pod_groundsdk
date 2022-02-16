@@ -96,7 +96,7 @@ class FlightCameraRecordCollector {
                         at: dir, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
                     recordUrls?.forEach { recordUrl in
                         if recordUrl.isProcessing {
-                            FlightLogEngineBase.recoverFile(flightLog: recordUrl)
+                            FlightLogEngineBase.recover(file: recordUrl)
                             GroundSdkCore.logEvent(
                                 message: "EVT:LOGS;event='blur';file='\(recordUrl.lastPathComponent)';result='crash'")
                         } else if recordUrl.isAFinalizedFlightCameraRecord { // if the record is finalized
@@ -139,7 +139,7 @@ class FlightCameraRecordCollector {
         do {
             try FileManager.default.removeItem(at: url)
         } catch let err {
-            ULog.e(.parrotCloudFcrTag, "Failed to delete \(url.path): \(err)")
+            ULog.w(.parrotCloudFcrTag, "Failed to delete \(url.path): \(err)")
         }
     }
 }

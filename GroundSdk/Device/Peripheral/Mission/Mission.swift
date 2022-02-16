@@ -39,6 +39,9 @@ public enum MissionState: Int, CustomStringConvertible {
     /// Mission can be activated.
     case idle
 
+    /// Mission is activating.
+    case activating
+
     /// Mission is active.
     case active
 
@@ -48,6 +51,7 @@ public enum MissionState: Int, CustomStringConvertible {
         case .unavailable: return "unavailable"
         case .unloaded:    return "unloaded"
         case .idle:        return "idle"
+        case .activating:  return "activating"
         case .active:      return "active"
         }
     }

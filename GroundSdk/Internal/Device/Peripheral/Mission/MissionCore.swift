@@ -63,6 +63,9 @@ public class MissionCore: Mission, Equatable, Hashable {
     /// Empty if mission is activate.
     public var unavailabilityReason: MissionUnavailabilityReason = .none
 
+    /// Tells if the setting value has been changed and is waiting for change confirmation
+    public var updating: Bool = false
+
     /// Constructor
     ///
     /// - Parameters:

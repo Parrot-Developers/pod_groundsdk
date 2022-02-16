@@ -117,6 +117,19 @@ public enum FlightPlanFileUploadState: Int, CustomStringConvertible {
     }
 }
 
+/// Result of media resources clean before recovery of a flight plan execution, see `cleanBeforeRecovery`.
+public enum CleanBeforeRecoveryResult: String, CustomStringConvertible {
+    /// Media resources clean succeeded.
+    case success
+    /// Media resources clean failed.
+    case failed
+    /// Media resources clean was canceled.
+    case canceled
+
+    /// Debug description.
+    public var description: String { rawValue }
+}
+
 /// Information for flight plan execution recovery.
 public struct RecoveryInfo: Equatable {
 
@@ -127,7 +140,7 @@ public struct RecoveryInfo: Equatable {
     public let customId: String
 
     /// Index of the latest mission item completed.
-    public let latestMissionItemExecuted: Int
+    public let latestMissionItemExecuted: UInt
 
     /// Running time of the flightplan being executed.
     public let runningTime: TimeInterval
@@ -143,7 +156,7 @@ public struct RecoveryInfo: Equatable {
     ///   - latestMissionItemExecuted: index of the latest mission item completed
     ///   - runningTime: running time of the flightplan being executed
     ///   - resourceId: first resource id of the latest media capture requested by the flightplan.
-    public init(id: String, customId: String, latestMissionItemExecuted: Int, runningTime: TimeInterval,
+    public init(id: String, customId: String, latestMissionItemExecuted: UInt, runningTime: TimeInterval,
                 resourceId: String) {
         self.id = id
         self.customId = customId
@@ -177,10 +190,10 @@ public protocol FlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     var latestUploadState: FlightPlanFileUploadState { get }
 
     /// Index of the latest mission item completed.
-    var latestMissionItemExecuted: Int? { get }
+    var latestMissionItemExecuted: UInt? { get }
 
     /// Index of the latest mission item skipped.
-    var latestMissionItemSkipped: Int? { get }
+    var latestMissionItemSkipped: UInt? { get }
 
     /// Set of reasons why this piloting interface is unavailable.
     ///
@@ -198,10 +211,10 @@ public protocol FlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     /// Identifier of the flight plan currently loaded on the drone, `nil` if unknown.
     var flightPlanId: String? { get }
 
-    /// Information about the latest flight plan started by the drone prior to current connection, `nil` if unavailable.
+    /// Information about the latest flight plan started by the drone, `nil` if unavailable.
     ///
-    /// This information is provided by the drone at connection. It is turned to `nil` when the drone is disconnected
-    /// or when `clearRecoveryInfo()` is called.
+    /// This information is provided by the drone at connection and when a flight plan stops.
+    /// It is turned to `nil` when the drone is disconnected or when `clearRecoveryInfo()` is called.
     ///
     /// If the application lose connection to the drone during a flight plan and then flight plan stops, this
     /// information will help the application to manage flight plan resume at reconnection.
@@ -231,6 +244,8 @@ public protocol FlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     /// When the upload ends, if all other necessary conditions hold (GPS location acquired, drone properly calibrated),
     /// then the interface becomes idle and the Flight Plan is ready to be executed.
     ///
+    /// If any upload is on-going it is cancelled.
+    ///
     /// - Parameter filepath: local path of the file to upload
     func uploadFlightPlan(filepath: String)
 
@@ -242,11 +257,18 @@ public protocol FlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     /// When the upload ends, if all other necessary conditions hold (GPS location acquired, drone properly calibrated),
     /// then the interface becomes idle and the Flight Plan is ready to be executed.
     ///
+    /// If any upload is on-going it is cancelled.
+    ///
     /// - Parameters:
     ///     - filepath: local path of the file to upload
     ///     - customFlightPlanId: custom flight plan id
     /// - Note: customFlightPlanId will be ignored if activateAtMissionItemSupported is `false`.
     func uploadFlightPlan(filepath: String, customFlightPlanId: String)
+
+    /// Cancels any on-going upload.
+    ///
+    /// If no upload is on-going there is no effect.
+    func cancelPendingUpload()
 
     /// Activates this piloting interface and starts executing the uploaded flight plan.
     ///
@@ -289,10 +311,10 @@ public protocol FlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     /// - Parameters:
     ///    - restart: `true` to force restarting the flight plan.
     ///              If `isPaused` is `false`, this parameter will be ignored.
-    ///    - interpreter: instructs how the flight plan must be interpreted by the drone.
+    ///    - interpreter: instructs how the flight plan must be interpreted by the drone
     ///    - missionItem: index of mission item where the flight plan should start
     /// - Returns: `true` on success, `false` if the piloting interface can't be activated
-    func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: Int) -> Bool
+    func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: UInt) -> Bool
 
     /// Stops execution of current flight plan, if any.
     ///
@@ -307,6 +329,23 @@ public protocol FlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     ///
     /// This sends a command to the drone to clear this information, and sets `recoveryInfo` to `nil`.
     func clearRecoveryInfo()
+
+    /// Cleans media resources before recovery of a flight plan execution.
+    ///
+    /// When a flight plan execution is interrupted, it can be restarted later from the latest reached waypoint.
+    /// This function can be called before the flight plan restart to delete media resources captured during the
+    /// interrupted execution and after the latest reached waypoint. The aim is to not have duplicate media resources
+    /// captured after the latest reached waypoint.
+    ///
+    /// - Parameters:
+    ///    - customId: custom identifier, as provided by `recoveryInfo`
+    ///    - resourceId: first resource identifier of media captured after the latest reached waypoint, as provided
+    ///    by `recoveryInfo`
+    ///    - completion: completion callback (called on the main thread)
+    ///    - result: media resources clean result
+    /// - Returns: a clean media resources cancelable request
+    func cleanBeforeRecovery(customId: String, resourceId: String,
+                             completion: @escaping (_ result: CleanBeforeRecoveryResult) -> Void) -> CancelableCore?
 }
 
 /// Flight Plan piloting interface for drones.
@@ -336,7 +375,7 @@ public protocol GSFlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     ///
     /// Negative value when not available.
     @objc(latestMissionItemExecuted)
-    var gsLatestMissionItemExecuted: Int { get }
+    var gsLatestMissionItemExecuted: UInt { get }
 
     /// Error raised during the latest activation.
     ///

@@ -139,25 +139,36 @@ public protocol MissionUpdater: Peripheral {
     /// Progress of the upload.
     var currentProgress: Int? { get }
 
-    /// Upload a mission to the server
+    /// Uploads a mission to the server and installs it immediately.
+    /// The mission will be activable on next reboot, the `complete` function should be called for this purpose.
     ///
     /// - Parameters:
-    ///    - filePath: Internal id (given by the drone when the mission was installed).
+    ///    - filePath: internal id (given by the drone when the mission was installed).
     ///    - overwrite: overwrite the mission if it is present on drone.
     func upload(filePath: URL, overwrite: Bool) -> CancelableCore?
 
-    /// Delete a mission
+    /// Uploads a mission to the server.
+    /// The mission is installed immediately or upon next reboot, depending on the `postpone` parameter.
+    /// In any case, the mission will be activable on next reboot, the `complete` function should be called for this
+    /// purpose.
     ///
     /// - Parameters:
-    ///    - uid:Internal id (given by the drone when the mission was installed).
-    ///    - success:true if the delete was successfull, else false
+    ///    - filePath: internal id (given by the drone when the mission was installed).
+    ///    - overwrite: overwrite the mission if it is present on drone.
+    ///    - postpone: postpone the installation until next reboot.
+    func upload(filePath: URL, overwrite: Bool, postpone: Bool) -> CancelableCore?
+
+    /// Deletes a mission.
+    ///
+    /// - Parameters:
+    ///    - uid: internal id (given by the drone when the mission was installed).
+    ///    - success: true if the delete was successfull, else false
     func delete(uid: String, success: @escaping (Bool) -> Void)
 
-    /// Browse all missions.
+    /// Browses all missions.
     func browse()
 
-    /// Mandatory to omplete the installation of mission.
-    /// The drone will reboot.
+    /// Completes the installation of the uploaded missions by rebooting the drone.
     func complete()
 }
 

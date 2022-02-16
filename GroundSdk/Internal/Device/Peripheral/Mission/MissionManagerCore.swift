@@ -92,6 +92,11 @@ public protocol MissionManagerBackend: AnyObject {
 /// Internal mission manager implementation
 public class MissionManagerCore: PeripheralCore, MissionManager {
 
+    /// Timeout object.
+    ///
+    /// Visibility is internal for testing purposes
+    let timeout = SettingTimeout()
+
     /// Array of mission by uid
     public var missions: [String: Mission] {
         return _missions
@@ -146,9 +151,34 @@ public class MissionManagerCore: PeripheralCore, MissionManager {
     ///
     /// - Parameter uid: mission unique identifier.
     public func activate(uid: String) {
-        if missions[uid] != nil && missions[uid]!.state == .idle {
+        if let mission = missions[uid], mission.state == .idle {
+            // Mission is now activating.
+            _missions[uid]?.state = .activating
+            markChanged()
+            self.notifyUpdated()
+
             backend.activate(uid: uid)
+            timeout.schedule { [weak self] in
+                if let `self` = self, self.reset(updatingMission: uid) {
+                    // force update of peripheral in case updating was changed.
+                    self.notifyUpdated()
+                }
+            }
         }
+    }
+
+    /// Called by the backend, change the setting data
+    ///
+    /// - Parameter updatingMission: the mission to update.
+    /// - Returns: self to allow call chaining
+    @discardableResult public func reset(updatingMission
+        newUpdatingMission: String) -> Bool {
+        if let mission = _missions[newUpdatingMission], mission.state == .activating {
+            mission.state = .idle
+            markChanged()
+            return true
+        }
+        return false
     }
 
     /// Deactivate current mission. Default mission will be selected
@@ -205,6 +235,7 @@ public class MissionManagerCore: PeripheralCore, MissionManager {
         if let mission = _missions[uid] {
             if mission.state != state {
                 mission.state = state
+                timeout.cancel()
                 markChanged()
             }
             if mission.unavailabilityReason != unavailabilityReason {
@@ -224,6 +255,18 @@ public class MissionManagerCore: PeripheralCore, MissionManager {
     -> MissionManagerCore {
         if _suggestedActivation != newSuggestedActivation {
             _suggestedActivation = newSuggestedActivation
+            markChanged()
+        }
+        return self
+    }
+
+    /// Cancels all pending activation rollbacks.
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func cancelActivationRollback() -> MissionManagerCore {
+        for mission in _missions {
+            self.reset(updatingMission: mission.key)
             markChanged()
         }
         return self

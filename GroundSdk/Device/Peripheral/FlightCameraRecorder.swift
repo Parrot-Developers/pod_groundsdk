@@ -75,6 +75,8 @@ public enum FlightCameraRecorderPipeline: Int, RawRepresentable, Hashable, CaseI
     case fstcamLeftEvent
     /// Drone right stereo camera specific events pipeline.
     case fstcamRightEvent
+    /// Drone front camera specific events pipeline.
+    case fcamEvent
 
     /// Debug description.
     public var description: String { "(\rawValue)" }

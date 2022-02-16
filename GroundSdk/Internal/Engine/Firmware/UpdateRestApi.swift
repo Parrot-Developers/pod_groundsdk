@@ -139,7 +139,7 @@ class UpdateRestApi {
         didProgress progressCb: @escaping (_ progress: Int) -> Void,
         didComplete completionCb: @escaping (_ result: Result, _ localUrl: URL?) -> Void) -> CancelableCore? {
 
-        return cloudServer.downloadFileInBackground(
+        return cloudServer.downloadFile(
             url: url, destination: destination, progress: progressCb) { result, localFileUrl in
                 let status: Result
                 switch result {

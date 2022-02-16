@@ -194,8 +194,7 @@ public class CloudServerCore: UtilityCore {
     /// - Note: the request is started in this function.
     ///
     /// - Parameters:
-    ///   - baseUrl: server base url. Use default server URL if not provided.
-    ///   - api: api to use
+    ///   - url: url of the file to download
     ///   - destination: destination local file url
     ///   - progress: progress callback
     ///   - progressValue: progress percentage (from 0 to 100)
@@ -205,12 +204,10 @@ public class CloudServerCore: UtilityCore {
     ///                   local file will deleted.
     /// - Returns: the request
     public func downloadFile(
-        baseUrl: URL = CloudServerCore.defaultUrl,
-        api: String, destination: URL, progress: @escaping (_ progressValue: Int) -> Void,
+        url: URL, destination: URL, progress: @escaping (_ progressValue: Int) -> Void,
         completion: @escaping (_ result: HttpSessionCore.Result, _ localFileUrl: URL?) -> Void) -> CancelableCore {
 
-        var request = URLRequest(url: baseUrl.appendingPathComponent(api))
-        updateHeader(&request)
+        let request = URLRequest(url: url)
         return httpSession.downloadFile(
             request: request, destination: destination, progress: progress, completion: completion)
     }
@@ -225,7 +222,6 @@ public class CloudServerCore: UtilityCore {
     ///     `GroundSdk.setBackgroundUrlSessionCompletionHandler(completionHandler:forSessionIdentifier)`.
     ///
     /// - Parameters:
-    ///   - baseUrl: server base url. Use default server URL if not provided.
     ///   - url: url of the file to download
     ///   - destination: destination local file url
     ///   - progress: progress callback
@@ -236,7 +232,6 @@ public class CloudServerCore: UtilityCore {
     ///                   local file will deleted.
     /// - Returns: the request
     public func downloadFileInBackground(
-        baseUrl: URL = CloudServerCore.defaultUrl,
         url: URL, destination: URL, progress: @escaping (_ progressValue: Int) -> Void,
         completion: @escaping (_ result: HttpSessionCore.Result, _ localFileUrl: URL?) -> Void) -> CancelableCore {
 

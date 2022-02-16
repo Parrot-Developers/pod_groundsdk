@@ -41,8 +41,10 @@ public protocol UpdaterBackend: AnyObject {
 
     /// Requests device firmware update.
     ///
-    /// - Parameter withFirmwares: firmwares to be applied for update, in order
-    func update(withFirmwares: [FirmwareInfoCore])
+    /// - Parameters:
+    ///   - withFirmwares: firmwares to be applied for update, in order
+    ///   - reboot: `true` to make the device reboot automatically at the end of the process
+    func update(withFirmwares: [FirmwareInfoCore], reboot: Bool)
 
     /// Cancels ongoing firmware update, if any.
     func cancelUpdate()
@@ -255,11 +257,15 @@ public class UpdaterCore: PeripheralCore, Updater {
     }
 
     public func updateToNextFirmware() -> Bool {
-        return !_applicableFirmwares.isEmpty && update(withFirmwares: [_applicableFirmwares.first!])
+        return updateToNextFirmware(reboot: true)
+    }
+
+    public func updateToNextFirmware(reboot: Bool) -> Bool {
+        return !_applicableFirmwares.isEmpty && update(withFirmwares: [_applicableFirmwares.first!], reboot: reboot)
     }
 
     public func updateToLatestFirmware() -> Bool {
-        return !_applicableFirmwares.isEmpty && update(withFirmwares: _applicableFirmwares)
+        return !_applicableFirmwares.isEmpty && update(withFirmwares: _applicableFirmwares, reboot: true)
     }
 
     public func cancelUpdate() -> Bool {
@@ -303,11 +309,13 @@ public class UpdaterCore: PeripheralCore, Updater {
 
     /// Requests firmware(s) update.
     ///
-    /// - Parameter firmwares: firmwares to be applied, in order
+    /// - Parameters:
+    ///   - firmwares: firmwares to be applied, in order
+    ///   - reboot: `true` to make the device reboot automatically at the end of the process
     /// - Returns: true if firmware update did start
-    private func update(withFirmwares firmwares: [FirmwareInfoCore]) -> Bool {
+    private func update(withFirmwares firmwares: [FirmwareInfoCore], reboot: Bool) -> Bool {
         if updateUnavailabilityReasons.isEmpty && currentUpdate == nil {
-            backend.update(withFirmwares: firmwares)
+            backend.update(withFirmwares: firmwares, reboot: reboot)
             return true
         }
         return false

@@ -140,8 +140,19 @@ class FlightLogEngineBase: EngineBaseCore {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         .appendingPathComponent("debug", isDirectory: true)
 
-    /// Creates the debug directory.
+    /// Tells whether build is debug or inhouse.
+    static private func isDebugOrInhouse() -> Bool {
+        #if DEBUG
+        return true
+        #else
+        return Bundle.main.bundleIdentifier?.contains(".inhouse") == true
+        #endif
+    }
+
+    /// Creates the debug directory (debug or inhouse build only).
     static public func createDebugDir() {
+        guard isDebugOrInhouse() else { return }
+
         do {
             try FileManager.default.createDirectory(at: debugDir, withIntermediateDirectories: true)
         } catch let err {
@@ -151,14 +162,19 @@ class FlightLogEngineBase: EngineBaseCore {
 
     /// Recovers a file after a crash has been detected.
     ///
-    /// - Parameter flightLog: processing flight log to move
-    /// - Note: file is moved to a dedicated directory for debug purpose, else file is discarded.
-    static public func recoverFile(flightLog: URL) {
+    /// - Parameter file: file to recover or discard
+    /// - Note: for debug or inhouse build, file is moved to a dedicated directory for debug purpose, else file is
+    ///         discarded.
+    static public func recover(file: URL) {
         do {
-            let debugFile: URL = debugDir.appendingPathComponent(flightLog.lastPathComponent, isDirectory: false)
-            try FileManager.default.moveItem(at: flightLog, to: debugFile)
+            if isDebugOrInhouse() {
+                let debugFile: URL = debugDir.appendingPathComponent(file.lastPathComponent, isDirectory: false)
+                try FileManager.default.moveItem(at: file, to: debugFile)
+            } else {
+                try FileManager.default.removeItem(at: file)
+            }
         } catch {
-            ULog.e(.myparrot, "Failed to move processing file to debug directory.")
+            ULog.e(.myparrot, "Failed to recover file: \(file)")
         }
     }
 }

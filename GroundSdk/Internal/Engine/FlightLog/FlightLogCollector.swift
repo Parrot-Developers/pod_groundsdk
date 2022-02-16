@@ -96,11 +96,11 @@ class FlightLogCollector {
                         at: dir, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
                     logUrls?.forEach { logUrl in
                         if logUrl.isConverting { // if the report crashed while converting to gutma.
-                            FlightLogEngineBase.recoverFile(flightLog: logUrl)
+                            FlightLogEngineBase.recover(file: logUrl)
                             GroundSdkCore.logEvent(
                                 message: "EVT:GUTMA;event='convert';file='\(logUrl.lastPathComponent)';result='crash'")
                         } else if logUrl.isAnonymizing { // if the report crashed while anonymizing.
-                            FlightLogEngineBase.recoverFile(flightLog: logUrl)
+                            FlightLogEngineBase.recover(file: logUrl)
                             GroundSdkCore.logEvent(
                                 message: "EVT:LOGS;event='anonymize';file='\(logUrl.lastPathComponent)';result='crash'")
                         } else if logUrl.isAFinalizedFlightLog { // if the report is finalized
