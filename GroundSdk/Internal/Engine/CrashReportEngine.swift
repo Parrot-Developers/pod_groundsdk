@@ -66,7 +66,7 @@ class CrashReportEngine: EngineBaseCore {
     private var userAccountInfo: UserAccountInfoCore?
 
     /// Crash reports file collector.
-    private var collector: CrashReportCollector!
+    private var collector: CrashReportCollector?
 
     /// List of reports waiting for upload.
     ///
@@ -102,7 +102,6 @@ class CrashReportEngine: EngineBaseCore {
 
         super.init(enginesController: enginesController)
         publishUtility(CrashReportStorageCoreImpl(engine: self))
-        collector = createCollector()
     }
 
     public override func startEngine() {
@@ -125,9 +124,11 @@ class CrashReportEngine: EngineBaseCore {
                 ULog.d(.myparrot,
                        "User account change with private mode or old data upload denied -> delete all reports")
                 self.dropReports()
+                self.userAccountInfo = newInfo
+            } else {
+                self.userAccountInfo = newInfo
+                self.startReportUploadProcess()
             }
-            self.userAccountInfo = newInfo
-            self.startReportUploadProcess()
         })
 
         if spaceQuotaInMb != 0 {
@@ -135,7 +136,8 @@ class CrashReportEngine: EngineBaseCore {
                                                     totalMaxSizeMb: spaceQuotaInMb, includingSubfolders: true)
         }
 
-        collector.collectCrashReports { [weak self] crashReports in
+        collector = createCollector()
+        collector?.collectCrashReports { [weak self] crashReports in
             if let `self` = self, self.started {
                 self.pendingReportUrls.append(contentsOf: crashReports)
                 self.startReportUploadProcess()
@@ -163,6 +165,9 @@ class CrashReportEngine: EngineBaseCore {
         crashReporter.unpublish()
         cancelCurrentUpload()
         uploader = nil
+        collector?.cancelCollection()
+        collector = nil
+        pendingReportUrls = []
         connectivityMonitor.stop()
     }
 
@@ -277,23 +282,23 @@ class CrashReportEngine: EngineBaseCore {
     ///
     /// - Parameter report: the crash report to delete
     private func deleteCrashReport(at reportUrl: URL) {
-        if self.pendingReportUrls.first == reportUrl {
-            self.pendingReportUrls.remove(at: 0)
+        if pendingReportUrls.first == reportUrl {
+            pendingReportUrls.remove(at: 0)
         } else {
             ULog.w(.crashReportEngineTag, "Uploaded report is not the first one of the pending")
             // fallback
-            if let index: Int = self.pendingReportUrls.firstIndex(where: {$0 == reportUrl}) {
-                self.pendingReportUrls.remove(at: index)
+            if let index: Int = pendingReportUrls.firstIndex(where: {$0 == reportUrl}) {
+                pendingReportUrls.remove(at: index)
             }
         }
 
-        self.collector.deleteCrashReport(at: reportUrl)
+        collector?.deleteCrashReport(at: reportUrl)
 
         if reportUrl.pathExtension == "gz" {
             let urlLight = URL(fileURLWithPath: reportUrl.path + ".anon")
-            if let index: Int = self.pendingReportUrls.firstIndex(where: {$0 == urlLight}) {
-                self.pendingReportUrls.remove(at: index)
-                self.collector.deleteCrashReport(at: urlLight)
+            if let index: Int = pendingReportUrls.firstIndex(where: {$0 == urlLight}) {
+                pendingReportUrls.remove(at: index)
+                collector?.deleteCrashReport(at: urlLight)
             }
         }
     }
@@ -315,7 +320,7 @@ class CrashReportEngine: EngineBaseCore {
         cancelCurrentUpload()
 
         pendingReportUrls.forEach { (reportUrl) in
-            collector.deleteCrashReport(at: reportUrl)
+            collector?.deleteCrashReport(at: reportUrl)
         }
 
         // clear all pending reports

@@ -36,9 +36,12 @@ public protocol FlightPlanPilotingItfBackend: ActivablePilotingItfBackend {
     /// - Parameters:
     ///    - restart: `true` to force restarting the flight plan.
     ///    - interpreter: instructs how the flight plan must be interpreted by the drone.
-    ///    - missionItem: index of mission item where the flight plan should start, `nil` if should start from beginning
+    ///    - missionItem: index of mission item where the flight plan should start, `nil` if should
+    ///      start from beginning
+    ///    - disconnectionPolicy: the behavior of the drone when a disconnection occurs.
     /// - Returns: `true` on success, false if the piloting interface can't be activated
-    func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: UInt?) -> Bool
+    func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: UInt?,
+                  disconnectionPolicy: FlightPlanDisconnectionPolicy) -> Bool
 
     /// Stops execution of current flight plan.
     ///
@@ -54,7 +57,8 @@ public protocol FlightPlanPilotingItfBackend: ActivablePilotingItfBackend {
     ///     - customFlightPlanId: custom flight plan id
     func uploadFlightPlan(filepath: String, customFlightPlanId: String)
 
-    /// Clears information about the latest flight plan started by the drone prior to current connection.
+    /// Clears information about the latest flight plan started by the drone prior to current
+    /// connection.
     func clearRecoveryInfo()
 
     /// Cancels any on-going upload.
@@ -66,8 +70,8 @@ public protocol FlightPlanPilotingItfBackend: ActivablePilotingItfBackend {
     ///
     /// - Parameters:
     ///    - customId: custom identifier, as provided by `recoveryInfo`
-    ///    - resourceId: first resource identifier of media captured after the latest reached waypoint, as provided
-    ///    by `recoveryInfo`
+    ///    - resourceId: first resource identifier of media captured after the latest reached
+    ///      waypoint, as provided by `recoveryInfo`
     ///    - completion: completion callback
     ///    - result: media resources clean result
     /// - Returns: a clean media resources cancelable request
@@ -98,6 +102,8 @@ public class FlightPlanPilotingItfCore: ActivablePilotingItfCore, FlightPlanPilo
 
     private(set) public var activateAtMissionItemSupported = false
 
+    private(set) public var activateAtMissionItemV2Supported = false
+
     private(set) public var isUploadWithCustomIdSupported = false
 
     /// Super class backend as FlightPlanPilotingItfBackend
@@ -115,24 +121,43 @@ public class FlightPlanPilotingItfCore: ActivablePilotingItfCore, FlightPlanPilo
     }
 
     public func activate(restart: Bool) -> Bool {
-        if state == .idle {
-            return flightPlanBackend.activate(restart: restart, interpreter: .legacy, missionItem: nil)
-        }
-        return false
+        return commonActivate(restart: restart)
     }
 
     public func activate(restart: Bool, interpreter: FlightPlanInterpreter) -> Bool {
-        if state == .idle {
-            return flightPlanBackend.activate(restart: restart, interpreter: interpreter, missionItem: nil)
+        return commonActivate(restart: restart, interpreter: interpreter)
+    }
+
+    public func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: UInt) -> Bool {
+        if activateAtMissionItemSupported {
+            return commonActivate(restart: restart,
+                                  interpreter: interpreter,
+                                  missionItem: missionItem)
         }
         return false
     }
 
-    public func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: UInt) -> Bool {
-        if state == .idle && activateAtMissionItemSupported {
+    public func activate(restart: Bool, interpreter: FlightPlanInterpreter, missionItem: UInt,
+                         disconnectionPolicy: FlightPlanDisconnectionPolicy) -> Bool {
+        if activateAtMissionItemV2Supported {
+            return commonActivate(restart: restart,
+                                  interpreter: interpreter,
+                                  missionItem: missionItem,
+                                  disconnectionPolicy: disconnectionPolicy)
+        }
+        return false
+    }
+
+    /// Regroups all activation demands to the flight plan backend.
+    private func commonActivate(restart: Bool,
+                                interpreter: FlightPlanInterpreter = .legacy,
+                                missionItem: UInt? = nil,
+                                disconnectionPolicy: FlightPlanDisconnectionPolicy = .returnToHome) -> Bool {
+        if state == .idle {
             return flightPlanBackend.activate(restart: restart,
                                               interpreter: interpreter,
-                                              missionItem: missionItem)
+                                              missionItem: missionItem,
+                                              disconnectionPolicy: disconnectionPolicy)
         }
         return false
     }
@@ -299,7 +324,7 @@ extension FlightPlanPilotingItfCore {
     ///
     /// - Parameter isPaused: true if the flight plan is currently paused, false otherwise
     /// - Returns: self to allow call chaining
-    /// - Note: Changes are not notified until notifyUpdated() is called.
+    /// - Note: Changes are not notified until `notifyUpdated()` is called.
     @discardableResult public func update(isPaused newValue: Bool) -> FlightPlanPilotingItfCore {
         if isPaused != newValue {
             isPaused = newValue
@@ -312,7 +337,7 @@ extension FlightPlanPilotingItfCore {
     ///
     /// - Parameter activateAtMissionItemSupported: `true` if supported, `false` otherwise
     /// - Returns: self to allow call chaining
-    /// - Note: Changes are not notified until notifyUpdated() is called.
+    /// - Note: Changes are not notified until `notifyUpdated()` is called.
     @discardableResult
     public func update(activateAtMissionItemSupported newValue: Bool) -> FlightPlanPilotingItfCore {
         if activateAtMissionItemSupported != newValue {
@@ -322,11 +347,26 @@ extension FlightPlanPilotingItfCore {
         return self
     }
 
+    /// Updates capability to start a flight plan at a given mission item with a disconnection
+    /// policy.
+    ///
+    /// - Parameter activateAtMissionItemV2Supported: `true` if supported, `false` otherwise
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until `notifyUpdated()` is called.
+    @discardableResult
+    public func update(activateAtMissionItemV2Supported newValue: Bool) -> FlightPlanPilotingItfCore {
+        if activateAtMissionItemV2Supported != newValue {
+            activateAtMissionItemV2Supported = newValue
+            markChanged()
+        }
+        return self
+    }
+
     /// Updates capability to start a flight plan at a given mission item, with custom id.
     ///
     /// - Parameter isUploadWithCustomIdSupported: `true` if supported, `false` otherwise
     /// - Returns: self to allow call chaining
-    /// - Note: Changes are not notified until notifyUpdated() is called.
+    /// - Note: Changes are not notified until `notifyUpdated()` is called.
     @discardableResult
     public func update(isUploadWithCustomIdSupported newValue: Bool) -> FlightPlanPilotingItfCore {
         if isUploadWithCustomIdSupported != newValue {

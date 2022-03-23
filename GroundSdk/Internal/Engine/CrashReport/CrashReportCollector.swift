@@ -48,6 +48,9 @@ class CrashReportCollector {
     /// This directory should not be scanned nor deleted because reports might be currently downloading in it.
     private let reportsLocalWorkDir: URL
 
+    /// Whether collection has been cancelled.
+    private var isCancelled: Bool = false
+
     /// Constructor
     ///
     /// - Parameters:
@@ -94,6 +97,7 @@ class CrashReportCollector {
                     let reportDirs = try? FileManager.default.contentsOfDirectory(
                         at: dir, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
                     reportDirs?.forEach { reportUrl in
+                        guard !self.isCancelled else { return }
                         // if the report is finalized
                         if reportUrl.isAFinalizedCrashReport {
                             // keep the parent folder
@@ -113,9 +117,16 @@ class CrashReportCollector {
             }
 
             DispatchQueue.main.async {
-                completionCallback(toUpload)
+                if !self.isCancelled {
+                    completionCallback(toUpload)
+                }
             }
         }
+    }
+
+    /// Cancels crash report collection.
+    func cancelCollection() {
+        isCancelled = true
     }
 
     /// Delete a crash report in background.

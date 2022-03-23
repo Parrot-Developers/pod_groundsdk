@@ -42,6 +42,11 @@ class BlackBoxReporterCore: FacilityCore, BlackBoxReporter {
     init(store: ComponentStoreCore) {
         super.init(desc: Facilities.blackBoxReporter, store: store)
     }
+
+    override func reset() {
+        pendingCount = 0
+        isUploading = false
+    }
 }
 
 /// Backend callback methods

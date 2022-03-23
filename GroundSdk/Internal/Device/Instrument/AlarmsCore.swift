@@ -74,6 +74,26 @@ extension AlarmsCore {
         let alarm = getAlarm(kind: kind)
         if alarm.level != level {
             alarm.level = level
+            if alarm.level == .off {
+                alarm.timer = nil
+            }
+            markChanged()
+        }
+
+        return self
+    }
+
+    /// Changes the timer of a given alarm.
+    ///
+    /// - Parameters:
+    ///    - timer: the timer of the alarm
+    ///    - forAlarm: kind of the alarm
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(timer: TimeInterval, forAlarm kind: Alarm.Kind) -> AlarmsCore {
+        let alarm = getAlarm(kind: kind)
+        if alarm.timer != timer {
+            alarm.timer = timer
             markChanged()
         }
 

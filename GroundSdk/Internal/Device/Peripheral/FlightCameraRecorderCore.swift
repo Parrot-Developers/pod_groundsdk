@@ -31,15 +31,15 @@ import Foundation
 
 /// Flight camera recorder backend part.
 public protocol FlightCameraRecorderBackend: AnyObject {
-    /// Sets active pipelines.
+    /// Sets flight camera recorder pipeline configuration identifier.
     ///
-    /// - Parameter activePipelines: the new set of active pipelines
+    /// - Parameter pipelineConfigId: the new flight camera recorder pipeline configuration identifier.
     /// - Returns: true if the command has been sent, false if not connected and the value has been changed immediately
-    func set(activePipelines: Set<FlightCameraRecorderPipeline>) -> Bool
+    func set(pipelineConfigId: UInt64) -> Bool
 }
 
-/// Core implementation of FlightCameraRecorderSetting.
-class FlightCameraRecorderSettingCore: FlightCameraRecorderSetting, CustomDebugStringConvertible {
+/// Core implementation of FlightCameraRecorderPipelinesSetting.
+class FlightCameraRecorderPipelinesSettingCore: FlightCameraRecorderPipelinesSetting, CustomDebugStringConvertible {
     /// Delegate called when the setting value is changed by setting properties
     private unowned let didChangeDelegate: SettingChangeDelegate
 
@@ -51,24 +51,20 @@ class FlightCameraRecorderSettingCore: FlightCameraRecorderSetting, CustomDebugS
     /// Tells if the setting value has been changed and is waiting for change confirmation
     var updating: Bool { return timeout.isScheduled }
 
-    /// Supported pipeline values
-    private(set) var supportedValues: Set<FlightCameraRecorderPipeline> = []
-
-    /// Flight camera recorder value.
-    var value: Set<FlightCameraRecorderPipeline> {
+    /// Flight camera recorder pipeline configuration identifier.
+    var id: UInt64 {
         get {
-            return _value
+            return _id
         }
 
         set {
-            if _value != newValue {
-                let newSupportedValue = supportedValues.intersection(newValue)
-                if backend(newSupportedValue) {
-                    let oldValue = _value
+            if _id != newValue {
+                if backend(newValue) {
+                    let oldValue = _id
                     // value sent to the backend, update setting value and mark it updating
-                    _value = newSupportedValue
+                    _id = newValue
                     timeout.schedule { [weak self] in
-                        if let `self` = self, self.update(activePipelines: oldValue) {
+                        if let `self` = self, self.update(newId: oldValue) {
                             self.didChangeDelegate.userDidChangeSetting()
                         }
                     }
@@ -78,41 +74,29 @@ class FlightCameraRecorderSettingCore: FlightCameraRecorderSetting, CustomDebugS
         }
     }
 
-    /// Flight camera recorder set of pipelines.
-    private var _value: Set<FlightCameraRecorderPipeline> = []
+    /// Flight camera recorder pipeline configuration identifier.
+    private var _id = UInt64(0)
 
     /// Closure to call to change the value
-    private let backend: ((Set<FlightCameraRecorderPipeline>) -> Bool)
+    private let backend: ((UInt64) -> Bool)
 
     /// Constructor
     ///
     /// - Parameters:
     ///   - didChangeDelegate: delegate called when the setting value is changed by setting properties
     ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (Set<FlightCameraRecorderPipeline>) -> Bool) {
+    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (UInt64) -> Bool) {
         self.didChangeDelegate = didChangeDelegate
         self.backend = backend
     }
 
-    /// Changes flight camera recorder supported pipeline values.
-    ///
-    /// - Parameter supportedValues: new set of supported pipelines
-    /// - Returns: true if the setting has been changed, false otherwise
-    func update(supportedValues newSupportedValues: Set<FlightCameraRecorderPipeline>) -> Bool {
-        if supportedValues != newSupportedValues {
-            supportedValues = newSupportedValues
-            return true
-        }
-        return false
-    }
-
-    /// Changes flight camera recorder pipelines.
+    /// Changes flight camera recorder pipelines configuration identifier.
     ///
     /// - Parameter activePipelines: new set of active pipelines
     /// - Returns: true if the setting has been changed, false otherwise
-    func update(activePipelines newActivePipelines: Set<FlightCameraRecorderPipeline>) -> Bool {
-        if updating || _value != newActivePipelines {
-            _value = newActivePipelines
+    func update(newId: UInt64) -> Bool {
+        if updating || _id != newId {
+            _id = newId
             timeout.cancel()
             return true
         }
@@ -131,7 +115,7 @@ class FlightCameraRecorderSettingCore: FlightCameraRecorderSetting, CustomDebugS
 
     /// Debug description.
     var debugDescription: String {
-        return "\(value.description) [updating: \(updating)]"
+        return "\(id) [updating: \(updating)]"
     }
 
 }
@@ -146,12 +130,12 @@ public class FlightCameraRecorderCore: PeripheralCore, FlightCameraRecorder {
     /// Tells if the setting value has been changed and is waiting for change confirmation
     var updating: Bool { return timeout.isScheduled }
 
-    public var activePipelines: FlightCameraRecorderSetting {
-        return _activePipelines
+    public var pipelines: FlightCameraRecorderPipelinesSetting {
+        return _pipelines
     }
 
     /// Internal storage for active pipelines setting.
-    private var _activePipelines: FlightCameraRecorderSettingCore!
+    private var _pipelines: FlightCameraRecorderPipelinesSettingCore!
 
     /// Implementation backend
     private unowned let backend: FlightCameraRecorderBackend
@@ -164,35 +148,21 @@ public class FlightCameraRecorderCore: PeripheralCore, FlightCameraRecorder {
     public init(store: ComponentStoreCore, backend: FlightCameraRecorderBackend) {
         self.backend = backend
         super.init(desc: Peripherals.flightCameraRecorder, store: store)
-        _activePipelines = FlightCameraRecorderSettingCore(
-        didChangeDelegate: self) { [unowned self] newActivePipelines in
-            return self.backend.set(activePipelines: newActivePipelines)
+        _pipelines = FlightCameraRecorderPipelinesSettingCore(
+        didChangeDelegate: self) { [unowned self] id in
+            return self.backend.set(pipelineConfigId: id)
         }
     }
 }
 
 extension FlightCameraRecorderCore {
 
-    /// Called by the backend, set the supported pipeline values
-    ///
-    /// - Parameter supportedValues: new supported pipeline values
-    /// - Returns: self to allow call chaining
-    /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(supportedValues
-        newSupportedValues: Set<FlightCameraRecorderPipeline>) -> FlightCameraRecorderCore {
-        if _activePipelines.update(supportedValues: newSupportedValues) {
-            markChanged()
-        }
-        return self
-    }
-
     /// Called by the backend, change the setting data
     ///
-    /// - Parameter activePipelines: new set of active pipelines
+    /// - Parameter pipelineConfigId: new pipeline configuration identifier
     /// - Returns: self to allow call chaining
-    @discardableResult public func update(activePipelines
-        newActivePipelines: Set<FlightCameraRecorderPipeline>) -> FlightCameraRecorderCore {
-        if _activePipelines.update(activePipelines: newActivePipelines) {
+    @discardableResult public func update(pipelineConfigId: UInt64) -> FlightCameraRecorderCore {
+        if _pipelines.update(newId: pipelineConfigId) {
             markChanged()
         }
         return self
@@ -203,7 +173,7 @@ extension FlightCameraRecorderCore {
     /// - Returns: self to allow call chaining
     /// - note: changes are not notified until notifyUpdated() is called
     @discardableResult public func cancelSettingsRollback() -> FlightCameraRecorderCore {
-        _activePipelines.cancelRollback { markChanged() }
+        _pipelines.cancelRollback { markChanged() }
         return self
     }
 }

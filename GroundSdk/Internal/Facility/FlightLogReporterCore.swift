@@ -42,6 +42,11 @@ class FlightLogReporterCore: FacilityCore, FlightLogReporter {
     init(store: ComponentStoreCore) {
         super.init(desc: Facilities.flightLogReporter, store: store)
     }
+
+    override func reset() {
+        pendingCount = 0
+        isUploading = false
+    }
 }
 
 /// Backend callback methods

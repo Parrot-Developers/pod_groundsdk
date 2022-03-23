@@ -64,7 +64,7 @@ class FlightLogEngineBase: EngineBaseCore {
     public var currentUploadRequest: CancelableCore?
 
     /// Flight logs collector.
-    public var collector: FlightLogCollector!
+    public var collector: FlightLogCollector?
 
     /// Constructor
     ///
@@ -76,7 +76,6 @@ class FlightLogEngineBase: EngineBaseCore {
         engineDir = cacheDirUrl.appendingPathComponent(engineDirName, isDirectory: true)
         workDir = engineDir.appendingPathComponent(UUID().uuidString, isDirectory: true)
         super.init(enginesController: enginesController)
-        collector = createCollector()
     }
 
     /// Required Constructor
@@ -89,11 +88,11 @@ class FlightLogEngineBase: EngineBaseCore {
         engineDir = cacheDirUrl.appendingPathComponent("default", isDirectory: true)
         workDir = engineDir.appendingPathComponent(UUID().uuidString, isDirectory: true)
         super.init(enginesController: enginesController)
-        collector = createCollector()
     }
 
     public override func startEngine() {
-        collector.collectFlightLogs { [weak self] flightLogs in
+        collector = createCollector()
+        collector?.collectFlightLogs { [weak self] flightLogs in
             if let `self` = self, self.started {
                 self.pendingFlightLogUrls.append(contentsOf: flightLogs)
                 self.queueForProcessing()
@@ -103,6 +102,9 @@ class FlightLogEngineBase: EngineBaseCore {
 
     public override func stopEngine() {
         cancelCurrentUpload()
+        collector?.cancelCollection()
+        collector = nil
+        pendingFlightLogUrls = []
     }
 
     /// Cancel the current upload if there is one.

@@ -55,6 +55,9 @@ class BlackBoxCollector {
     /// File extension of a non finalized report
     fileprivate static let nonFinalizedFileExtension = "tmp"
 
+    /// Whether collection has been cancelled.
+    private var isCancelled: Bool = false
+
     /// Blackbox public folder
     private var blackboxPublicFolder: String? = GroundSdkConfig.sharedInstance.blackboxPublicFolder
 
@@ -104,6 +107,7 @@ class BlackBoxCollector {
                     let reports = try? FileManager.default.contentsOfDirectory(
                         at: dir, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
                     reports?.forEach { report in
+                        guard !self.isCancelled else { return }
                         // if the report is finalized
                         if report.isAFinalizedBlackBox {
                             // keep the parent folder
@@ -123,9 +127,16 @@ class BlackBoxCollector {
             }
 
             DispatchQueue.main.async {
-                completionCallback(toUpload)
+                if !self.isCancelled {
+                    completionCallback(toUpload)
+                }
             }
         }
+    }
+
+    /// Cancels black box collection.
+    func cancelCollection() {
+        isCancelled = true
     }
 
     /// Delete a black box in background.

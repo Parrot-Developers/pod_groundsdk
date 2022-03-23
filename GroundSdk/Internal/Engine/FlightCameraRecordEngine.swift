@@ -138,7 +138,7 @@ class FlightCameraRecordEngine: EngineBaseCore {
     private var userAccountInfo: UserAccountInfoCore?
 
     /// Flight camera records file collector.
-    private var collector: FlightCameraRecordCollector!
+    private var collector: FlightCameraRecordCollector?
 
     /// List of flight camera records waiting for upload.
     ///
@@ -184,7 +184,6 @@ class FlightCameraRecordEngine: EngineBaseCore {
 
         super.init(enginesController: enginesController)
         publishUtility(FlightCameraRecordStorageCoreImpl(engine: self))
-        collector = createCollector()
     }
 
     /// Flight camera anonymizer class init.
@@ -232,9 +231,11 @@ class FlightCameraRecordEngine: EngineBaseCore {
                 ULog.d(.myparrot,
                        "User account change with private mode or old data upload denied -> delete all records")
                 self.dropFlightCameraRecords()
+                self.userAccountInfo = newInfo
+            } else {
+                self.userAccountInfo = newInfo
+                self.startFlightCameraRecordUploadProcess()
             }
-            self.userAccountInfo = newInfo
-            self.startFlightCameraRecordUploadProcess()
         })
 
         if spaceQuotaInMb != 0 {
@@ -244,7 +245,8 @@ class FlightCameraRecordEngine: EngineBaseCore {
                                                     totalMaxSizeMb: spaceQuotaInMb, includingSubfolders: true)
         }
 
-        collector.collectFlightCameraRecords { [weak self] flightCameraRecords in
+        collector = createCollector()
+        collector?.collectFlightCameraRecords { [weak self] flightCameraRecords in
             if let `self` = self, self.started {
                 ULog.d(.parrotCloudFcrTag, "Records locally collected: \(flightCameraRecords)")
                 self.pendingFlightCameraRecordUrls.append(contentsOf: flightCameraRecords)
@@ -276,9 +278,10 @@ class FlightCameraRecordEngine: EngineBaseCore {
         flightCameraRecordReporter.unpublish()
         cancelCurrentUpload()
         uploader = nil
-        if connectivityMonitor != nil {
-            connectivityMonitor.stop()
-        }
+        collector?.cancelCollection()
+        collector = nil
+        pendingFlightCameraRecordUrls = []
+        connectivityMonitor?.stop()
     }
 
     /// Adds a flightCameraRecord to the flight camera records to be uploaded.
@@ -541,7 +544,7 @@ class FlightCameraRecordEngine: EngineBaseCore {
                 ULog.w(.parrotCloudFcrTag, "FCR not found in the pending list")
             }
         }
-        collector.deleteFlightCameraRecord(at: fcrUrl)
+        collector?.deleteFlightCameraRecord(at: fcrUrl)
 
         GroundSdkCore.logEvent(message: "EVT:LOGS;event='delete';reason='\(reason)';file='\(fcrUrl.lastPathComponent)'")
     }
@@ -553,8 +556,8 @@ class FlightCameraRecordEngine: EngineBaseCore {
     ///    - fcr: the record to delete
     ///    - reason: the reason why the record should be deleted
     private func deleteFlightCameraRecordFile(at fcr: FlightCameraRecordFile, reason: String) {
-        collector.deleteFlightCameraRecord(at: fcr.blurFile)
-        collector.deleteFlightCameraRecord(at: fcr.jsonFile)
+        collector?.deleteFlightCameraRecord(at: fcr.blurFile)
+        collector?.deleteFlightCameraRecord(at: fcr.jsonFile)
         deleteFlightCameraRecord(at: fcr.originalFile, reason: reason)
     }
 
@@ -575,7 +578,7 @@ class FlightCameraRecordEngine: EngineBaseCore {
         cancelCurrentUpload()
 
         pendingFlightCameraRecordUrls.forEach { url in
-            collector.deleteFlightCameraRecord(at: url)
+            collector?.deleteFlightCameraRecord(at: url)
             GroundSdkCore.logEvent(message: "EVT:LOGS;event='delete';reason='denied';file='\(url.lastPathComponent)'")
         }
 

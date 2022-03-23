@@ -162,6 +162,11 @@ public class Alarm: NSObject {
         /// direction.
         case obstacleAvoidanceBlindMotionDirection
 
+        /// Obstacle avoidance is frozen.
+        /// The drone does not respond to PCMD.
+        /// Obstacle avoidance mode needs to be set to disabled for the drone to move again.
+        case obstacleAvoidanceFreeze
+
         /// Drone inclination is to high to fly safely.
         case inclinationTooHigh
 
@@ -170,6 +175,12 @@ public class Alarm: NSObject {
 
         /// Vertical geofence reached.
         case verticalGeofenceReached
+
+        /// Free fall detected.
+        case freeFallDetected
+
+        /// Stereo camera is decalibrated.
+        case stereoCameraDecalibrated
 
         /// Debug description.
         public var description: String {
@@ -208,6 +219,9 @@ public class Alarm: NSObject {
             case .inclinationTooHigh:                            return "inclinationTooHigh"
             case .horizontalGeofenceReached:                     return "horizontalGeofenceReached"
             case .verticalGeofenceReached:                       return "verticalGeofenceReached"
+            case .obstacleAvoidanceFreeze:                       return "obstacleAvoidanceFreeze"
+            case .freeFallDetected:                              return "freeFallDetected"
+            case .stereoCameraDecalibrated:                      return "stereoCameraDecalibrated"
             }
         }
 
@@ -222,7 +236,8 @@ public class Alarm: NSObject {
             .obstacleAvoidanceDisabledTooDark, .obstacleAvoidanceDisabledEstimationUnreliable,
             .obstacleAvoidanceDisabledCalibrationFailure, .obstacleAvoidanceStrongWind, .obstacleAvoidancePoorGps,
             .obstacleAvoidanceComputationalError, .obstacleAvoidanceBlindMotionDirection,
-            .inclinationTooHigh, .horizontalGeofenceReached, .verticalGeofenceReached]
+            .inclinationTooHigh, .horizontalGeofenceReached, .verticalGeofenceReached,
+            .obstacleAvoidanceFreeze, .freeFallDetected, .stereoCameraDecalibrated]
     }
 
     /// Alarm level.
@@ -257,6 +272,11 @@ public class Alarm: NSObject {
 
     /// Level of the alarm.
     public internal(set) var level: Level
+
+    /// Delay related to this alarm.
+    /// Used only by Obstacle avoidance.
+    /// This delay indicates the time after which the obstacle avoidance is deactivated.
+    public internal(set) var timer: TimeInterval?
 
     /// Constructor.
     ///

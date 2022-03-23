@@ -338,7 +338,7 @@ public class GroundSdkConfig: NSObject {
         }
     }
 
-    /// Maximum memroy size used by cellular log messages, in kilobytes.
+    /// Maximum memory size used by cellular log messages, in kilobytes.
     public var cellularCellularLogsKb: UInt? {
         willSet(newValue) {
             checkLocked()

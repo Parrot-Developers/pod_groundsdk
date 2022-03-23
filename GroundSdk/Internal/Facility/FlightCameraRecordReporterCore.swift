@@ -42,6 +42,11 @@ class FlightCameraRecordReporterCore: FacilityCore, FlightCameraRecordReporter {
     init(store: ComponentStoreCore) {
         super.init(desc: Facilities.flightCameraRecordReporter, store: store)
     }
+
+    override func reset() {
+        pendingCount = 0
+        isUploading = false
+    }
 }
 
 /// Backend callback methods

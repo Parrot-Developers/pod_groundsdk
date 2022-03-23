@@ -48,6 +48,9 @@ class FlightCameraRecordCollector {
     /// This directory should not be scanned nor deleted because records might be currently downloading in it.
     private let workDir: URL
 
+    /// Whether collection has been cancelled.
+    private var isCancelled: Bool = false
+
     /// Constructor
     ///
     /// - Parameters:
@@ -95,6 +98,7 @@ class FlightCameraRecordCollector {
                     let recordUrls = try? FileManager.default.contentsOfDirectory(
                         at: dir, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
                     recordUrls?.forEach { recordUrl in
+                        guard !self.isCancelled else { return }
                         if recordUrl.isProcessing {
                             FlightLogEngineBase.recover(file: recordUrl)
                             GroundSdkCore.logEvent(
@@ -116,9 +120,16 @@ class FlightCameraRecordCollector {
             }
 
             DispatchQueue.main.async {
-                completionCallback(toUpload)
+                if !self.isCancelled {
+                    completionCallback(toUpload)
+                }
             }
         }
+    }
+
+    /// Cancels flight camera record collection.
+    func cancelCollection() {
+        isCancelled = true
     }
 
     /// Delete a flight camera record in background.

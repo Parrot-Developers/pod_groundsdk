@@ -66,7 +66,7 @@ class BlackBoxEngine: EngineBaseCore {
     private var userAccountInfo: UserAccountInfoCore?
 
     /// Black box reports collector
-    private var collector: BlackBoxCollector!
+    private var collector: BlackBoxCollector?
 
     /// List of reports waiting for upload.
     ///
@@ -102,7 +102,6 @@ class BlackBoxEngine: EngineBaseCore {
 
         super.init(enginesController: enginesController)
         publishUtility(BlackBoxStorageCoreImpl(engine: self))
-        collector = createCollector()
     }
 
     public override func startEngine() {
@@ -121,9 +120,11 @@ class BlackBoxEngine: EngineBaseCore {
                 ULog.d(.myparrot,
                        "User account change with private mode or old data upload denied -> delete all black boxes")
                 self.stopAndDropAllBlackBoxes()
+                self.userAccountInfo = newInfo
+            } else {
+                self.userAccountInfo = newInfo
+                self.startBlackBoxUploadProcess()
             }
-            self.userAccountInfo = newInfo
-            self.startBlackBoxUploadProcess()
         })
 
         if spaceQuotaInMb != 0 {
@@ -131,7 +132,8 @@ class BlackBoxEngine: EngineBaseCore {
                                                  totalMaxSizeMb: spaceQuotaInMb, includingSubfolders: true)
         }
 
-        collector.collectBlackBoxes { [weak self] blackBoxes in
+        collector = createCollector()
+        collector?.collectBlackBoxes { [weak self] blackBoxes in
             if let `self` = self, self.started {
                 self.pendingReports.append(contentsOf: blackBoxes)
                 self.startBlackBoxUploadProcess()
@@ -160,6 +162,9 @@ class BlackBoxEngine: EngineBaseCore {
         blackBoxReporter.unpublish()
         cancelCurrentUpload()
         uploader = nil
+        collector?.cancelCollection()
+        collector = nil
+        pendingReports = []
         connectivityMonitor.stop()
     }
 
@@ -170,7 +175,7 @@ class BlackBoxEngine: EngineBaseCore {
         guard userAccountInfo?.privateMode == false else {
             return
         }
-        collector.archive(blackBoxData: blackBoxData) { [weak self] report in
+        collector?.archive(blackBoxData: blackBoxData) { [weak self] report in
             self?.pendingReports.append(report)
             ULog.d(.myparrot, "BLACKBOX append \(report)")
             self?.startBlackBoxUploadProcess()
@@ -282,17 +287,17 @@ class BlackBoxEngine: EngineBaseCore {
     /// - Parameter blackBox: the black box report to delete
     private func deleteBlackBox(_ blackBox: BlackBox) {
         ULog.d(.myparrot, "BLACKBOX deleteBlackBox \(blackBox)")
-        if self.pendingReports.first == blackBox {
-            self.pendingReports.remove(at: 0)
+        if pendingReports.first == blackBox {
+            pendingReports.remove(at: 0)
         } else {
             ULog.w(.blackBoxEngineTag, "Uploaded report is not the first one of the pending")
             // fallback
-            if let index: Int = self.pendingReports.firstIndex(where: {$0 == blackBox}) {
-                self.pendingReports.remove(at: index)
+            if let index: Int = pendingReports.firstIndex(where: {$0 == blackBox}) {
+                pendingReports.remove(at: index)
             }
         }
 
-        self.collector.deleteBlackBox(at: blackBox.url)
+        collector?.deleteBlackBox(at: blackBox.url)
     }
 
     /// Cancel the current upload if there is one.
@@ -313,7 +318,7 @@ class BlackBoxEngine: EngineBaseCore {
         cancelCurrentUpload()
 
         pendingReports.forEach { (blackBox) in
-            collector.deleteBlackBox(at: blackBox.url)
+            collector?.deleteBlackBox(at: blackBox.url)
         }
 
         // clear all pending blackBoxes

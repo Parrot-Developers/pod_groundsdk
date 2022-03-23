@@ -48,6 +48,9 @@ class FlightLogCollector {
     /// This directory should not be scanned nor deleted because reports might be currently downloading in it.
     private let flightLogsLocalWorkDir: URL
 
+    /// Whether collection has been cancelled.
+    private var isCancelled: Bool = false
+
     /// Constructor
     ///
     /// - Parameters:
@@ -95,6 +98,7 @@ class FlightLogCollector {
                     let logUrls = try? FileManager.default.contentsOfDirectory(
                         at: dir, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
                     logUrls?.forEach { logUrl in
+                        guard !self.isCancelled else { return }
                         if logUrl.isConverting { // if the report crashed while converting to gutma.
                             FlightLogEngineBase.recover(file: logUrl)
                             GroundSdkCore.logEvent(
@@ -122,9 +126,16 @@ class FlightLogCollector {
             }
 
             DispatchQueue.main.async {
-                completionCallback(toUpload)
+                if !self.isCancelled {
+                    completionCallback(toUpload)
+                }
             }
         }
+    }
+
+    /// Cancels flightLog collection.
+    func cancelCollection() {
+        isCancelled = true
     }
 
     /// Delete a flightLog report in background.

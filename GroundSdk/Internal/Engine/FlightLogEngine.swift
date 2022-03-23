@@ -87,9 +87,11 @@ class FlightLogEngine: FlightLogEngineBase {
                 ULog.d(.myparrot,
                        "User account change with private mode or old data upload denied -> delete all flight logs")
                 self.dropFlightLogs()
+                self.userAccountInfo = newInfo
+            } else {
+                self.userAccountInfo = newInfo
+                self.startFlightLogUploadProcess()
             }
-            self.userAccountInfo = newInfo
-            self.startFlightLogUploadProcess()
         })
 
         if spaceQuotaInMb != 0 {
@@ -324,7 +326,7 @@ class FlightLogEngine: FlightLogEngineBase {
         var flightLogUrlReal = flightLogUrl
         if flightLogUrl.pathExtension == "anon" {
             /// remove anon flightLog
-            self.collector.deleteFlightLog(at: flightLogUrl)
+            collector?.deleteFlightLog(at: flightLogUrl)
             flightLogUrlReal = URL(fileURLWithPath: flightLogUrl.path).deletingPathExtension()
         }
 
@@ -339,7 +341,7 @@ class FlightLogEngine: FlightLogEngineBase {
                 self.pendingFlightLogUrls.remove(at: index)
             }
         }
-        self.collector.deleteFlightLog(at: flightLogUrlReal)
+        collector?.deleteFlightLog(at: flightLogUrlReal)
         GroundSdkCore.logEvent(message: "EVT:LOGS;event='delete';reason='\(reason)';" +
             "file='\(flightLogUrlReal.lastPathComponent)'")
     }
@@ -354,7 +356,7 @@ class FlightLogEngine: FlightLogEngineBase {
         cancelCurrentUpload()
 
         pendingFlightLogUrls.forEach { (flightLogUrl) in
-            collector.deleteFlightLog(at: flightLogUrl)
+            collector?.deleteFlightLog(at: flightLogUrl)
             GroundSdkCore.logEvent(message: "EVT:LOGS;event='delete';reason='denied';" +
                                     "file='\(flightLogUrl.lastPathComponent)'")
         }

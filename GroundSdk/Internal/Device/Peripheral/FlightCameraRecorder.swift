@@ -29,57 +29,13 @@
 
 import Foundation
 
-/// Flight camera recording setting.
-public protocol FlightCameraRecorderSetting: AnyObject {
+/// Setting to change the flight camera recording pipelines configuration.
+public protocol FlightCameraRecorderPipelinesSetting: AnyObject {
     /// Tells if setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
-    /// Supported modes.
-    var supportedValues: Set<FlightCameraRecorderPipeline> { get }
-
-    /// Flight camera recorder pipelines.
-    var value: Set<FlightCameraRecorderPipeline> { get set }
-}
-
-/// Type of pipeline.
-public enum FlightCameraRecorderPipeline: Int, RawRepresentable, Hashable, CaseIterable, CustomStringConvertible {
-    /// Drone left stereo camera pipeline.
-    case fstcamLeftTimelapse
-    /// Drone right stereo camera pipeline.
-    case fstcamRightTimelapse
-    /// Drone front camera pipeline.
-    case fcamTimelapse
-    /// Drone left stereo camera last frames pipeline.
-    case fstcamLeftEmergency
-    /// Drone right stereo camera last frames pipeline.
-    case fstcamRightEmergency
-    /// Drone front camera last frames pipeline.
-    case fcamEmergency
-    /// Drone front camera follow me pipeline.
-    case fcamFollowme
-    /// Drone vertical camera precise home pipeline.
-    case vcamPrecisehome
-    /// Drone left stereo camera obstacle avoidance pipeline.
-    case fstcamLeftObstacleavoidance
-    /// Drone right stereo camera obstacle avoidance pipeline.
-    case fstcamRightObstacleavoidance
-    /// Drone vertical camera precise hovering pipeline.
-    case vcamPrecisehovering
-    /// Drone left stereo camera love calibration pipeline.
-    case fstcamLeftCalibration
-    /// Drone right stereo camera love calibration pipeline.
-    case fstcamRightCalibration
-    /// Drone right stereo camera precise hovering pipeline.
-    case fstcamRightPrecisehovering
-    /// Drone left stereo camera specific events pipeline.
-    case fstcamLeftEvent
-    /// Drone right stereo camera specific events pipeline.
-    case fstcamRightEvent
-    /// Drone front camera specific events pipeline.
-    case fcamEvent
-
-    /// Debug description.
-    public var description: String { "(\rawValue)" }
+    /// Flight camera recorder pipelines configuration identifier.
+    var id: UInt64 { get set }
 }
 
 /// Flight camera recorder peripheral interface for anafi2 drones.
@@ -92,10 +48,10 @@ public enum FlightCameraRecorderPipeline: Int, RawRepresentable, Hashable, CaseI
 /// device.getPeripheral(Peripherals.flightCameraRecorder)
 /// ```
 public protocol FlightCameraRecorder: Peripheral {
-    /// Gives access to the active pipelines setting.
-    /// This setting allows to select which recording pipelines are active for flight camera recording.
+    /// Gives access to the flight camera recording pipelines configuration setting.
+    /// This setting allows to select current flight camera recording pipelines configuration.
     /// - Note: This setting remains available when the drone is not connected.
-    var activePipelines: FlightCameraRecorderSetting { get }
+    var pipelines: FlightCameraRecorderPipelinesSetting { get }
 }
 
 /// :nodoc:

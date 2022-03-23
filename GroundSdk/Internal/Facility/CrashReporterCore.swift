@@ -42,6 +42,11 @@ class CrashReporterCore: FacilityCore, CrashReporter {
     init(store: ComponentStoreCore) {
         super.init(desc: Facilities.crashReporter, store: store)
     }
+
+    override func reset() {
+        pendingCount = 0
+        isUploading = false
+    }
 }
 
 /// Backend callback methods
