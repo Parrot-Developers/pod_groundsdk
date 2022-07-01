@@ -39,7 +39,7 @@ import Foundation
 class FlightLogCollector {
 
     /// Queue where all I/O operations will run into
-    private let ioQueue = DispatchQueue(label: "FlightLogCollectorQueue")
+    private let ioQueue = DispatchQueue(label: "com.parrot.gsdk.flightLogCollector")
 
     /// Url path of the root directory where reports are stored on the user device's local file system.
     private let rootDir: URL

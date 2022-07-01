@@ -51,6 +51,10 @@ class UBloxEphemerisDownloader: EphemerisDownloader {
         self.httpSession = httpSession
     }
 
+    deinit {
+        httpSession.close()
+    }
+
     func download(urlDestination: URL, completionListener: @escaping (URL?) -> Void) {
 
         let token = "oVx4Rd6fVUeYzHfSWtSapA"

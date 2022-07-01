@@ -48,7 +48,7 @@ class FlightLogConverterEngine: FlightLogEngineBase {
     private var processingExtension = "converting"
 
     /// Queue for converting flight logs to gutma
-    private let queue = DispatchQueue(label: "com.arsdkengine.flightlogconverter")
+    private let queue = DispatchQueue(label: "com.parrot.gsdk.flightLogConverter")
 
     /// Constructor
     ///

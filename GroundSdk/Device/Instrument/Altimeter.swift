@@ -29,6 +29,19 @@
 
 import Foundation
 
+/// Terrain data.
+public protocol TerrainData {
+
+    /// Altitude of the drone relative to the terrain (in meters).
+    var altitude: Int { get }
+
+    /// Grid precision (in degrees).
+    var gridPrecision: Double { get }
+
+    /// Description.
+    var description: String { get }
+}
+
 /// Instrument that informs about altitude and vertical speed.
 ///
 /// This instrument can be retrieved by:
@@ -52,6 +65,10 @@ public protocol Altimeter: Instrument {
     /// `nil` if not available. This can happen if the drone does not know or provide this information,
     /// or if its gps is not fixed.
     var absoluteAltitude: Double? { get }
+
+    /// Terrain data.
+    /// `nil` if not available. This can happen if the drone does not know or provide this information.
+    var terrainData: TerrainData? { get }
 
     /// Vertical speed of the drone (in meters/second).
     /// `nil` if not available. This can happen if the drone does not know or provide this information.

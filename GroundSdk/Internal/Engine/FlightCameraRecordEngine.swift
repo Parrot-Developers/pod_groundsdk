@@ -28,6 +28,7 @@
 //    SUCH DAMAGE.
 
 import Foundation
+import ImageIO
 
 /// Flight camera record anonymization descriptor
 public class FcrAnonymizationDescriptor {
@@ -164,7 +165,7 @@ class FlightCameraRecordEngine: EngineBaseCore {
     public var fcrAnonymizer: FcrAnonymizer?
 
     /// Flight camera record engine upload queue
-    private let queue = DispatchQueue(label: "com.parrot.flightcamerarecord.engine.encoder", qos: .background)
+    private let queue = DispatchQueue(label: "com.parrot.gsdk.flightCameraRecord", qos: .background)
 
     /// Extension of processing camera record files
     private var processingExtension = "processing"
@@ -692,7 +693,7 @@ class FlightCameraRecordEngine: EngineBaseCore {
             if let imageSource = CGImageSourceCreateWithData(data! as CFData, nil) {
                 if let imageProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as Dictionary? {
                     imageSize = CGSize(width: imageProperties[kCGImagePropertyPixelWidth] as! Int,
-                                       height: imageProperties[kCGImagePropertyPixelWidth] as! Int)
+                                       height: imageProperties[kCGImagePropertyPixelHeight] as! Int)
                 }
             }
             if let imageSize = imageSize {

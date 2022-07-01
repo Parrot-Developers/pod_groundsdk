@@ -94,13 +94,24 @@ public class HttpSessionCore: NSObject {
     /// Constructor
     ///
     /// - Parameter sessionConfiguration: the session configuration
+    /// - Important:  If you do not close the session by calling the close() method, your app leaks
+    ///   memory until it exits.
     public init(sessionConfiguration: URLSessionConfiguration) {
         super.init()
         /// An operation queue for scheduling the delegate calls and completion handlers. The queue should is a serial
         /// queue, in order to ensure the correct ordering of callbacks
         let delegateQueue = OperationQueue()
+        delegateQueue.name = "com.parrot.gsdk.HttpSessionCore.delegateQueue"
         delegateQueue.maxConcurrentOperationCount = 1
-        session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: delegateQueue)
+        session = URLSession(configuration: sessionConfiguration,
+                             delegate: self,
+                             delegateQueue: delegateQueue)
+    }
+
+    /// Closes and invalidates all outstanding connections
+    public func close() {
+        // makes session release its delegate (in this case self) that is strongly referenced.
+        session.invalidateAndCancel()
     }
 
     /// Get data
@@ -119,8 +130,8 @@ public class HttpSessionCore: NSObject {
             var request = request
             request.httpMethod = "GET"
 
-            var task: URLSessionTask!
-            task = session.dataTask(with: request) { data, response, error in
+            var taskIdentifier: Int?
+            let task = session.dataTask(with: request) { data, response, error in
 
                 let result: Result
                 if let error = error {
@@ -141,12 +152,12 @@ public class HttpSessionCore: NSObject {
 
                 // as we are in the delegateQueue, executes the call back in main thread
                 DispatchQueue.main.async {
-                    ULog.d(.httpClientTag, "Task \(task.taskIdentifier) (\(request.url?.description ?? "")) " +
+                    ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
                            "did complete with result: \(result)")
                     completion(result, data)
                 }
-
             }
+            taskIdentifier = task.taskIdentifier
             task.resume()
             return task
         }
@@ -169,8 +180,8 @@ public class HttpSessionCore: NSObject {
             var request = request
             request.httpMethod = method.rawValue
 
-            var task: URLSessionTask!
-            task = session.dataTask(with: request) { data, response, error in
+            var taskIdentifier: Int?
+            let task = session.dataTask(with: request) { data, response, error in
 
                 let result: Result
                 if let error = error {
@@ -191,12 +202,12 @@ public class HttpSessionCore: NSObject {
 
                 // as we are in the delegateQueue, executes the call back in main thread
                 DispatchQueue.main.async {
-                    ULog.d(.httpClientTag, "Task \(task.taskIdentifier) (\(request.url?.description ?? "")) " +
+                    ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
                            "did complete with result: \(result)")
                     completion(result, data)
                 }
-
             }
+            taskIdentifier = task.taskIdentifier
             task.resume()
             return task
         }
@@ -223,8 +234,8 @@ public class HttpSessionCore: NSObject {
             var request = request
             request.httpMethod = method.rawValue
 
-            var task: URLSessionTask!
-            task = session.uploadTask(with: request, fromFile: fileUrl) { data, response, error in
+            var taskIdentifier: Int?
+            let task = session.uploadTask(with: request, fromFile: fileUrl) { [weak self] data, response, error in
 
                 let result: Result
                 if let error = error {
@@ -244,12 +255,15 @@ public class HttpSessionCore: NSObject {
                 }
                 // as we are in the delegateQueue, executes the call back in main thread
                 DispatchQueue.main.async {
-                    self.progressCbs[task.taskIdentifier] = nil
-                    ULog.d(.httpClientTag, "Task \(task.taskIdentifier) (\(request.url?.description ?? "")) " +
+                    if let taskId = taskIdentifier {
+                        self?.progressCbs[taskId] = nil
+                    }
+                    ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
                            "did complete with result: \(result)")
                     completion(result, data)
                 }
             }
+            taskIdentifier = task.taskIdentifier
             progressCbs[task.taskIdentifier] = progress
             task.resume()
             ULog.d(.httpClientTag, "Task \(task.taskIdentifier) (\(request.url?.description ?? "")) " +
@@ -279,9 +293,7 @@ public class HttpSessionCore: NSObject {
             var request = request
             request.httpMethod = "GET"
 
-            var task: URLSessionTask!
-            task = session.downloadTask(with: request)
-
+            let task = session.downloadTask(with: request)
             progressCbs[task.taskIdentifier] = progress
             dlCompletionCbs[task.taskIdentifier] = DownloadCompletionCb(destination: destination, callback: completion)
             task.resume()
@@ -310,9 +322,7 @@ public class HttpSessionCore: NSObject {
             var request = request
             request.httpMethod = "GET"
 
-            var task: URLSessionTask!
-            task = session.dataTask(with: request)
-
+            let task = session.dataTask(with: request)
             streamDlCompletionCbs[task.taskIdentifier] = DownloadCompletionCb(
                 destination: destination, callback: completion)
             streamWriters[task.taskIdentifier] = StreamWriter(withFileUrl: destination, streamDecoder: streamDecoder)
@@ -334,9 +344,8 @@ public class HttpSessionCore: NSObject {
             var request = request
             request.httpMethod = "DELETE"
 
-            var task: URLSessionTask!
-            task = session.dataTask(with: request) { _, response, error in
-
+            var taskIdentifier: Int?
+            let task = session.dataTask(with: request) { _, response, error in
                 let result: Result
                 if let error = error {
                     if (error as NSError).urlError == .canceled {
@@ -356,11 +365,12 @@ public class HttpSessionCore: NSObject {
 
                 // as we are in the delegateQueue, executes the call back in main thread
                 DispatchQueue.main.async {
-                    ULog.d(.httpClientTag, "Task \(task.taskIdentifier) (\(request.url?.description ?? "")) " +
+                    ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
                            "did complete with result: \(result)")
                     completion(result)
                 }
             }
+            taskIdentifier = task.taskIdentifier
             task.resume()
 
             return task

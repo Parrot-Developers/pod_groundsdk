@@ -39,7 +39,7 @@ import Foundation
 class FlightDataCollector {
 
     /// Queue where all I/O operations will run into
-    private let ioQueue = DispatchQueue(label: "FlightDataCollectorQueue")
+    private let ioQueue = DispatchQueue(label: "com.parrot.gsdk.flightDataCollector")
 
     /// Url path of the root directory where flights data are stored on the user device's local file system.
     private let rootDir: URL

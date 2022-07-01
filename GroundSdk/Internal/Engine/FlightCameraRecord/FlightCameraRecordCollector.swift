@@ -39,7 +39,7 @@ import Foundation
 class FlightCameraRecordCollector {
 
     /// Queue where all I/O operations will run into
-    private let ioQueue = DispatchQueue(label: "FlightCameraRecordCollectorQueue")
+    private let ioQueue = DispatchQueue(label: "com.parrot.gsdk.flightCameraRecordCollector")
 
     /// Url path of the root directory where records are stored on the user device's local file system.
     private let rootDir: URL

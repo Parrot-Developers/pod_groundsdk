@@ -49,6 +49,8 @@ public class MediaItemCore: MediaItem {
     ///   - customId: application custom identifier
     ///   - customTitle: application custom title
     ///   - creationDate: media creation date
+    ///   - bootDate: drone boot date
+    ///   - flightDate: flight date
     ///   - expectedCount: expected number of resources in the media
     ///   - photoMode: photo mode of the media (if available and media is a photo else nil)
     ///   - panoramaType: panorama type
@@ -57,7 +59,7 @@ public class MediaItemCore: MediaItem {
     ///   - backendData: backend media data
     ///   - metadataTypes: set of 'MetadataType' available in this media
     public init(uid: String, name: String, type: MediaType, runUid: String, customId: String?,
-                customTitle: String?, creationDate: Date,
+                customTitle: String?, creationDate: Date, bootDate: Date?, flightDate: Date?,
                 expectedCount: UInt64?, photoMode: MediaItem.PhotoMode?, panoramaType: PanoramaType?,
                 streamUrl: String? = nil, resources: [Resource], backendData: Any? = nil,
                 metadataTypes: Set<MetadataType> = Set()) {
@@ -65,9 +67,9 @@ public class MediaItemCore: MediaItem {
         self.backendData = backendData
 
         super.init(uid: uid, name: name, type: type, runUid: runUid, customId: customId,
-                   customTitle: customTitle, creationDate: creationDate,
-                   expectedCount: expectedCount, photoMode: photoMode, panoramaType: panoramaType,
-                   resources: resources, metadataTypes: metadataTypes)
+                   customTitle: customTitle, creationDate: creationDate, bootDate: bootDate,
+                   flightDate: flightDate, expectedCount: expectedCount, photoMode: photoMode,
+                   panoramaType: panoramaType, resources: resources, metadataTypes: metadataTypes)
         resources.forEach { ($0 as! MediaItemResourceCore).media = self }
     }
 }

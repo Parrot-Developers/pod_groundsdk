@@ -44,15 +44,18 @@ class MediaDownloaderRefCore: Ref<MediaDownloader> {
     /// - Parameters:
     ///   - mediaStore: media store instance
     ///   - mediaResources: media resources to download
+    ///   - type: download type
     ///   - destination: download destination
     ///   - observer: observer notified of download progress
-    init(mediaStore: MediaStoreCore, mediaResources: MediaResourceListCore, destination: DownloadDestination,
-         observer: @escaping Observer) {
+    init(mediaStore: MediaStoreCore, mediaResources: MediaResourceListCore, type: DownloadType,
+         destination: DownloadDestination, observer: @escaping Observer) {
         self.mediaStore = mediaStore
         self.total = 0
         super.init(observer: observer)
         self.request = mediaStore.backend
-            .download(mediaResources: mediaResources, destination: destination) { [weak self] mediaDownloader in
+            .download(mediaResources: mediaResources,
+                      type: type,
+                      destination: destination) { [weak self] mediaDownloader in
                 // weak self in case backend call callback after cancelling request
                 self?.update(newValue: mediaDownloader)
         }

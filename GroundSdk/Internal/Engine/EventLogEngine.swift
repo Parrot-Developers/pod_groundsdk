@@ -251,7 +251,7 @@ private class FolderMonitor {
     private var dispatchSource: DispatchSourceFileSystemObject?
 
     /// Dispatch queue used for sending file changes in the directory
-    private let dispatchQueue = DispatchQueue(label: "FolderMonitorQueue", attributes: .concurrent)
+    private let dispatchQueue = DispatchQueue(label: "com.parrot.gsdk.folderMonitor", attributes: .concurrent)
 
     /// List of file paths in the monitored folder
     private var folderContent: [URL]?

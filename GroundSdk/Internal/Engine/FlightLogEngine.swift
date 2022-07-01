@@ -233,7 +233,7 @@ class FlightLogEngine: FlightLogEngineBase {
     private func anonymize(baseUrl: URL, flightLog: URL, profile: Profile) {
         var result: AnonymizerResult?
         let outFile: URL = URL(fileURLWithPath: "\(flightLog.path).anon")
-        let queue = DispatchQueue(label: "com.flightlogengine.anonymizer")
+        let queue = DispatchQueue(label: "com.parrot.gsdk.FlightLogEngine")
 
         /// check if file is already here else create it.
         let filePath = outFile.path

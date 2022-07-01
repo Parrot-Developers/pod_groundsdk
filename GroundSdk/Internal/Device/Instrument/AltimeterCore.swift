@@ -29,6 +29,30 @@
 
 import Foundation
 
+/// Internal TerrainData implementation
+public class TerrainDataCore: TerrainData, CustomStringConvertible, Equatable {
+
+    public var altitude: Int
+
+    public var gridPrecision: Double
+
+    /// Constructor.
+    public init(altitude: Int, gridPrecision: Double) {
+        self.altitude = altitude
+        self.gridPrecision = gridPrecision
+    }
+
+    /// Debug description.
+    public var description: String {
+        return "alt = \(altitude), precision = \(gridPrecision)"
+    }
+
+    /// Equatable concordance.
+    public static func == (lhs: TerrainDataCore, rhs: TerrainDataCore) -> Bool {
+        return lhs.altitude == rhs.altitude && lhs.gridPrecision == rhs.gridPrecision
+    }
+}
+
 /// Internal Altimeter instrument implementation
 public class AltimeterCore: InstrumentCore, Altimeter {
 
@@ -41,6 +65,12 @@ public class AltimeterCore: InstrumentCore, Altimeter {
     /// Absolute altitude of the drone, i.e. relative to sea-level (in m).
     private (set) public var absoluteAltitude: Double?
 
+    /// Terrain data.
+    public var terrainData: TerrainData? {
+        return _terrainData
+    }
+    private var _terrainData: TerrainDataCore?
+
     /// Vertical speed of the drone (in m/s)
     /// Positive speed means that the drone is going up
     private (set) public var verticalSpeed: Double?
@@ -51,6 +81,7 @@ public class AltimeterCore: InstrumentCore, Altimeter {
             "TakeOff altitude: \(String(describing: takeoffRelativeAltitude))" +
             "Ground altitude: \(String(describing: groundRelativeAltitude))" +
             "Absolute altitude: \(String(describing: absoluteAltitude))" +
+            "Terrain data: \(String(describing: terrainData))" +
             "Vertical speed: \(String(describing: verticalSpeed))"
     }
 
@@ -105,6 +136,19 @@ extension AltimeterCore {
         if absoluteAltitude != newValue {
             markChanged()
             absoluteAltitude = newValue
+        }
+        return self
+    }
+
+    /// Changes the terrain data.
+    ///
+    /// - Parameter terrainData: the terrain data to set
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(terrainData newValue: TerrainDataCore?) -> AltimeterCore {
+        if _terrainData != newValue {
+            _terrainData = newValue
+            markChanged()
         }
         return self
     }

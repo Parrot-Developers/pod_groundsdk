@@ -39,7 +39,7 @@ import Foundation
 class CrashReportCollector {
 
     /// Queue where all I/O operations will run into
-    private let ioQueue = DispatchQueue(label: "CrashReportCollectorQueue")
+    private let ioQueue = DispatchQueue(label: "com.parrot.gsdk.crashReportCollector")
 
     /// Url path of the root directory where reports are stored on the user device's local file system.
     private let rootDir: URL

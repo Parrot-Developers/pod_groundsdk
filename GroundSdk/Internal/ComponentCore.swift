@@ -87,8 +87,8 @@ extension ComponentCore {
     /// Publish the component by adding it to its store
     final public func publish() {
         if !published {
-            store.add(self)
             published = true
+            store.add(self)
             changed = false
         }
     }
@@ -96,8 +96,8 @@ extension ComponentCore {
     /// Unpublish the component by removing it to its store
     final public func unpublish() {
         if published {
-            store.remove(self)
             published = false
+            store.remove(self)
         }
         reset()
     }

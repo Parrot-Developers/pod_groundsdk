@@ -39,7 +39,7 @@ import Foundation
 class GutmaLogCollector {
 
     /// Queue where all I/O operations will run into
-    private let ioQueue = DispatchQueue(label: "GutmaLogCollectorQueue")
+    private let ioQueue = DispatchQueue(label: "com.parrot.gsdk.GutmaLogCollector")
 
     /// Url path of the root directory where converted logs are stored on the user device's local file system.
     private let rootDir: URL

@@ -102,7 +102,7 @@ class InternetReachabilityListenerImpl: InternetReachabilityListener {
     private let reachabilityRef: SCNetworkReachability
 
     /// Internet listener executor queue
-    private let reachabilitySerialQueue = DispatchQueue(label: "internetMonitor")
+    private let reachabilitySerialQueue = DispatchQueue(label: "com.parrot.gsdk.internetMonitor")
 
     /// Constructor
     ///

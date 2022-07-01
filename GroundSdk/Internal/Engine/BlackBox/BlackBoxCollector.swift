@@ -40,7 +40,7 @@ import Foundation
 class BlackBoxCollector {
 
     /// Queue where all I/O operations will run into
-    private let ioQueue = DispatchQueue(label: "BlackBoxCollectorQueue")
+    private let ioQueue = DispatchQueue(label: "com.parrot.gsdk.blackBoxCollector")
 
     /// Url path of the root directory where reports are stored on the user device's local file system.
     private let rootDir: URL

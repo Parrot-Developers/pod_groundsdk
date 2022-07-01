@@ -55,6 +55,11 @@ protocol CameraZoomBackend: AnyObject {
     ///   - mode: the mode that should be used to control the zoom.
     ///   - target: Either level or velocity zoom target, clamped in the correct range
     func control(mode: CameraZoomControlMode, target: Double)
+
+    /// Resets zoom to default level immediately.
+    ///
+    /// Bypasses any maximum zoom speed restriction and resets zoom level as fast as possible.
+    func resetLevel()
 }
 
 /// Camera zoom core implementation.
@@ -110,6 +115,10 @@ class CameraZoomCore: CameraZoom {
             clampedTarget = signedPercentIntervalDouble.clamp(target)
         }
         backend.control(mode: mode, target: clampedTarget)
+    }
+
+    func resetLevel() {
+        backend.resetLevel()
     }
 }
 

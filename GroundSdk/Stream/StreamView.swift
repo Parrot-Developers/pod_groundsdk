@@ -226,6 +226,7 @@ open class StreamView: GLKView {
     open func draw(_ rect: CGRect) {
         super.draw(rect)
 
+        glClearColor(0.0, 0.0, 0.0, 1.0)
         glClear(GLbitfield(GL_COLOR_BUFFER_BIT))
         if let renderer = renderer {
             if renderWidth != drawableWidth || renderHeight != drawableHeight {

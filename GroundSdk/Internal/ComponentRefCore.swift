@@ -49,8 +49,7 @@ public class ComponentRefCore<Desc: ComponentApiDescriptor>: Ref<Desc.ApiProtoco
         self.store = store
         self.desc = desc
         super.init(observer: observer)
-        storeListener = store.register(desc: desc, didChange: {
-            [unowned self] in
+        storeListener = store.register(desc: desc, didChange: { [unowned self] in
             self.update(newValue: self.store.get(self.desc))
         })
         self.setup(value: store.get(desc))
@@ -82,8 +81,7 @@ public class ComponentUidRefCore<T: Component>: Ref<T> {
         self.store = store
         self.uid = uid
         super.init(observer: observer)
-        self.storeListener = store.register(uid: uid, didChange: {
-            [unowned self] in
+        self.storeListener = store.register(uid: uid, didChange: { [unowned self] in
             self.update(newValue: self.store.get(uid: self.uid))
         })
         self.setup(value: store.get(uid: uid))

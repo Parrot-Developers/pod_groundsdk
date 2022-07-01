@@ -48,8 +48,25 @@ public class BatteryInfoCore: InstrumentCore, BatteryInfo {
     /// Device's current battery cycle count
     private (set) public var cycleCount: Int?
 
+    /// Backstore for deprecated battery serial
+    private var deprecatedSerial: String?
+
     /// Device's battery serial
-    private (set) public var serial: String?
+    public var serial: String? {
+        self.batteryDescription?.serial ?? self.deprecatedSerial
+    }
+
+    /// Device's battery description
+    private(set) public var batteryDescription: BatteryDescription?
+
+    /// Device's battery temperature in Kelvin
+    private(set) public var temperature: UInt?
+
+    /// Battery capacity
+    private(set) public var capacity: BatteryCapacity?
+
+    /// Battery cell voltages in mV
+    public private(set) var cellVoltages: [UInt?] = []
 
     /// Debug description
     public override var description: String {
@@ -125,9 +142,69 @@ extension BatteryInfoCore {
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(serial newValue: String) -> BatteryInfoCore {
-        if serial != newValue {
+        if deprecatedSerial != newValue {
+            deprecatedSerial = newValue
             markChanged()
-            serial = newValue
+        }
+        return self
+    }
+
+    /// Changes battery description.
+    ///
+    /// - Parameter batteryDescription: the battery description to set
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(batteryDescription newValue: BatteryDescription) -> BatteryInfoCore {
+        if batteryDescription != newValue {
+            batteryDescription = newValue
+            // create a cell voltage array that can hold cellCount elements.
+            // initially no cell voltage is known so the array is filled with nils.
+            cellVoltages = (0..<newValue.cellCount).map { _ in nil }
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes battery temperature.
+    ///
+    /// - Parameter temperature: the battery temperature to set
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(temperature newValue: UInt) -> BatteryInfoCore {
+        if temperature != newValue {
+            temperature = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes battery capacity.
+    ///
+    /// - Parameter capacity: the battery capacity to set
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(capacity newValue: BatteryCapacity) -> BatteryInfoCore {
+        if capacity != newValue {
+            capacity = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes battery cell voltage.
+    ///
+    /// - Parameters:
+    ///   - cellVoltage: the battery cell voltage to set
+    ///   - index: the index of the cell
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(cellVoltage: UInt, at index: Int) -> BatteryInfoCore {
+        guard cellVoltages.startIndex <= index, index < cellVoltages.endIndex else { return self }
+
+        if cellVoltages[index] != cellVoltage {
+            cellVoltages[index] = cellVoltage
+            markChanged()
         }
         return self
     }

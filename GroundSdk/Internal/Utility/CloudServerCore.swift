@@ -84,6 +84,11 @@ public class CloudServerCore: UtilityCore {
         self.bgHttpSession = bgHttpSession
     }
 
+    deinit {
+        httpSession.close()
+        bgHttpSession.close()
+    }
+
     /// Get data
     ///
     /// - Note: the request is started in this function.

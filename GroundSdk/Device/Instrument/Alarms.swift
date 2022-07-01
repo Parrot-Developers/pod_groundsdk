@@ -119,6 +119,17 @@ public class Alarm: NSObject {
         ///   - `.critical`: magnetometer lost heading lock.
         case headingLock
 
+        /// Propeller icing level.
+        ///
+        /// Informs that drone propellers are iced, which results in a degraded flying behavior.
+        ///
+        /// - `.ok`: the level of propeller icing is low or non-existent.
+        /// - `.warning`: the level of propeller icing begins to be too strong and can impact drone
+        ///   flying capacity.
+        /// - `.critical`: the level of propeller icing is high and will impact drone flying
+        ///   capacity and eventually damage motors.
+        case icingLevel
+
         /// Location information sent by the controller is unreliable.
         case unreliableControllerLocation
 
@@ -202,6 +213,7 @@ public class Alarm: NSObject {
             case .magnetometerPertubation:                       return "magnetometerPertubation"
             case .magnetometerLowEarthField:                     return "magnetometerLowEarthField"
             case .headingLock:                                   return "headingLock"
+            case .icingLevel:                                    return "icingLevel"
             case .unreliableControllerLocation:                  return "unreliableControllerLocation"
             case .threeMotorsFlight:                             return "threeMotorsFlight"
             case .highDeviation:                                 return "highDeviation"
@@ -228,16 +240,19 @@ public class Alarm: NSObject {
         /// Set containing all possible kinds of alarm.
         public static let allCases: Set<Kind> = [
             .power, .motorCutOut, .userEmergency, .motorError, .batteryTooHot, .batteryTooCold,
-            .batteryGaugeUpdateRequired, .batteryAuthenticationFailure, .hoveringDifficultiesNoGpsTooDark,
-            .hoveringDifficultiesNoGpsTooHigh, .automaticLandingBatteryIssue, .wind, .verticalCamera, .strongVibrations,
-            .magnetometerPertubation, .magnetometerLowEarthField, .unreliableControllerLocation, .headingLock,
-            .threeMotorsFlight, .highDeviation, .droneStuck, .obstacleAvoidanceDisabledStereoFailure,
-            .obstacleAvoidanceDisabledStereoLensFailure, .obstacleAvoidanceDisabledGimbalFailure,
-            .obstacleAvoidanceDisabledTooDark, .obstacleAvoidanceDisabledEstimationUnreliable,
-            .obstacleAvoidanceDisabledCalibrationFailure, .obstacleAvoidanceStrongWind, .obstacleAvoidancePoorGps,
-            .obstacleAvoidanceComputationalError, .obstacleAvoidanceBlindMotionDirection,
-            .inclinationTooHigh, .horizontalGeofenceReached, .verticalGeofenceReached,
-            .obstacleAvoidanceFreeze, .freeFallDetected, .stereoCameraDecalibrated]
+            .batteryGaugeUpdateRequired, .batteryAuthenticationFailure,
+            .hoveringDifficultiesNoGpsTooDark, .hoveringDifficultiesNoGpsTooHigh,
+            .automaticLandingBatteryIssue, .wind, .verticalCamera, .strongVibrations,
+            .magnetometerPertubation, .magnetometerLowEarthField, .unreliableControllerLocation,
+            .headingLock, .icingLevel, .threeMotorsFlight, .highDeviation, .droneStuck,
+            .obstacleAvoidanceDisabledStereoFailure, .obstacleAvoidanceDisabledStereoLensFailure,
+            .obstacleAvoidanceDisabledGimbalFailure, .obstacleAvoidanceDisabledTooDark,
+            .obstacleAvoidanceDisabledEstimationUnreliable,
+            .obstacleAvoidanceDisabledCalibrationFailure, .obstacleAvoidanceStrongWind,
+            .obstacleAvoidancePoorGps, .obstacleAvoidanceComputationalError,
+            .obstacleAvoidanceBlindMotionDirection, .inclinationTooHigh, .horizontalGeofenceReached,
+            .verticalGeofenceReached, .obstacleAvoidanceFreeze, .freeFallDetected,
+            .stereoCameraDecalibrated]
     }
 
     /// Alarm level.

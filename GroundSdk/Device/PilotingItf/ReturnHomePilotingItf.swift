@@ -140,6 +140,8 @@ public enum ReturnHomeReason: Int, CustomStringConvertible, CaseIterable {
     case connectionLost
     /// Returning home because the power level is low.
     case powerLow
+    /// Returning home because the drone's propeller(s) are critically iced.
+    case icedPropeller
     /// Return home is finished and is not active anymore.
     case finished
     /// Return to home could not find a path to home.
@@ -152,6 +154,7 @@ public enum ReturnHomeReason: Int, CustomStringConvertible, CaseIterable {
         case .userRequested:    return "userRequested"
         case .connectionLost:   return "connectionLost"
         case .powerLow:         return "powerLow"
+        case .icedPropeller:    return "icedPropeller"
         case .finished:         return "finished"
         case .blocked:          return "blocked"
         }

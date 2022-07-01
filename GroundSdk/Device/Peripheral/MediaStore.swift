@@ -172,6 +172,14 @@ public class MediaResourceListFactory: NSObject {
     }
 }
 
+/// Media download type.
+public enum DownloadType {
+    /// Download original media (with metadata) and digital signature if available.
+    case full
+    /// Download preview image only (without metadata), if available.
+    case preview
+}
+
 /// Download destination.
 public enum DownloadDestination {
     /// A directory inside the application's `Documents` directory. Root of `Documents` if `directoryName` is `nil`.
@@ -398,11 +406,14 @@ public protocol MediaStore: Peripheral {
     ///
     /// - Parameters:
     ///   - mediaResources: list of media resources to download
+    ///   - type: download type
     ///   - destination: download destination
     ///   - observer: observer called when the Media downloader changes, indicating download progress
     /// - Returns: a reference on a MediaDownloader. Caller must keep this instance referenced until all media are
-    ///   downloaded. Setting it to nil cancel the download.
-    func newDownloader(mediaResources: MediaResourceList, destination: DownloadDestination,
+    ///   downloaded. Setting it to nil cancels the download.
+    /// - Note: If `full` type is selected (default), signatures will also be downloaded. If `preview` type is
+    ///   selected, no signature will be downloaded and videos will be ignored.
+    func newDownloader(mediaResources: MediaResourceList, type: DownloadType, destination: DownloadDestination,
                        observer: @escaping (_ downloader: MediaDownloader?) -> Void) -> Ref<MediaDownloader>
 
     /// Creates a new media resource uploader.
@@ -427,7 +438,7 @@ public protocol MediaStore: Peripheral {
     ///     delete task is interrupted.
     ///   - deleter: deleter storing the delete progress info
     /// - Returns: a reference on a MediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancel the delete.
+    ///   deleted. Setting it to nil cancels the delete.
     func newDeleter(medias: [MediaItem], observer: @escaping (_ deleter: MediaDeleter?) -> Void) -> Ref<MediaDeleter>
 
     /// Creates a new Media deleter, to delete a list of media resources.
@@ -438,7 +449,7 @@ public protocol MediaStore: Peripheral {
     ///     delete task is interrupted.
     ///   - deleter: deleter storing the delete progress info
     /// - Returns: a reference on a MediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancel the delete.
+    ///   deleted. Setting it to nil cancels the delete.
     func newDeleter(mediaResources: MediaResourceList, observer: @escaping (_ deleter: MediaDeleter?) -> Void)
         -> Ref<MediaDeleter>
 
@@ -449,8 +460,28 @@ public protocol MediaStore: Peripheral {
     ///     delete task is interrupted.
     ///   - deleter: deleter storing the delete progress info
     /// - Returns: a reference on a AllMediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancel the delete.
+    ///   deleted. Setting it to nil cancels the delete.
     func newAllMediasDeleter(observer: @escaping (_ deleter: AllMediasDeleter?) -> Void) -> Ref<AllMediasDeleter>
+}
+
+/// Extension providing default parameter values to functions to ensure backward compatibility.
+public extension MediaStore {
+
+    /// Creates a new media resource downloader.
+    ///
+    /// - Parameters:
+    ///   - mediaResources: list of media resources to download
+    ///   - type: download type
+    ///   - destination: download destination
+    ///   - observer: observer called when the Media downloader changes, indicating download progress
+    /// - Returns: a reference on a MediaDownloader. Caller must keep this instance referenced until all media are
+    ///   downloaded. Setting it to nil cancels the download.
+    func newDownloader(mediaResources: MediaResourceList, type: DownloadType = .full,
+                       destination: DownloadDestination,
+                       observer: @escaping (_ downloader: MediaDownloader?) -> Void) -> Ref<MediaDownloader> {
+        return newDownloader(mediaResources: mediaResources, type: type, destination: destination,
+                             observer: observer)
+    }
 }
 
 /// Objective-C wrapper of Ref<[MediaItem]>. Required because swift generics can't be used from Objective-C.
@@ -662,7 +693,7 @@ public protocol GSMediaStore: Peripheral {
     ///   - destination: download destination
     ///   - observer: observer called when the Media downloader changes, indicating download progress
     /// - Returns: a reference on a MediaDownloader. Caller must keep this instance referenced until all media are
-    ///   downloaded. Setting it to nil cancel the download.
+    ///   downloaded. Setting it to nil cancels the download.
     @objc(newDownloaderForMediaResources:destination:observer:)
     func newDownloaderRef(mediaResources: MediaResourceList, destination: GSDownloadDestination,
                           observer: @escaping (_ downloader: MediaDownloader?) -> Void) -> GSMediaDownloaderRef
@@ -675,7 +706,7 @@ public protocol GSMediaStore: Peripheral {
     ///     delete task is interrupted.
     ///   - deleter: deleter storing the delete progress info
     /// - Returns: a reference on a MediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancel the delete.
+    ///   deleted. Setting it to nil cancels the delete.
     /// - Note: This function is for Objective-C only.
     @objc(newDeleterForMedia:observer:)
     func newDeleterRef(medias: [MediaItem], observer: @escaping (_ deleter: MediaDeleter?) -> Void)
@@ -688,7 +719,7 @@ public protocol GSMediaStore: Peripheral {
     ///     delete task is interrupted.
     ///   - deleter: deleter storing the delete progress info
     /// - Returns: a reference on a AllMediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancel the delete.
+    ///   deleted. Setting it to nil cancels the delete.
     /// - Note: This function is for Objective-C only.
     @objc(newAllMediasDeleterWithObserver:)
     func newAllMediasDeleterRef(observer: @escaping (_ deleter: AllMediasDeleter?) -> Void) -> GSAllMediasDeleterRef

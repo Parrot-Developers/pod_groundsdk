@@ -292,6 +292,12 @@ public class MediaItem: NSObject {
     /// Media creation date.
     public let creationDate: Date
 
+    /// Drone boot date if available, otherwise nil.
+    public let bootDate: Date?
+
+    /// Flight date if available, otherwise nil.
+    public let flightDate: Date?
+
     /// Expected number of resources in the media.
     public let expectedCount: UInt64?
 
@@ -321,14 +327,17 @@ public class MediaItem: NSObject {
     ///   - customId: application custom identifier
     ///   - customTitle: application custom title
     ///   - creationDate: media creation date
+    ///   - bootDate: drone boot date
+    ///   - flightDate: flight date
     ///   - expectedCount: expected number of resources in the media
     ///   - photoMode: photo mode of the media (if available and media is a photo else nil)
     ///   - panoramatype: panoramaType
     ///   - resources: available resources by formats
     ///   - metadataTypes: set of 'MetadataType' available in this media
     init(uid: String, name: String, type: MediaType, runUid: String, customId: String?, customTitle: String?,
-         creationDate: Date, expectedCount: UInt64?, photoMode: MediaItem.PhotoMode?,
-         panoramaType: PanoramaType?, resources: [Resource], metadataTypes: Set<MetadataType>) {
+         creationDate: Date, bootDate: Date? = nil, flightDate: Date? = nil, expectedCount: UInt64?,
+         photoMode: MediaItem.PhotoMode?, panoramaType: PanoramaType?, resources: [Resource],
+         metadataTypes: Set<MetadataType>) {
         self.uid = uid
         self.name = name
         self.type = type
@@ -336,6 +345,8 @@ public class MediaItem: NSObject {
         self.customId = customId
         self.customTitle = customTitle
         self.creationDate = creationDate
+        self.bootDate = bootDate
+        self.flightDate = flightDate
         self.expectedCount = expectedCount
         self.photoMode = photoMode
         self.panoramaType = panoramaType

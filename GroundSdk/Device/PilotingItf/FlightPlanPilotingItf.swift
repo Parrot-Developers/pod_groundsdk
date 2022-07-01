@@ -32,6 +32,8 @@ import Foundation
 /// Reason why this piloting interface is currently unavailable.
 @objc(GSFlightPlanUnavailabilityReason)
 public enum FlightPlanUnavailabilityReason: Int, CustomStringConvertible {
+    /// Not enough battery.
+    case insufficientBattery
     /// Drone GPS accuracy is too weak.
     case droneGpsInfoInaccurate
     /// Drone needs to be calibrated.
@@ -45,15 +47,19 @@ public enum FlightPlanUnavailabilityReason: Int, CustomStringConvertible {
     case cannotTakeOff
     /// Drone camera is not available.
     case cameraUnavailable
+    /// Drone is in an invalid state
+    case droneInvalidState
 
     /// Debug description.
     public var description: String {
         switch self {
+        case .insufficientBattery:      return "insufficientBattery"
         case .droneGpsInfoInaccurate:   return "droneGpsInfoInaccurate"
         case .droneNotCalibrated:       return "droneNotCalibrated"
         case .missingFlightPlanFile:    return "missingFlightPlanFile"
         case .cannotTakeOff:            return "cannotTakeOff"
         case .cameraUnavailable:        return "cameraUnavailable"
+        case .droneInvalidState:        return "droneInvalidState"
         }
     }
 }

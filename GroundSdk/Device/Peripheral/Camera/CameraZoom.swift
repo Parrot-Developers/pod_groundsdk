@@ -92,4 +92,9 @@ public protocol CameraZoom: AnyObject {
     ///   - mode: the mode that should be used to control the zoom.
     ///   - target: Either level or velocity zoom target.
     func control(mode: CameraZoomControlMode, target: Double)
+
+    /// Resets zoom to default level immediately.
+    ///
+    /// Bypasses any maximum zoom speed restriction and resets zoom level as fast as possible.
+    func resetLevel()
 }

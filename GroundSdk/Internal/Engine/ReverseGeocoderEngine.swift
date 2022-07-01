@@ -277,7 +277,7 @@ class ReverseGeocoderEngine: EngineBaseCore {
                 }
             },
             stoppedDidChange: {_ in },
-            authorizedDidChange: {[unowned self] newAuthorized in
+            authorizedDidChange: { [unowned self] newAuthorized in
                 if newAuthorized {
                     // When starting a new app, the authorization is asked to the user. If the user agrees the
                     // used of localization services, it's can take a long time to wait the timer

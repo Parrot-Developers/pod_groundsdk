@@ -173,6 +173,11 @@ public protocol CameraBackend: AnyObject {
     ///   - target: Either level or velocity zoom target, clamped in the correct range
     func control(mode: CameraZoomControlMode, target: Double)
 
+    /// Resets zoom to default level immediately.
+    ///
+    /// Bypasses any maximum zoom speed restriction and resets zoom level as fast as possible.
+    func resetLevel()
+
     /// Sets alignment offsets.
     ///
     /// - Parameter yawOffset: the new offset to apply to the yaw axis
@@ -1473,6 +1478,10 @@ extension CameraCore: CameraZoomBackend {
 
     func control(mode: CameraZoomControlMode, target: Double) {
         backend.control(mode: mode, target: target)
+    }
+
+    func resetLevel() {
+        backend.resetLevel()
     }
 }
 

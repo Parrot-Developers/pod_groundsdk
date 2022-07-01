@@ -338,7 +338,7 @@ public protocol MediaStoreBackend: AnyObject {
     /// - Parameters:
     ///   - completion: completion closure called when the request is terminated.
     ///   - medias: list of medias
-    /// - Returns: browse request, or nil if the request can't be send
+    /// - Returns: browse request, or nil if the request can't be sent
     func browse(completion: @escaping (_ medias: [MediaItemCore]) -> Void) -> CancelableCore?
 
     /// Browse medias in a specific storage.
@@ -347,7 +347,7 @@ public protocol MediaStoreBackend: AnyObject {
     ///   - storage: storage type to browse
     ///   - completion: completion closure called when the request is terminated.
     ///   - medias: list of medias
-    /// - Returns: browse request, or nil if the request can't be send
+    /// - Returns: browse request, or nil if the request can't be sent
     func browse(storage: StorageType?, completion: @escaping (_ medias: [MediaItemCore]) -> Void) -> CancelableCore?
 
     /// Download a thumbnail
@@ -356,7 +356,7 @@ public protocol MediaStoreBackend: AnyObject {
     ///   - media: media item to download the thumbnail
     ///   - completion: closure called when the thumbnail has been downloaded or if there is an error.
     ///   - thumbnailData: downloaded thumbnail data, nil if there is a error
-    /// - Returns: download thumbnail request, or nil if the request can't be send
+    /// - Returns: download thumbnail request, or nil if the request can't be sent
     func downloadThumbnail(for owner: MediaStoreThumbnailCacheCore.ThumbnailOwner,
                            completion: @escaping (_ thumbnailData: Data?) -> Void) -> CancelableCore?
 
@@ -364,10 +364,11 @@ public protocol MediaStoreBackend: AnyObject {
     ///
     /// - Parameters:
     ///   - mediaResources: list of media resources to download
+    ///   - type: download type
     ///   - destination: download destination
     ///   - progress: download progress callback
-    /// - Returns: download media resources request, or nil if the request can't be send
-    func download(mediaResources: MediaResourceListCore, destination: DownloadDestination,
+    /// - Returns: download media resources request, or nil if the request can't be sent
+    func download(mediaResources: MediaResourceListCore, type: DownloadType, destination: DownloadDestination,
                   progress: @escaping (MediaDownloader) -> Void) -> CancelableTaskCore?
 
     /// Uploads media resources.
@@ -376,7 +377,7 @@ public protocol MediaStoreBackend: AnyObject {
     ///   - resources: resource files to upload
     ///   - target: target media item to attach uploaded resource files to
     ///   - progress: upload progress callback
-    /// - Returns: resource upload request, or `nil` if the request can't be send.
+    /// - Returns: resource upload request, or `nil` if the request can't be sent.
     func upload(resources: [URL], target: MediaItemCore,
                 progress: @escaping (ResourceUploader?) -> Void) -> CancelableTaskCore?
 
@@ -385,14 +386,14 @@ public protocol MediaStoreBackend: AnyObject {
     /// - Parameters:
     ///   - mediaResources: list of media resources to delete
     ///   - progress: progress closure called after each deleted files
-    /// - Returns: delete request,  or nil if the request can't be send
+    /// - Returns: delete request, or nil if the request can't be sent
     func delete(mediaResources: MediaResourceListCore, progress: @escaping (MediaDeleter) -> Void)
         -> CancelableTaskCore?
 
     /// Delete all medias
     ///
     /// - Parameter progress: progress closure called when the state of the delete task changes
-    /// - Returns: delete request, or nil if the request can't be send
+    /// - Returns: delete request, or nil if the request can't be sent
     func deleteAll(progress: @escaping (AllMediasDeleter) -> Void) -> CancelableTaskCore?
 
 }
@@ -502,14 +503,15 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
     ///
     /// - Parameters:
     ///   - mediaResources: list of media resources to download
+    ///   - type: download type
     ///   - destination: download destination
     ///   - observer: observer called when the Media downloader changes, indicating download progress
     /// - Returns: a reference on a MediaDownloader. Caller must keep this instance referenced until all media are
     ///   downloaded. Setting it to nil cancel the download.
-    public func newDownloader(mediaResources: MediaResourceList, destination: DownloadDestination,
+    public func newDownloader(mediaResources: MediaResourceList, type: DownloadType, destination: DownloadDestination,
                               observer: @escaping (MediaDownloader?) -> Void) -> Ref<MediaDownloader> {
         return MediaDownloaderRefCore(mediaStore: self, mediaResources: mediaResources as! MediaResourceListCore,
-                                      destination: destination, observer: observer)
+                                      type: type, destination: destination, observer: observer)
     }
 
     /// Creates a new media resource uploader.

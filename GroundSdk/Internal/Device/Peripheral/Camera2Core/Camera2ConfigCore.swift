@@ -838,3 +838,58 @@ public class Camera2ConfigCore: Camera2Config {
         return false
     }
 }
+
+/// Extension implementing debug description.
+extension Camera2ConfigCore.Config: CustomStringConvertible {
+    /// Debug description.
+    public var description: String {
+        var params: [String] = []
+        self[Camera2Params.mode].map { params.append("mode: \($0.description)") }
+        self[Camera2Params.photoMode].map { params.append("photoMode: \($0.description)") }
+        self[Camera2Params.photoDynamicRange].map { params.append("photoDynamicRange: \($0.description)") }
+        self[Camera2Params.photoResolution].map { params.append("photoResolution: \($0.description)") }
+        self[Camera2Params.photoFormat].map { params.append("photoFormat: \($0.description)") }
+        self[Camera2Params.photoFileFormat].map { params.append("photoFileFormat: \($0.description)") }
+        self[Camera2Params.photoDigitalSignature].map { params.append("photoDigitalSignature: \($0.description)") }
+        self[Camera2Params.photoBracketing].map { params.append("photoBracketing: \($0.description)") }
+        self[Camera2Params.photoBurst].map { params.append("photoBurst: \($0.description)") }
+        self[Camera2Params.photoTimelapseInterval].map { params.append("photoTimelapseInterval: \($0.description)") }
+        self[Camera2Params.photoGpslapseInterval].map { params.append("photoGpslapseInterval: \($0.description)") }
+        self[Camera2Params.photoStreamingMode].map { params.append("photoStreamingMode: \($0.description)") }
+        self[Camera2Params.videoRecordingMode].map { params.append("videoRecordingMode: \($0.description)") }
+        self[Camera2Params.videoRecordingDynamicRange].map {
+            params.append("videoRecordingDynamicRange: \($0.description)")
+        }
+        self[Camera2Params.videoRecordingCodec].map { params.append("videoRecordingCodec: \($0.description)") }
+        self[Camera2Params.videoRecordingResolution].map {
+            params.append("videoRecordingResolution: \($0.description)")
+        }
+        self[Camera2Params.videoRecordingFramerate].map { params.append("videoRecordingFramerate: \($0.description)") }
+        self[Camera2Params.videoRecordingBitrate].map { params.append("videoRecordingBitrate: \($0.description)") }
+        self[Camera2Params.audioRecordingMode].map { params.append("audioRecordingMode: \($0.description)") }
+        self[Camera2Params.autoRecordMode].map { params.append("autoRecordMode: \($0.description)") }
+        self[Camera2Params.exposureMode].map { params.append("exposureMode: \($0.description)") }
+        self[Camera2Params.maximumIsoSensitivity].map { params.append("maximumIsoSensitivity: \($0.description)") }
+        self[Camera2Params.isoSensitivity].map { params.append("isoSensitivity: \($0.description)") }
+        self[Camera2Params.shutterSpeed].map { params.append("shutterSpeed: \($0.description)") }
+        self[Camera2Params.exposureCompensation].map { params.append("exposureCompensation: \($0.description)") }
+        self[Camera2Params.whiteBalanceMode].map { params.append("whiteBalanceMode: \($0.description)") }
+        self[Camera2Params.whiteBalanceTemperature].map { params.append("whiteBalanceTemperature: \($0.description)") }
+        self[Camera2Params.imageStyle].map { params.append("imageStyle: \($0.description)") }
+        self[Camera2Params.imageContrast].map { params.append("imageContrast: \($0.description)") }
+        self[Camera2Params.imageSaturation].map { params.append("imageSaturation: \($0.description)") }
+        self[Camera2Params.imageSharpness].map { params.append("imageSharpness: \($0.description)") }
+        self[Camera2Params.zoomMaxSpeed].map { params.append("zoomMaxSpeed: \($0.description)") }
+        self[Camera2Params.zoomVelocityControlQualityMode].map {
+            params.append("zoomVelocityControlQualityMode: \($0.description)")
+        }
+        self[Camera2Params.alignmentOffsetPitch].map { params.append("alignmentOffsetPitch: \($0.description)") }
+        self[Camera2Params.alignmentOffsetRoll].map { params.append("alignmentOffsetRoll: \($0.description)") }
+        self[Camera2Params.alignmentOffsetYaw].map { params.append("alignmentOffsetYaw: \($0.description)") }
+        self[Camera2Params.autoExposureMeteringMode].map {
+            params.append("autoExposureMeteringMode: \($0.description)")
+        }
+        self[Camera2Params.storagePolicy].map { params.append("storagePolicy: \($0.description)") }
+        return "{ \(params.joined(separator: ", ")) }"
+    }
+}

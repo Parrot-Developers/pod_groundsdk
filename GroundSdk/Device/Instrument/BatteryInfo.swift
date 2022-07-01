@@ -56,7 +56,86 @@ public protocol BatteryInfo: Instrument {
     var cycleCount: Int? { get }
 
     /// Battery serial number or `nil` if not available.
+    /// - important: use `batteryDescription.serial` instead of this property.
     var serial: String? { get }
+
+    /// The battery description.
+    /// `nil` if not available. This can happen if the drone does not know or provide this information.
+    var batteryDescription: BatteryDescription? { get }
+
+    /// Battery temperature in Kelvin.
+    /// `nil` if not available. This can happen if the drone does not know or provide this information.
+    var temperature: UInt? { get }
+
+    /// Battery capacity.
+    /// `nil` if not available. This can happen if the drone does not know or provide this information.
+    var capacity: BatteryCapacity? { get }
+
+    /// Battery individual cell voltages in mV.
+    /// Empty if not available. This can happen if the drone does not know or provide this information.
+    /// - note: The size of this array if not empty is expected to be equal to
+    /// `batteryDescription.cellCount`.
+    var cellVoltages: [UInt?] { get }
+}
+
+/// The battery description.
+public struct BatteryDescription: Equatable {
+    /// Battery configuration date.
+    public let configurationDate: Date?
+    /// Battery serial number.
+    public var serial: String
+    /// Battery cell count.
+    public let cellCount: UInt
+    /// Battery cell minimum voltage in mV.
+    public let cellMinVoltage: UInt
+    /// Battery cell maximum voltage in mV.
+    public let cellMaxVoltage: UInt
+    /// Battery design capacity in mAh.
+    public let designCapacity: UInt
+}
+
+public extension BatteryDescription {
+
+    /// Constructor
+    ///
+    /// - Parameters:
+    ///   - date: configuration date
+    ///   - serial: battery serial
+    ///   - cellCount: cell count
+    ///   - cellMinVoltage: cell minimum voltage in mV
+    ///   - cellMaxVoltage: cell maximum voltage in mV
+    ///   - designCapacity: design capacity in mAh
+    init(date: String, serial: String, cellCount: UInt, cellMinVoltage: UInt, cellMaxVoltage: UInt,
+         designCapacity: UInt) {
+        var datetime: tm = tm()
+        let configurationDate = strptime_l(date.cString(using: .utf8), "%d/%m/%Y", &datetime, nil).map { _ -> Date in
+            Date(timeIntervalSince1970: TimeInterval(mktime(&datetime)))
+        }
+        self = BatteryDescription(configurationDate: configurationDate,
+                                  serial: serial,
+                                  cellCount: cellCount,
+                                  cellMinVoltage: cellMinVoltage,
+                                  cellMaxVoltage: cellMaxVoltage,
+                                  designCapacity: designCapacity)
+    }
+}
+
+/// The battery capacity.
+public struct BatteryCapacity: Equatable {
+    /// Battery full charge capacity in mAh.
+    public let fullChargeCapacity: UInt
+    /// Battery remaining capacity in mAh.
+    public let remainingCapacity: UInt
+
+    /// Constructor
+    ///
+    /// - Parameters:
+    ///   - fullChargeCapacity: full charge capacity in mAh
+    ///   - remainingCapacity: remaining capacity in mAh
+    public init(fullChargeCapacity: UInt, remainingCapacity: UInt) {
+        self.fullChargeCapacity = fullChargeCapacity
+        self.remainingCapacity = remainingCapacity
+    }
 }
 
 // MARK: Objective-C API

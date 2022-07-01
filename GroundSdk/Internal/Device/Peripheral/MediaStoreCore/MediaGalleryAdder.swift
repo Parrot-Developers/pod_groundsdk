@@ -36,7 +36,7 @@ import Photos
 public class MediaGalleryAdder: NSObject {
 
     /// Serial queue to run PHPhotoLibrary requests
-    private let queue = DispatchQueue(label: "MediaGalleryAdder")
+    private let queue = DispatchQueue(label: "com.parrot.gsdk.mediaGalleryAdder")
     /// Album to a  media to
     private var album: PHAssetCollection?
 
