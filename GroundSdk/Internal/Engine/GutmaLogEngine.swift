@@ -101,7 +101,7 @@ class GutmaLogEngine: EngineBaseCore {
             // If the user account changes and if private mode is set, we delete all files
             if newInfo?.changeDate != self.userAccountInfo?.changeDate
                 && newInfo?.privateMode == true {
-                ULog.d(.myparrot, "User account change with private mode -> delete all gutma logs")
+                ULog.d(.gutmaLogEngineTag, "User account change with private mode -> delete all gutma logs")
                 self.dropGutmaLogs()
             }
             self.userAccountInfo = newInfo

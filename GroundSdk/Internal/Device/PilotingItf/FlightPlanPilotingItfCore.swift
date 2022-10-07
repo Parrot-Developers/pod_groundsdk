@@ -77,6 +77,17 @@ public protocol FlightPlanPilotingItfBackend: ActivablePilotingItfBackend {
     /// - Returns: a clean media resources cancelable request
     func cleanBeforeRecovery(customId: String, resourceId: String,
                              completion: @escaping (_ result: CleanBeforeRecoveryResult) -> Void) -> CancelableCore?
+
+	/// - important: DO NOT USE THIS METHOD, IT IS UNSTABLE, EXPERIMENTAL AND
+    ///              WILL DISAPPEAR ON THE NEXT VERSION
+    ///
+    /// TODO: remove
+	///
+    /// Prepares the drone for the upcoming flight plan activation.
+    ///
+    /// The drone will prepare the execution of a flight plan. This includes storing the current
+    /// camera settings that will be restored at the end of the flight plan.
+    func prepareForFlightPlanActivation()
 }
 
 /// Core implementation of the `FlightPlanPilotingItf`.
@@ -205,6 +216,10 @@ public class FlightPlanPilotingItfCore: ActivablePilotingItfCore, FlightPlanPilo
                                       resourceId: String,
                                       completion: @escaping (CleanBeforeRecoveryResult) -> Void) -> CancelableCore? {
         flightPlanBackend.cleanBeforeRecovery(customId: customId, resourceId: resourceId, completion: completion)
+    }
+
+    public func prepareForFlightPlanActivation() {
+        flightPlanBackend.prepareForFlightPlanActivation()
     }
 }
 

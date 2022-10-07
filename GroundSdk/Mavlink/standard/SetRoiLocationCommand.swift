@@ -57,8 +57,10 @@ extension MavlinkStandard {
         ///   - latitude: Latitude of ROI location.
         ///   - longitude: Longitude of ROI location.
         ///   - altitude: Altitude of ROI location.
-        public init(latitude: Double, longitude: Double, altitude: Double) {
+        ///   - frame: the reference frame of the coordinates.
+        public init(latitude: Double, longitude: Double, altitude: Double, frame: Frame = .relative) {
             super.init(type: .setRoiLocation,
+                       frame: frame,
                        latitude: latitude,
                        longitude: longitude,
                        altitude: altitude)
@@ -66,8 +68,10 @@ extension MavlinkStandard {
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .relative, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -76,7 +80,7 @@ extension MavlinkStandard {
             let latitude = parameters[4]
             let longitude = parameters[5]
             let altitude = parameters[6]
-            self.init(latitude: latitude, longitude: longitude, altitude: altitude)
+            self.init(latitude: latitude, longitude: longitude, altitude: altitude, frame: frame)
         }
     }
 }

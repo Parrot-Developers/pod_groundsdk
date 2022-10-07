@@ -105,15 +105,18 @@ extension MavlinkStandard {
         ///     functions as longitude. Roll is ignored by Anafi 2.
         ///   - yawOrAltitude: when mode is `.waypointNext` functions as the yaw offset from next
         ///     waypoint, when `.location` functions as altitude.
+        ///   - frame: the reference frame of the coordinates.
         public init(mode: Mode,
                     waypointIndex: Int,
                     roiIndex: Int,
                     pitchOrLatitude: Double,
                     rollOrLongitude: Double,
-                    yawOrAltitude: Double) {
+                    yawOrAltitude: Double,
+                    frame: Frame = .relative) {
             assert(0 <= roiIndex && roiIndex <= 255)
             assert(0 <= waypointIndex)
             super.init(type: .setRoi,
+                       frame: frame,
                        param1: Double(mode.rawValue),
                        param2: Double(waypointIndex),
                        param3: Double(roiIndex),
@@ -124,8 +127,10 @@ extension MavlinkStandard {
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .relative, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -154,7 +159,8 @@ extension MavlinkStandard {
                       roiIndex: roiIndex,
                       pitchOrLatitude: pitchOrLatitude,
                       rollOrLongitude: rollOrLongitude,
-                      yawOrAltitude: yawOrAltitude)
+                      yawOrAltitude: yawOrAltitude,
+                      frame: frame)
         }
     }
 }

@@ -53,6 +53,7 @@ extension MavlinkStandard {
         ///
         /// - Parameters:
         ///   - rawType: the integer that describes the type of the MAVLink command.
+        ///   - frame: the reference frame of the coordinates.
         ///   - param1: the first parameter of the command.
         ///   - param2: the second parameter of the command.
         ///   - param3: the third parameter of the command.
@@ -60,11 +61,10 @@ extension MavlinkStandard {
         ///   - param5: the fifth parameter of the command.
         ///   - param6: the sixth parameter of the command.
         ///   - param7: the seventh parameter of the command.
-        public init(rawType: Int, param1: Double = .nan, param2: Double = .nan,
+        public init(rawType: Int, frame: Frame = .relative, param1: Double = .nan, param2: Double = .nan,
                     param3: Double = .nan, param4: Double = .nan, param5: Double = .nan,
                     param6: Double = .nan, param7: Double = .nan) {
-            super.init(type: .other,
-                       rawType: rawType,
+            super.init(type: .other, rawType: rawType, frame: frame,
                        parameters: [param1, param2, param3, param4, param5, param6, param7])
         }
 
@@ -72,16 +72,15 @@ extension MavlinkStandard {
         ///
         /// - Parameters:
         ///   - rawType: the integer that describes the type of the MAVLink command.
+        ///   - frame: the reference frame of the coordinates.
         ///   - parameters: the parameters of the command.
-        public init(rawType: Int, parameters: [Double]) throws {
+        public init(rawType: Int, frame: Frame = .relative, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
                 .incorrectNumberOfParameters("Expected 7 parameters but instead got \(parameters.count).")
             }
-            super.init(type: .other,
-                       rawType: rawType,
-                       parameters: parameters)
+            super.init(type: .other, rawType: rawType, frame: frame, parameters: parameters)
         }
     }
 }

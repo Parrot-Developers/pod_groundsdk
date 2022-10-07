@@ -44,34 +44,34 @@ public protocol PilotingItfClassDesc: ComponentApiDescriptor {
 @objcMembers
 @objc(GSPilotingItfs)
 public class PilotingItfs: NSObject {
-    /// Piloting interface of a copter for manual piloting.
-    public static let manualCopter = ManualCopterPilotingItfs()
-    /// Piloting interface for the return home feature.
-    public static let returnHome = ReturnHomePilotingItfs()
-    /// Piloting interface for the flight plan.
-    public static let flightPlan = FlightPlanPilotingItfs()
     /// Piloting interface for the animations.
     public static let animation = AnimationPilotingItfs()
-    /// Piloting interface for guided piloting.
-    public static let guided = GuidedPilotingItfs()
-    /// Piloting interface for Point Of Interest piloting.
-    public static let pointOfInterest = PointOfInterestPilotingItfs()
-    /// Piloting interface for LookAt Mode.
-    public static let lookAt = LookAtPilotingItfs()
+    /// Piloting interface for the flight plan.
+    public static let flightPlan = FlightPlanPilotingItfs()
     /// Piloting interface for FollowMe mode.
     public static let followMe = FollowMePilotingItfs()
+    /// Piloting interface for guided piloting.
+    public static let guided = GuidedPilotingItfs()
+    /// Piloting interface for LookAt Mode.
+    public static let lookAt = LookAtPilotingItfs()
+    /// Piloting interface of a copter for manual piloting.
+    public static let manualCopter = ManualCopterPilotingItfs()
+    /// Piloting interface for Point Of Interest piloting.
+    public static let pointOfInterest = PointOfInterestPilotingItfs()
+    /// Piloting interface for the return home feature.
+    public static let returnHome = ReturnHomePilotingItfs()
 }
 
 /// Piloting interfaces uid.
 enum PilotingItfUid: Int {
-    case manualCopter
-    case returnHome
-    case flightPlan
     case animation
-    case guided
-    case pointOfInterest
-    case lookAt
+    case flightPlan
     case followMe
+    case guided
+    case lookAt
+    case manualCopter
+    case pointOfInterest
+    case returnHome
 }
 
 /// Objective-C wrapper of Ref<PilotingItf>. Required because swift generics can't be used from Objective-C.

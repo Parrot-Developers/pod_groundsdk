@@ -62,8 +62,8 @@ class FlightLogConverterEngine: FlightLogEngineBase {
     public override func startEngine() {
         super.startEngine()
         ULog.d(.flightLogConverterEngineTag, "Starting FlightLogConverterEngine.")
-        gutmaLogStorage =  utilities.getUtility(Utilities.gutmaLogStorage)
-        flightLogStorage =  utilities.getUtility(Utilities.flightLogStorage)
+        gutmaLogStorage = utilities.getUtility(Utilities.gutmaLogStorage)
+        flightLogStorage = utilities.getUtility(Utilities.flightLogStorage)
     }
 
     public override func stopEngine() {
@@ -108,7 +108,7 @@ class FlightLogConverterEngine: FlightLogEngineBase {
         do {
             try FileManager.default.moveItem(at: flightLog, to: processingFlightLog)
         } catch {
-            ULog.e(.fileManagerExtensionTag, "Failed to rename flight log to processing file :"
+            ULog.e(.flightLogConverterEngineTag, "Failed to rename flight log to processing file :"
                     + "\(flightLog.absoluteString)")
             if !pendingFlightLogUrls.isEmpty {
                 pendingFlightLogUrls.removeFirst()
@@ -135,7 +135,7 @@ class FlightLogConverterEngine: FlightLogEngineBase {
                         try FileManager.default.moveItem(at: processingFlightLog, to: finalFlightLog)
                         strongSelf.flightLogStorage.notifyFlightLogReady(flightLogUrl: finalFlightLog)
                     } catch {
-                        ULog.e(.fileManagerExtensionTag, "Failed to rename processing to flight log"
+                        ULog.e(.flightLogConverterEngineTag, "Failed to rename processing to flight log"
                                 + "file :\(processingFlightLog.absoluteString)")
                         strongSelf.flightLogStorage.notifyFlightLogReady(flightLogUrl: processingFlightLog)
                     }

@@ -109,7 +109,7 @@ public enum ReturnHomeTarget: Int, CustomStringConvertible {
 
     /// Set containing all possible values of return home target.
     public static let allCases: Set<ReturnHomeTarget> = [.none, .takeOffPosition, .customPosition, .controllerPosition,
-                                                  .trackedTargetPosition]
+                                                         .trackedTargetPosition]
 }
 
 /// Return Home ending behavior
@@ -142,21 +142,27 @@ public enum ReturnHomeReason: Int, CustomStringConvertible, CaseIterable {
     case powerLow
     /// Returning home because the drone's propeller(s) are critically iced.
     case icedPropeller
+    /// Returning home because the battery is not connected properly.
+    case batteryPoorConnection
     /// Return home is finished and is not active anymore.
     case finished
     /// Return to home could not find a path to home.
     case blocked
+    /// Return home after a flightplan
+    case flightplan
 
     /// Debug description.
     public var description: String {
         switch self {
-        case .none:             return "none"
-        case .userRequested:    return "userRequested"
-        case .connectionLost:   return "connectionLost"
-        case .powerLow:         return "powerLow"
-        case .icedPropeller:    return "icedPropeller"
-        case .finished:         return "finished"
-        case .blocked:          return "blocked"
+        case .none:                     return "none"
+        case .userRequested:            return "userRequested"
+        case .connectionLost:           return "connectionLost"
+        case .powerLow:                 return "powerLow"
+        case .icedPropeller:            return "icedPropeller"
+        case .batteryPoorConnection:    return "batteryPoorConnection"
+        case .finished:                 return "finished"
+        case .blocked:                  return "blocked"
+        case .flightplan:               return "flightplan"
         }
     }
 }

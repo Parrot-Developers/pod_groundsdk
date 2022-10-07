@@ -63,17 +63,21 @@ extension MavlinkStandard {
         ///   - triggerCycle: camera trigger cycle time in milliseconds. Use -1 or 0 to ignore.
         ///   - shutterIntegration: camera shutter integration time in milliseconds. Use -1 or 0 to
         ///     ignore. Should be less than trigger cycle time. Always ignored by Anafi.
-        public init(triggerCycle: Int, shutterIntegration: Int = -1) {
+        ///   - frame: the reference frame of the coordinates
+        public init(triggerCycle: Int, shutterIntegration: Int = -1, frame: Frame = .command) {
             assert(shutterIntegration < triggerCycle)
             super.init(type: .cameraTriggerInterval,
+                       frame: frame,
                        param1: Double(triggerCycle),
                        param2: Double(shutterIntegration))
         }
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: the raw parameters of the command.
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .command, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -82,7 +86,8 @@ extension MavlinkStandard {
             let triggerCycle = parameters[0]
             let shutterIntegration = parameters[1]
             self.init(triggerCycle: Int(triggerCycle),
-                      shutterIntegration: Int(shutterIntegration))
+                      shutterIntegration: Int(shutterIntegration),
+                      frame: frame)
         }
     }
 }

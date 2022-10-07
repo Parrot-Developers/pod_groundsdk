@@ -38,10 +38,18 @@ public protocol LogControlBackend: AnyObject {
     ///
     /// - Returns: `true` if the deactivation has been asked, `false` otherwise
     func deactivateLogs() -> Bool
+
+    /// Requests the (de)activation of mission logs.
+    ///
+    /// - Parameter activate: Whether to activate or deactivate the mission logs.
+    ///
+    /// - Returns: `true` if the (de)activation has been asked `false` otherwise.
+    func activateMissionLogs(_ activate: Bool) -> Bool
 }
 
 /// Internal log control peripheral implementation
 public class LogControlCore: PeripheralCore, LogControl {
+
     /// Implementation backend
     private unowned let backend: LogControlBackend
 
@@ -51,6 +59,14 @@ public class LogControlCore: PeripheralCore, LogControl {
     /// Indicates if the deactivate command is supported
     private (set) public var canDeactivateLogs: Bool = false
 
+    /// Indicates if the mission logs are enabled on the drone.
+    public var missionLogs: BoolSetting? {
+        _missionLogs
+    }
+
+    /// Internal storage for mission logs setting.
+    private var _missionLogs: BoolSettingCore?
+
     /// Constructor
     ///
     /// - Parameters:
@@ -59,11 +75,19 @@ public class LogControlCore: PeripheralCore, LogControl {
     public init(store: ComponentStoreCore, backend: LogControlBackend) {
         self.backend = backend
         super.init(desc: Peripherals.logControl, store: store)
+        self._missionLogs = BoolSettingCore(didChangeDelegate: self, backend: { value in
+            backend.activateMissionLogs(value)
+        })
     }
 
     /// Requests the deactivation of logs.
     public func deactivateLogs() -> Bool {
         return backend.deactivateLogs()
+    }
+
+    /// Requests the (de)activation of mission logs.
+    public func activateMissionLogs(_ activate: Bool) -> Bool {
+        backend.activateMissionLogs(activate)
     }
 }
 
@@ -89,6 +113,13 @@ extension LogControlCore {
     @discardableResult public func update(areLogsEnabled newValue: Bool) -> LogControlCore {
         if areLogsEnabled != newValue {
             areLogsEnabled = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    @discardableResult public func update(areMissionLogsEnabled newValue: Bool) -> LogControlCore {
+        if _missionLogs!.update(value: newValue) {
             markChanged()
         }
         return self

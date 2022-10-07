@@ -55,6 +55,22 @@ extension MavlinkStandard {
             }
         }
 
+        /// Pitch view mode.
+        public enum PitchMode: Int, CustomStringConvertible {
+            /// Camera orientation is fixed between two waypoints. Orientation changes when the waypoint is reached.
+            case absolute
+            /// Camera orientation changes linearly between two waypoints.
+            case continuous
+
+            /// Debug description.
+            public var description: String {
+                switch self {
+                case .absolute: return "absolute"
+                case .continuous: return "continuous"
+                }
+            }
+        }
+
         /// View mode.
         public var mode: Mode {
             Mode(rawValue: Int(parameters[0]))!
@@ -67,20 +83,29 @@ extension MavlinkStandard {
             Int(parameters[1])
         }
 
+        /// Pich view mode
+        public var pitchMode: PitchMode {
+            PitchMode(rawValue: Int(parameters[2]))!
+        }
+
         /// Constructor.
         ///
         /// - Parameters:
         ///   - mode: view mode
         ///   - roiIndex: index of the Region Of Interest if mode is `.roi` (if index is invalid,
         ///               `.absolute` mode is used instead); value is ignored for any other mode
-        public init(mode: Mode, roiIndex: Int = 0) {
-            super.init(type: .setViewMode, param1: Double(mode.rawValue), param2: Double(roiIndex))
+        ///   - frame: the reference frame of the coordinates.
+        public init(mode: Mode, roiIndex: Int = 0, pitchMode: PitchMode = .absolute, frame: Frame = .command) {
+            super.init(type: .setViewMode, frame: frame, param1: Double(mode.rawValue),
+                       param2: Double(roiIndex), param3: Double(pitchMode.rawValue))
         }
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .command, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -91,8 +116,13 @@ extension MavlinkStandard {
                 throw MavlinkStandard.MavlinkCommand.ParseError
                 .invalidParameter("Parameter 1 (mode) was out of range.")
             }
+            let rawPitchMode = parameters[2]
+            guard let pitchMode = PitchMode(rawValue: Int(rawPitchMode.isNaN ? 0 : rawPitchMode)) else {
+                throw MavlinkStandard.MavlinkCommand.ParseError
+                .invalidParameter("Parameter 3 (pitch mode) was out of range.")
+            }
             let roiIndex = parameters[1]
-            self.init(mode: mode, roiIndex: Int(roiIndex))
+            self.init(mode: mode, roiIndex: Int(roiIndex), pitchMode: pitchMode, frame: frame)
         }
     }
 }

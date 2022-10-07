@@ -66,7 +66,7 @@ extension MavlinkStandard {
             if let fileHandle = FileHandle(forWritingAtPath: filepath) {
                 fileHandle.seekToEndOfFile()
                 for (index, command) in commands.enumerated() {
-                    command.write(fileHandle: fileHandle, index: index)
+                    command.write(fileHandle: fileHandle, index: index, frame: command.frame)
                 }
                 fileHandle.closeFile()
             }
@@ -96,7 +96,7 @@ extension MavlinkStandard {
                 ULog.e(.mavlinkStandardTag, "Invalid input. The provided MAVLink string is empty.")
                 throw MavlinkStandard.MavlinkCommand.ParseError.generic
             }
-            let content = mavlinkString.components(separatedBy: .newlines)
+            let content = mavlinkString.components(separatedBy: .newlines).filter { !$0.isEmpty }
             guard !content.isEmpty else {
                 ULog.e(.mavlinkStandardTag,
                        "Invalid input. The provided MAVLink string does not contain any lines.")

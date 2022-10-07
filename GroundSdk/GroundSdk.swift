@@ -278,6 +278,20 @@ public class GroundSdk: NSObject {
                        observer: @escaping (_ stream: FileReplay?) -> Void) -> Ref<FileReplay>? {
         return session.newFileReplay(source: source, observer: observer)
     }
+
+    /// Collects latest logs from the given sources and bundles them in an archive in the given destination directory.
+    ///
+    /// - Parameters:
+    ///   - sources: sources of the logs to collect
+    ///   - directory: destination directory
+    ///   - observer: observer called when the LogCollector changes, indicating collection progress
+    /// - Returns: a reference on a LogCollector. Caller must keep this instance referenced until all logs are
+    ///   collected. Setting it to `nil` cancels the collection.
+    public func collectLogs(from sources: Set<LogCollectorSource>,
+                            toDirectory directory: URL,
+                            observer: @escaping (LogCollector?) -> Void) -> Ref<LogCollector> {
+        return session.newLogCollector(from: sources, toDirectory: directory, observer: observer)
+    }
 }
 
 /// Objective-C extension adding GroundSdk swift methods that can't be automatically converted.

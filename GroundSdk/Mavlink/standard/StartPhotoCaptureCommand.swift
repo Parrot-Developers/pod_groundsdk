@@ -62,21 +62,24 @@ extension MavlinkStandard {
         ///                     only valid for single-capture (count == 1), otherwise set to 0.
         ///                     Increment the capture ID for each capture command to prevent double
         ///                     captures when a command is re-transmitted.
+        ///   - frame: the reference frame of the coordinates.
         /// - note: Implicitly starts a timelapse if an interval is specified with a count greater than 0.
-        public init(interval: Double, count: Int, sequenceNumber: Int) {
+        public init(interval: Double, count: Int, sequenceNumber: Int, frame: Frame = .command) {
             if count == 1 {
                 assert(sequenceNumber >= 1)
             } else {
                 assert(sequenceNumber == 0)
             }
-            super.init(type: .startPhotoCapture, param2: interval, param3: Double(count),
+            super.init(type: .startPhotoCapture, frame: frame, param2: interval, param3: Double(count),
                        param4: Double(sequenceNumber))
         }
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .command, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -85,7 +88,8 @@ extension MavlinkStandard {
             let interval = parameters[1]
             let count = parameters[2]
             let sequenceNumber = parameters[3]
-            self.init(interval: interval, count: Int(count), sequenceNumber: Int(sequenceNumber))
+            self.init(interval: interval, count: Int(count), sequenceNumber: Int(sequenceNumber),
+                      frame: frame)
         }
     }
 }

@@ -152,11 +152,11 @@ class FlightLogCollector {
     /// - Note: This function **must** be called from the `ioQueue`.
     /// - Parameter url: url of the flightLog report to delete
     private func doDeleteFlightLog(at url: URL) {
-        ULog.d(.myparrot, "Delete FlightLog \(url)")
+        ULog.d(.parrotCloudFlightLogTag, "Delete flight log \(url)")
         do {
             try FileManager.default.removeItem(at: url)
         } catch let err {
-            ULog.e(.flightLogEngineTag, "Failed to delete \(url.path): \(err)")
+            ULog.e(.parrotCloudFlightLogTag, "Failed to delete \(url.path): \(err)")
         }
     }
 }

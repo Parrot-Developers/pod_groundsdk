@@ -78,7 +78,7 @@ class NetworkControlRoutingSettingCore: NetworkControlRoutingSetting, CustomDebu
                     let oldValue = _policy
                     // value sent to the backend, update setting value and mark it updating
                     _policy = newValue
-                    timeout.schedule { [weak self] in
+                    timeout.schedule(timeout: 10) { [weak self] in
                         if let `self` = self, self.update(policy: oldValue) {
                             self.didChangeDelegate.userDidChangeSetting()
                         }

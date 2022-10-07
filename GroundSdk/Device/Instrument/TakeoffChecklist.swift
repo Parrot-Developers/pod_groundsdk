@@ -46,6 +46,9 @@ public class TakeoffAlarm: NSObject {
         /// Battery level check
         case batteryLevel
 
+        /// Battery poor connection
+        case batteryPoorConnection
+
         /// Battery under temperature check
         case batteryTooCold
 
@@ -92,6 +95,7 @@ public class TakeoffAlarm: NSObject {
             case .batteryGaugeUpdateRequired:           return "batteryGaugeUpdateRequired"
             case .batteryIdentification:                return "batteryIdentification"
             case .batteryLevel:                         return "batteryLevel"
+            case .batteryPoorConnection:                return "batteryPoorConnection"
             case .batteryTooCold:                       return "batteryTooCold"
             case .batteryTooHot:                        return "batteryTooHot"
             case .batteryUsbPortConnection:             return "batteryUsbPortConnection"
@@ -110,9 +114,9 @@ public class TakeoffAlarm: NSObject {
 
         /// Set containing all possible kinds of alarm.
         public static let allCases: Set<Kind> = [
-            .baro, .batteryGaugeUpdateRequired, .batteryIdentification, .batteryLevel, .batteryTooCold, .batteryTooHot,
-            .batteryUsbPortConnection, .cellularModemFirmwareUpdate, .droneInclination, .gps, .gyro, .magneto,
-            .magnetoCalibration, .ultrasound, .updateOngoing, .vcam, .verticalTof]
+            .baro, .batteryGaugeUpdateRequired, .batteryIdentification, .batteryLevel, .batteryPoorConnection,
+            .batteryTooCold, .batteryTooHot, .batteryUsbPortConnection, .cellularModemFirmwareUpdate, .droneInclination,
+            .gps, .gyro, .magneto, .magnetoCalibration, .ultrasound, .updateOngoing, .vcam, .verticalTof]
     }
 
     /// Alarm level.

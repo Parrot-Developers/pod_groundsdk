@@ -99,9 +99,11 @@ extension MavlinkStandard {
         ///   - mode: the mount mode. Only `.targeting` and `.neutral` are supported. When
         ///           `.neutral` is used then *all* other parameters are *ignored* and the gimbal
         ///           resets to its default position.
-        public init(tiltAngle: Double, yaw: Double, mode: Mode = .targeting) {
+        ///   - frame: the reference frame of the coordinates.
+        public init(tiltAngle: Double, yaw: Double, mode: Mode = .targeting, frame: Frame = .command) {
             assert(mode == .neutral || mode == .targeting)
             super.init(type: .mountControl,
+                       frame: frame,
                        param1: tiltAngle,
                        param3: yaw,
                        altitude: Double(mode.rawValue))
@@ -109,8 +111,10 @@ extension MavlinkStandard {
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .command, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -123,7 +127,7 @@ extension MavlinkStandard {
                 throw MavlinkStandard.MavlinkCommand.ParseError
                 .invalidParameter("Parameter 7 (mode) was out of range.")
             }
-            self.init(tiltAngle: tiltAngle, yaw: yaw, mode: mode)
+            self.init(tiltAngle: tiltAngle, yaw: yaw, mode: mode, frame: frame)
         }
     }
 }

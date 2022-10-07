@@ -46,47 +46,47 @@ public protocol FacilityClassDesc: ComponentApiDescriptor {
 public class Facilities: NSObject {
     /// Automatic connection facility.
     public static let autoConnection = AutoConnectionDesc()
-    /// Crash reporter facility.
-    public static let crashReporter = CrashReporterDesc()
-    /// Firmware update facility.
-    public static let firmwareManager = UpdateManagerDesc()
     /// Black box reporter facility.
     public static let blackBoxReporter = BlackBoxReporterDesc()
-    /// User location facility.
-    public static let userLocation = UserLocationDesc()
-    /// User heading facility.
-    public static let userHeading = UserHeadingDesc()
-    /// Reverse geocoder facility.
-    public static let reverseGeocoder = ReverseGeocoderDesc()
-    /// Flight data manager facility.
-    public static let flightDataManager = FlightDataManagerDesc()
-    /// User account facility.
-    public static let userAccount = UserAccountDesc()
-    /// Flight log reporter facility.
-    public static let flightLogReporter = FlightLogReporterDesc()
-    /// Flight camera record reporter facility.
-    public static let flightCameraRecordReporter = FlightCameraRecordReporterDesc()
-    /// Gutma log manager facility.
-    public static let gutmaLogManager = GutmaLogManagerDesc()
+    /// Crash reporter facility.
+    public static let crashReporter = CrashReporterDesc()
     /// Event logger facility.
     public static let eventLogger = EventLoggerDesc()
+    /// Firmware update facility.
+    public static let firmwareManager = UpdateManagerDesc()
+    /// Flight camera record reporter facility.
+    public static let flightCameraRecordReporter = FlightCameraRecordReporterDesc()
+    /// Flight data manager facility.
+    public static let flightDataManager = FlightDataManagerDesc()
+    /// Flight log reporter facility.
+    public static let flightLogReporter = FlightLogReporterDesc()
+    /// Gutma log manager facility.
+    public static let gutmaLogManager = GutmaLogManagerDesc()
+    /// Reverse geocoder facility.
+    public static let reverseGeocoder = ReverseGeocoderDesc()
+    /// User account facility.
+    public static let userAccount = UserAccountDesc()
+    /// User heading facility.
+    public static let userHeading = UserHeadingDesc()
+    /// User location facility.
+    public static let userLocation = UserLocationDesc()
 }
 
 /// Facilities uid.
 enum FacilityUid: Int {
-    case autoConnection = 1
-    case crashReporter
-    case firmwareManager
+    case autoConnection
     case blackBoxReporter
-    case userLocation
-    case userHeading
-    case reverseGeocoder
-    case flightDataManager
-    case userAccount
-    case flightLogReporter
-    case flightCameraRecordReporter
-    case gutmaLogManager
+    case crashReporter
     case eventLogger
+    case firmwareManager
+    case flightCameraRecordReporter
+    case flightDataManager
+    case flightLogReporter
+    case gutmaLogManager
+    case reverseGeocoder
+    case userAccount
+    case userHeading
+    case userLocation
 }
 
 /// Objective-C wrapper of Ref<Facility>. Required because swift generics can't be used from Objective-C

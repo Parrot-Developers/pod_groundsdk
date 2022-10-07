@@ -35,8 +35,11 @@ extension MavlinkStandard {
     public final class StartVideoCaptureCommand: MavlinkStandard.MavlinkCommand {
 
         /// Constructor.
-        public init() {
-            super.init(type: .startVideoCapture)
+        ///
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates.
+        public init(frame: Frame = .command) {
+            super.init(type: .startVideoCapture, frame: frame)
         }
     }
 }

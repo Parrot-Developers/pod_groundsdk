@@ -71,8 +71,11 @@ extension MavlinkStandard {
         ///     than trigger cycle time. Use -1 or 0 to ignore. The minimum value is -1 and the
         ///     increment is 1. Ignored by Anafi.
         ///   - triggerOnceImmediately: Trigger camera once immediately. Ignored by Anafi.
-        public init(distance: Double, shutterIntegration: Int = -1, triggerOnceImmediately: Bool) {
+        ///   - frame: the reference frame of the coordinates.
+        public init(distance: Double, shutterIntegration: Int = -1, triggerOnceImmediately: Bool,
+                    frame: Frame = .command) {
             super.init(type: .cameraTriggerDistance,
+                       frame: frame,
                        param1: distance,
                        param2: Double(shutterIntegration),
                        param3: triggerOnceImmediately ? 1.0 : 0.0)
@@ -80,8 +83,10 @@ extension MavlinkStandard {
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: the raw parameters of the command.
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .command, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -92,7 +97,8 @@ extension MavlinkStandard {
             let triggerOnceImmediately = parameters[2]
             self.init(distance: distance,
                       shutterIntegration: Int(shutterIntegration),
-                      triggerOnceImmediately: triggerOnceImmediately != 0.0)
+                      triggerOnceImmediately: triggerOnceImmediately != 0.0,
+                      frame: frame)
         }
     }
 }

@@ -121,7 +121,7 @@ class CrashReportEngine: EngineBaseCore {
                         || (newInfo?.account != nil
                                 && newInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
                                 && newInfo?.oldDataPolicy == .denyUpload)) {
-                ULog.d(.myparrot,
+                ULog.d(.crashReportEngineTag,
                        "User account change with private mode or old data upload denied -> delete all reports")
                 self.dropReports()
                 self.userAccountInfo = newInfo

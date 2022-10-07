@@ -31,77 +31,76 @@ import Foundation
 
 /// Utility descriptor
 public class Utilities: NSObject {
-    /// Internet connectivity monitoring utility.
-    public static let internetConnectivity = InternetConnectivityCoreDesc()
-    /// Drones store utility.
-    public static let droneStore = DroneStoreCoreDesc()
-    /// Remote controls store utility.
-    public static let remoteControlStore = RemoteControlStoreCoreDesc()
-    /// Crash report storage utility.
-    public static let crashReportStorage = CrashReportStorageCoreDesc()
-    /// Flight data storage utility.
-    public static let flightDataStorage = FlightDataStorageCoreDesc()
-    /// Flight logs storage utility.
-    public static let flightLogStorage = FlightLogStorageCoreDesc()
-    /// Flight log converter storage utility.
-    public static let flightLogConverterStorage = FlightLogConverterStorageCoreDesc()
-    /// Flight camera records storage utility.
-    public static let flightCameraRecordStorage = FlightCameraRecordStorageCoreDesc()
-    /// Converted logs storage utility.
-    public static let gutmaLogStorage = GutmaLogStorageCoreDesc()
-    /// Event logs utility.
-    public static let eventLogger = EventLogUtilityCoreDesc()
-    /// Firmwares stores utility.
-    public static let firmwareStore = FirmwareStoreCoreDesc()
-    /// Firmware downloader utility.
-    public static let firmwareDownloader = FirmwareDownloaderCoreDesc()
     /// Black boxes storage utility.
     public static let blackBoxStorage = BlackBoxStorageCoreDesc()
-    /// System position utility.
-    public static let systemPosition = SystemPositionCoreDesc()
+    /// Blacklisted versions utility.
+    public static let blacklistedVersionStore = BlacklistedVersionStoreCoreDesc()
+    /// Certificate images storage utility.
+    public static let certificateImagesStorage = CertificateImagesStorageCoreDesc()
     /// Cloud server utility.
     public static let cloudServer = CloudServerCoreDesc()
+    /// Crash report storage utility.
+    public static let crashReportStorage = CrashReportStorageCoreDesc()
+    /// Drones store utility.
+    public static let droneStore = DroneStoreCoreDesc()
+    /// GPS ephemeris utility.
+    public static let ephemeris = EphemerisUtilityCoreDesc()
+    /// Event logs utility.
+    public static let eventLogger = EventLogUtilityCoreDesc()
+    /// FileReplayBackend provider utility.
+    public static let fileReplayBackendProvider = FileReplayBackendProviderCoreDesc()
+    /// Firmware downloader utility.
+    public static let firmwareDownloader = FirmwareDownloaderCoreDesc()
+    /// Firmwares stores utility.
+    public static let firmwareStore = FirmwareStoreCoreDesc()
+    /// Flight camera records storage utility.
+    public static let flightCameraRecordStorage = FlightCameraRecordStorageCoreDesc()
+    /// Flight data storage utility.
+    public static let flightDataStorage = FlightDataStorageCoreDesc()
+    /// Flight log converter storage utility.
+    public static let flightLogConverterStorage = FlightLogConverterStorageCoreDesc()
+    /// Flight logs storage utility.
+    public static let flightLogStorage = FlightLogStorageCoreDesc()
+    /// Converted logs storage utility.
+    public static let gutmaLogStorage = GutmaLogStorageCoreDesc()
+    /// Internet connectivity monitoring utility.
+    public static let internetConnectivity = InternetConnectivityCoreDesc()
+    /// Remote controls store utility.
+    public static let remoteControlStore = RemoteControlStoreCoreDesc()
     /// Reverse geocoder utility.
     public static let reverseGeocoder = ReverseGeocoderUtilityCoreDesc()
     /// System barometer utility.
     public static let systemBarometer = SystemBarometerCoreDesc()
-    /// Blacklisted versions utility.
-    public static let blacklistedVersionStore = BlacklistedVersionStoreCoreDesc()
+    /// System position utility.
+    public static let systemPosition = SystemPositionCoreDesc()
     /// User account utility.
     public static let userAccount = UserAccountUtilityCoreDesc()
-    /// GPS ephemeris utility.
-    public static let ephemeris = EphemerisUtilityCoreDesc()
-    /// Certificate images storage utility.
-    public static let certificateImagesStorage = CertificateImagesStorageCoreDesc()
-    /// FileReplayBackend provider utility.
-    public static let fileReplayBackendProvider = FileReplayBackendProviderCoreDesc()
-
 }
 
 /// Utilities uid
 enum UtilityUid: Int {
-    case internetConnectivity = 1
-    case droneStore
-    case remoteControlStore
-    case crashReportStorage
-    case firmwareStore
-    case firmwareDownloader
     case blackBoxStorage
-    case systemPosition
+    case blacklistedVersionStore
+    case certificateImagesStorage
     case cloudServer
+    case crashReportStorage
+    case droneStore
+    case ephemeris
+    case eventLogger
+    case fileReplayBackendProvider
+    case firmwareDownloader
+    case firmwareStore
+    case flightCameraRecordStorage
+    case flightDataStorage
+    case flightLogConverterStorage
+    case flightLogStorage
+    case gutmaLogStorage
+    case internetConnectivity
+    case remoteControlStore
     case reverseGeocoder
     case systemBarometer
-    case blacklistedVersionStore
-    case flightDataStorage
+    case systemPosition
     case userAccount
-    case ephemeris
-    case flightLogStorage
-    case flightLogConverterStorage
-    case flightCameraRecordStorage
-    case gutmaLogStorage
-    case eventLogger
-    case certificateImagesStorage
-    case fileReplayBackendProvider
 }
 
 /// Describe a Utility

@@ -30,7 +30,7 @@
 import Foundation
 
 /// Cellular link status.
-public enum CellularLinkStatusStatus: CustomStringConvertible, Equatable {
+public enum CellularLinkStatus: CustomStringConvertible, Equatable {
     /// Interface is down.
     case down
     /// Interface is up with IP connectivity.
@@ -79,23 +79,23 @@ public enum CellularLinkStatusError: String, CustomStringConvertible, CaseIterab
     public var description: String { rawValue }
 }
 
-/// CellularLinkStatus instrument.
+/// CellularLink instrument.
 ///
 /// This instrument provides status of cellular link.
 ///
 /// This instrument can be retrieved by:
 /// ```
-/// device.getInstrument(Instruments.cellularLinkStatus)
+/// device.getInstrument(Instruments.cellularLink)
 /// ```
-public protocol CellularLinkStatus: Instrument {
+public protocol CellularLink: Instrument {
     /// Celullar link status, or `nil` if not available.
-    var status: CellularLinkStatusStatus? { get }
+    var status: CellularLinkStatus? { get }
 }
 
 /// :nodoc:
 /// Instrument descriptor.
-public class CellularLinkStatusDesc: NSObject, InstrumentClassDesc {
-    public typealias ApiProtocol = CellularLinkStatus
-    public let uid = InstrumentUid.cellularLinkStatus.rawValue
+public class CellularLinkDesc: NSObject, InstrumentClassDesc {
+    public typealias ApiProtocol = CellularLink
+    public let uid = InstrumentUid.cellularLink.rawValue
     public let parent: ComponentDescriptor? = nil
 }

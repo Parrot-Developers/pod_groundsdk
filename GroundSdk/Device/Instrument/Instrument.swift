@@ -44,58 +44,61 @@ public protocol InstrumentClassDesc: ComponentApiDescriptor {
 @objcMembers
 @objc(GSInstruments)
 public class Instruments: NSObject {
-    /// Flying indicators instrument.
-    public static let flyingIndicators = FlyingIndicatorsDesc()
     /// Alarms information instrument.
     public static let alarms = AlarmsDesc()
-    /// Location instrument.
-    public static let gps = GpsDesc()
-    /// Heading instrument.
-    public static let compass = CompassDesc()
     /// Altimeter instrument.
-    public static let altimeter = AltimeterDesc()
-    /// Speedometer instrument.
-    public static let speedometer = SpeedometerDesc()
+   public static let altimeter = AltimeterDesc()
     /// Attitude instrument.
     public static let attitudeIndicator = AttitudeIndicatorDesc()
-    /// Radio instrument.
-    public static let radio = RadioDesc()
     /// Battery information instrument.
     public static let batteryInfo = BatteryInfoDesc()
-    /// Flight meter instrument.
-    public static let flightMeter = FlightMeterDesc()
     /// Camera exposure values instrument.
     public static let cameraExposureValues = CameraExposureValuesDesc()
-    /// Photo progress instrument.
-    public static let photoProgressIndicator = PhotoProgressIndicatorDesc()
-    /// Flight info instrument.
-    public static let flightInfo = FlightInfoDesc()
+    /// Cellular link status instrument.
+    public static let cellularLink = CellularLinkDesc()
     /// Cellular logs instrument.
     public static let cellularLogs = CellularLogsDesc()
+    /// Cellular session status instrument.
+    public static let cellularSession = CellularSessionDesc()
+    /// Heading instrument.
+    public static let compass = CompassDesc()
+    /// Flight info instrument.
+    public static let flightInfo = FlightInfoDesc()
+    /// Flight meter instrument.
+    public static let flightMeter = FlightMeterDesc()
+    /// Flying indicators instrument.
+    public static let flyingIndicators = FlyingIndicatorsDesc()
+    /// Location instrument.
+    public static let gps = GpsDesc()
+    /// Photo progress instrument.
+    public static let photoProgressIndicator = PhotoProgressIndicatorDesc()
+    /// Radio instrument.
+    public static let radio = RadioDesc()
+    /// Speedometer instrument.
+    public static let speedometer = SpeedometerDesc()
     /// Takeoff checklist instrument.
     public static let takeoffChecklist = TakeoffChecklistDesc()
-    /// Cellular link status instrument.
-    public static let cellularLinkStatus = CellularLinkStatusDesc()
 }
 
 /// Instruments uid.
 enum InstrumentUid: Int {
-    case flyingIndicators = 1
     case alarms
-    case gps
-    case compass
     case altimeter
-    case speedometer
     case attitudeIndicator
-    case radio
     case batteryInfo
-    case flightMeter
     case cameraExposureValues
-    case photoProgressIndicator
-    case flightInfo
+    case cellularLink
     case cellularLogs
+    case cellularSession
+    case compass
+    case flightInfo
+    case flightMeter
+    case flyingIndicators
+    case gps
+    case photoProgressIndicator
+    case radio
+    case speedometer
     case takeoffChecklist
-    case cellularLinkStatus
 }
 
 /// Objective-C wrapper of Ref<Instrument>. Required because swift generics can't be used from Objective-C.

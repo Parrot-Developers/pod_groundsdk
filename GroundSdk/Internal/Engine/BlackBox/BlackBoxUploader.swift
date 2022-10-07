@@ -34,45 +34,44 @@ class BlackBoxUploader {
 
     /// Uploader error
     enum UploadError: Error {
-        /// Report is not well formed. Hence, it can be deleted.
-        case badReport
-        /// Server error. crash report should not be deleted because another try might succeed.
+        /// Black box is not well formed. Hence, it can be deleted.
+        case badBlackBox
+        /// Server error, black box should not be deleted because another try might succeed.
         case serverError
-        /// Connection error, crash report should not be deleted because another try might succeed.
+        /// Connection error, black box should not be deleted because another try might succeed.
         case connectionError
-        /// Request sent had an error. Crash report can be deleted even though the file is not corrupted to avoid
+        /// Request sent had an error, black box can be deleted even though the file is not corrupted to avoid
         /// infinite retry.
         /// This kind of error is a development error and can normally be fixed in the code.
         case badRequest
-        /// Upload has been canceled. Crash report should be kept in order to retry its upload later.
+        /// Upload has been canceled, black box should be kept in order to retry its upload later.
         case canceled
     }
 
     /// Prototype of the callback of upload completion
     ///
     /// - Parameters:
-    ///   - report: the report that should have been uploaded
+    ///   - blackBox: the black box that should have been uploaded
     ///   - error: the error if upload was not successful, nil otherwise
-    public typealias CompletionCallback = (_ report: BlackBox, _ error: UploadError?) -> Void
+    public typealias CompletionCallback = (_ blackBox: BlackBox, _ error: UploadError?) -> Void
 
     /// Cloud server utility
     private let cloudServer: CloudServerCore
 
     /// Constructor.
     ///
-    /// - Parameter cloudServer: the cloud server to upload reports with
+    /// - Parameter cloudServer: the cloud server to upload black boxes with
     init(cloudServer: CloudServerCore) {
         self.cloudServer = cloudServer
     }
 
-    /// Upload a crash report on Parrot cloud server.
+    /// Upload a black box on Parrot cloud server.
     ///
     /// - Parameters:
     ///   - blackBox: the black box to upload
     ///   - completionCallback: closure that will be called when the upload completes.
     /// - Returns: a request that can be canceled.
     func upload(blackBox: BlackBox, completionCallback: @escaping CompletionCallback) -> CancelableCore {
-        ULog.d(.crashReportEngineTag, "Will upload black box \(blackBox.url)")
         return cloudServer.sendFile(
             api: "/apiv1/bbox",
             fileUrl: blackBox.url, method: .post,
@@ -92,8 +91,8 @@ class BlackBoxUploader {
                          _ where errorCode >= 500:   // server error, try again later
                         uploadError = .serverError
                     default:
-                        // by default, blame the error on the report in order to delete it.
-                        uploadError = .badReport
+                        // by default, blame the error on the black box in order to delete it.
+                        uploadError = .badBlackBox
                     }
                 case .error(let error):
                     switch (error  as NSError).urlError {
@@ -102,8 +101,8 @@ class BlackBoxUploader {
                     case .connectionError:
                         uploadError = .connectionError
                     case .otherError:
-                        // by default, blame the error on the report in order to delete it.
-                        uploadError = .badReport
+                        // by default, blame the error on the black box in order to delete it.
+                        uploadError = .badBlackBox
                     }
                 case .canceled:
                     uploadError = .canceled

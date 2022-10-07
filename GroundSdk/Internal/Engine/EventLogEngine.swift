@@ -279,15 +279,10 @@ private class FolderMonitor {
             if let self = self,
                 let files = try? FileManager.default.contentsOfDirectory(
                     at: self.url, includingPropertiesForKeys: nil, options: .skipsHiddenFiles) {
-                var newFile: URL?
-                for file in files {
-                    if !(self.folderContent?.contains(file) ?? false) {
-                        newFile = file
-                        break
-                    }
-                }
                 self.folderContent = files
-                if let newFile = newFile {
+                if let newFile = files.first(where: { file in
+                    self.folderContent?.contains(file) ?? false
+                }) {
                     self.onNewFile(newFile)
                 }
             }

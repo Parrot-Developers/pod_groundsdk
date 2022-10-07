@@ -275,7 +275,7 @@ public class CloudServerCore: UtilityCore {
         if let userAccountValue = userAccountUtility?.userAccountInfo?.account {
             // add the field "x-account" in the http header
             request.addValue(userAccountValue, forHTTPHeaderField: "x-account")
-            ULog.d(.myparrot, "Header: x-account \(userAccountValue)")
+            ULog.d(.parrotCloudTag, "Header: x-account \(userAccountValue)")
         }
     }
 }
@@ -290,11 +290,11 @@ private extension URLSessionConfiguration {
             "(\(UIDevice.current.systemName); \(UIDevice.identifier); \(UIDevice.current.systemVersion)) " +
         "\(AppInfoCore.sdkBundle)/\(AppInfoCore.sdkVersion)"
         var additionalHeaders = ["User-Agent": userAgent]
-        ULog.d(.myparrot, "Header: User-Agent \(userAgent)")
+        ULog.d(.parrotCloudTag, "Header: User-Agent \(userAgent)")
         // Application key if present
         if let applicationKey = GroundSdkConfig.sharedInstance.applicationKey {
             additionalHeaders["x-api-key"] = applicationKey
-            ULog.d(.myparrot, "Header: x-api-key \(applicationKey)")
+            ULog.d(.parrotCloudTag, "Header: x-api-key \(applicationKey)")
         }
 
         httpAdditionalHeaders = additionalHeaders

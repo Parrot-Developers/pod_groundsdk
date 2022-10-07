@@ -72,14 +72,17 @@ extension MavlinkStandard {
         ///
         /// - Parameters:
         ///   - mode: still capture photo mode
-        public init(mode: PhotoMode) {
-            super.init(type: .setStillCaptureMode, param3: Double(mode.rawValue))
+        ///   - frame: the reference frame of the coordinates
+        public init(mode: PhotoMode, frame: Frame = .command) {
+            super.init(type: .setStillCaptureMode, frame: frame, param3: Double(mode.rawValue))
         }
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .command, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -90,7 +93,7 @@ extension MavlinkStandard {
                 throw MavlinkStandard.MavlinkCommand.ParseError
                 .invalidParameter("Parameter 3 (mode) was out of range.")
             }
-            self.init(mode: mode)
+            self.init(mode: mode, frame: frame)
         }
     }
 }

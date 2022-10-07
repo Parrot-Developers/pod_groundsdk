@@ -61,15 +61,19 @@ extension MavlinkStandard {
         ///   - horizontalSpeed: horizontal rotation speed, in degrees/second
         ///   - verticalAngle: vertical rotation angle, in degrees
         ///   - verticalSpeed: vertical rotation speed, in degrees/second
-        public init(horizontalAngle: Double, horizontalSpeed: Double, verticalAngle: Double, verticalSpeed: Double) {
-            super.init(type: .createPanorama,
-                       param1: horizontalAngle, param2: verticalAngle, param3: horizontalSpeed, param4: verticalSpeed)
+        ///   - frame: the reference frame of the coordinates
+        public init(horizontalAngle: Double, horizontalSpeed: Double, verticalAngle: Double,
+                    verticalSpeed: Double, frame: Frame = .command) {
+            super.init(type: .createPanorama, frame: frame, param1: horizontalAngle,
+                       param2: verticalAngle, param3: horizontalSpeed, param4: verticalSpeed)
         }
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .command, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -79,8 +83,8 @@ extension MavlinkStandard {
             let verticalAngle = parameters[1]
             let horizontalSpeed = parameters[2]
             let verticalSpeed = parameters[3]
-            self.init(horizontalAngle: horizontalAngle, horizontalSpeed: horizontalSpeed, verticalAngle: verticalAngle,
-                      verticalSpeed: verticalSpeed)
+            self.init(horizontalAngle: horizontalAngle, horizontalSpeed: horizontalSpeed,
+                      verticalAngle: verticalAngle, verticalSpeed: verticalSpeed, frame: frame)
         }
     }
 }

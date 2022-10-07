@@ -137,7 +137,7 @@ public class DeviceState: NSObject {
 
     /// Debug description.
     override public var description: String {
-        return "[\(connectionState)[\(connectionStateCause)]) \(connectors.debugDescription)]"
+        return "[\(connectionState)[\(connectionStateCause)] \(connectors.debugDescription)]"
     }
 }
 

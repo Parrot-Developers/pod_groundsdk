@@ -84,10 +84,13 @@ extension MavlinkStandard {
         ///   - speedType: speed type
         ///   - speed: speed, in meters/second
         ///   - relative: boolean indicate wether the speed change is absolute or relative
+        ///   - frame: the reference frame of the coordinates
         public init(speedType: SpeedType,
                     speed: Double,
-                    relative: Bool = false) {
+                    relative: Bool = false,
+                    frame: Frame = .command) {
             super.init(type: .changeSpeed,
+                       frame: frame,
                        param1: Double(speedType.rawValue),
                        param2: speed,
                        param3: Constants.doNotChangeThrottle,
@@ -96,8 +99,10 @@ extension MavlinkStandard {
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .command, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -112,7 +117,8 @@ extension MavlinkStandard {
             let relative = parameters[3]
             self.init(speedType: speedType,
                       speed: speed,
-                      relative: relative != 0)
+                      relative: relative != 0,
+                      frame: frame)
         }
     }
 }

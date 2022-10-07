@@ -90,7 +90,6 @@ class FlightLogUploader {
     /// - Returns: a request that can be canceled.
     func upload(baseUrl: URL, flightLogUrl: URL, token: String,
         completionCallback: @escaping CompletionCallback) -> CancelableCore {
-        ULog.d(.flightLogEngineTag, "Will upload flightLog \(flightLogUrl)")
         var api: String = ""
         var sha256: String = ""
 

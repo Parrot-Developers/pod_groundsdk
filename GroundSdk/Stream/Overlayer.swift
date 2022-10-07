@@ -64,7 +64,7 @@ public protocol OverlayContext {
     /// Media info handle; pointer to const struct pdraw_media_info.
     var mediaInfoHandle: UnsafeRawPointer {get}
 
-    /// Frame metadata handle; pointer to const struct pdraw_media_info.
+    /// Frame metadata handle; pointer to const struct struct vmeta_frame.
     var frameMetadataHandle: UnsafeRawPointer? {get}
 
     /// Histogram.

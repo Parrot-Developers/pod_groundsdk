@@ -233,10 +233,11 @@ class BlackBoxCollector {
     /// - Note: This function **must** be called from the `ioQueue`.
     /// - Parameter url: url of the black box to delete
     private func doDeleteBlackBox(at url: URL) {
+        ULog.d(.parrotCloudBlackBoxTag, "Delete black box \(url)")
         do {
             try FileManager.default.removeItem(at: url)
         } catch let err {
-            ULog.e(.blackBoxEngineTag, "Failed to delete \(url.path): \(err)")
+            ULog.e(.parrotCloudBlackBoxTag, "Failed to delete \(url.path): \(err)")
         }
     }
 }

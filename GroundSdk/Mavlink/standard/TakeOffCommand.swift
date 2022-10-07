@@ -68,11 +68,14 @@ extension MavlinkStandard {
         ///   - latitude: latitude of the implicitly added waypoint, in degrees.
         ///   - longitude: longitude of the implicitly added waypoint, in degrees.
         ///   - altitude: altitude of the implicitly added waypoint above take off point, in meters.
+        ///   - frame: the reference frame of the coordinates.
         public init(yaw: Double = .nan,
                     latitude: Double = 0.0,
                     longitude: Double = 0.0,
-                    altitude: Double = 0.0) {
+                    altitude: Double = 0.0,
+                    frame: Frame = .relative) {
             super.init(type: .takeOff,
+                       frame: frame,
                        param4: yaw,
                        latitude: latitude,
                        longitude: longitude,
@@ -82,8 +85,9 @@ extension MavlinkStandard {
         /// Constructor from generic MAVLink parameters.
         ///
         /// - Parameters:
-        ///   - parameters: generic command parameters.
-        convenience init(parameters: [Double]) throws {
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .relative, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -96,7 +100,8 @@ extension MavlinkStandard {
             self.init(yaw: yaw,
                       latitude: latitude,
                       longitude: longitude,
-                      altitude: altitude)
+                      altitude: altitude,
+                      frame: frame)
         }
     }
 }

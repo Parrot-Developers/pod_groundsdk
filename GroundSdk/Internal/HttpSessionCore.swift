@@ -124,43 +124,42 @@ public class HttpSessionCore: NSObject {
     ///   - result: the request result
     ///   - data: the data that has been get. `nil` if result is not `.success`
     /// - Returns: the request
-    public func getData(
-        request: URLRequest, completion: @escaping (_ result: Result, _ data: Data?) -> Void) -> CancelableCore {
+    public func getData(request: URLRequest,
+                        completion: @escaping (_ result: Result, _ data: Data?) -> Void) -> CancelableCore {
+        var request = request
+        request.httpMethod = "GET"
 
-            var request = request
-            request.httpMethod = "GET"
+        var taskIdentifier: Int?
+        let task = session.dataTask(with: request) { data, response, error in
 
-            var taskIdentifier: Int?
-            let task = session.dataTask(with: request) { data, response, error in
-
-                let result: Result
-                if let error = error {
-                    if (error as NSError).urlError == .canceled {
-                        result = .canceled
-                    } else {
-                        result = .error(error)
-                    }
-                } else if let response = response as? HTTPURLResponse {
-                    if response.statusCode == 200 {
-                        result = .success(response.statusCode)
-                    } else {
-                        result = .httpError(response.statusCode)
-                    }
+            let result: Result
+            if let error = error {
+                if (error as NSError).urlError == .canceled {
+                    result = .canceled
                 } else {
-                    result = HttpSessionCore.defaultError
+                    result = .error(error)
                 }
-
-                // as we are in the delegateQueue, executes the call back in main thread
-                DispatchQueue.main.async {
-                    ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
-                           "did complete with result: \(result)")
-                    completion(result, data)
+            } else if let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    result = .success(response.statusCode)
+                } else {
+                    result = .httpError(response.statusCode)
                 }
+            } else {
+                result = HttpSessionCore.defaultError
             }
-            taskIdentifier = task.taskIdentifier
-            task.resume()
-            return task
+
+            // as we are in the delegateQueue, executes the call back in main thread
+            DispatchQueue.main.async {
+                ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
+                       "did complete with result: \(result)")
+                completion(result, data)
+            }
         }
+        taskIdentifier = task.taskIdentifier
+        task.resume()
+        return task
+    }
 
     /// Send data
     ///
@@ -173,44 +172,42 @@ public class HttpSessionCore: NSObject {
     ///   - result: the request result
     ///   - data: the data that has been get. `nil` if result is not `.success`
     /// - Returns: the request
-    public func sendData(
-        request: URLRequest, method: SendMethod = .put,
-        completion: @escaping (_ result: Result, _ data: Data?) -> Void) -> CancelableCore {
+    public func sendData(request: URLRequest, method: SendMethod = .put,
+                         completion: @escaping (_ result: Result, _ data: Data?) -> Void) -> CancelableCore {
+        var request = request
+        request.httpMethod = method.rawValue
 
-            var request = request
-            request.httpMethod = method.rawValue
+        var taskIdentifier: Int?
+        let task = session.dataTask(with: request) { data, response, error in
 
-            var taskIdentifier: Int?
-            let task = session.dataTask(with: request) { data, response, error in
-
-                let result: Result
-                if let error = error {
-                    if (error as NSError).urlError == .canceled {
-                        result = .canceled
-                    } else {
-                        result = .error(error)
-                    }
-                } else if let response = response as? HTTPURLResponse {
-                    if response.statusCode == 200 {
-                        result = .success(response.statusCode)
-                    } else {
-                        result = .httpError(response.statusCode)
-                    }
+            let result: Result
+            if let error = error {
+                if (error as NSError).urlError == .canceled {
+                    result = .canceled
                 } else {
-                    result = HttpSessionCore.defaultError
+                    result = .error(error)
                 }
-
-                // as we are in the delegateQueue, executes the call back in main thread
-                DispatchQueue.main.async {
-                    ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
-                           "did complete with result: \(result)")
-                    completion(result, data)
+            } else if let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    result = .success(response.statusCode)
+                } else {
+                    result = .httpError(response.statusCode)
                 }
+            } else {
+                result = HttpSessionCore.defaultError
             }
-            taskIdentifier = task.taskIdentifier
-            task.resume()
-            return task
+
+            // as we are in the delegateQueue, executes the call back in main thread
+            DispatchQueue.main.async {
+                ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
+                       "did complete with result: \(result)")
+                completion(result, data)
+            }
         }
+        taskIdentifier = task.taskIdentifier
+        task.resume()
+        return task
+    }
 
     /// Send a file with a put request
     ///
@@ -226,51 +223,49 @@ public class HttpSessionCore: NSObject {
     ///   - result: the request result
     ///   - data: data returned in the response body
     /// - Returns: the request
-    public func sendFile(
-        request: URLRequest, method: SendMethod = .put, fileUrl: URL,
-        progress: @escaping (_ progressValue: Int) -> Void,
-        completion: @escaping (_ result: Result, _ data: Data?) -> Void) -> CancelableCore {
+    public func sendFile(request: URLRequest, method: SendMethod = .put, fileUrl: URL,
+                         progress: @escaping (_ progressValue: Int) -> Void,
+                         completion: @escaping (_ result: Result, _ data: Data?) -> Void) -> CancelableCore {
+        var request = request
+        request.httpMethod = method.rawValue
 
-            var request = request
-            request.httpMethod = method.rawValue
+        var taskIdentifier: Int?
+        let task = session.uploadTask(with: request, fromFile: fileUrl) { [weak self] data, response, error in
 
-            var taskIdentifier: Int?
-            let task = session.uploadTask(with: request, fromFile: fileUrl) { [weak self] data, response, error in
-
-                let result: Result
-                if let error = error {
-                    if (error as NSError).urlError == .canceled {
-                        result = .canceled
-                    } else {
-                        result = .error(error)
-                    }
-                } else if let response = response as? HTTPURLResponse {
-                    if response.statusCode == 200 {
-                        result = .success(response.statusCode)
-                    } else {
-                        result = .httpError(response.statusCode)
-                    }
+            let result: Result
+            if let error = error {
+                if (error as NSError).urlError == .canceled {
+                    result = .canceled
                 } else {
-                    result = HttpSessionCore.defaultError
+                    result = .error(error)
                 }
-                // as we are in the delegateQueue, executes the call back in main thread
-                DispatchQueue.main.async {
-                    if let taskId = taskIdentifier {
-                        self?.progressCbs[taskId] = nil
-                    }
-                    ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
-                           "did complete with result: \(result)")
-                    completion(result, data)
+            } else if let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    result = .success(response.statusCode)
+                } else {
+                    result = .httpError(response.statusCode)
                 }
+            } else {
+                result = HttpSessionCore.defaultError
             }
-            taskIdentifier = task.taskIdentifier
-            progressCbs[task.taskIdentifier] = progress
-            task.resume()
-            ULog.d(.httpClientTag, "Task \(task.taskIdentifier) (\(request.url?.description ?? "")) " +
-                   "started")
-
-            return task
+            // as we are in the delegateQueue, executes the call back in main thread
+            DispatchQueue.main.async {
+                if let taskId = taskIdentifier {
+                    self?.progressCbs[taskId] = nil
+                }
+                ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
+                       "did complete with result: \(result)")
+                completion(result, data)
+            }
         }
+        taskIdentifier = task.taskIdentifier
+        progressCbs[task.taskIdentifier] = progress
+        task.resume()
+        ULog.d(.httpClientTag, "Task \(task.taskIdentifier) (\(request.url?.description ?? "")) " +
+               "started")
+
+        return task
+    }
 
     /// Download a file with a get request
     ///
@@ -286,20 +281,19 @@ public class HttpSessionCore: NSObject {
     ///   - localFileUrl: the local file url of the downloaded file. Note that when the completion closure exits, this
     ///                   local file will deleted.
     /// - Returns: the request
-    public func downloadFile(
-        request: URLRequest, destination: URL, progress: @escaping (_ progressValue: Int) -> Void,
-        completion: @escaping (_ result: Result, _ localFileUrl: URL?) -> Void) -> CancelableCore {
+    public func downloadFile(request: URLRequest, destination: URL,
+                             progress: @escaping (_ progressValue: Int) -> Void,
+                             completion: @escaping (_ result: Result, _ localFileUrl: URL?) -> Void) -> CancelableCore {
+        var request = request
+        request.httpMethod = "GET"
 
-            var request = request
-            request.httpMethod = "GET"
+        let task = session.downloadTask(with: request)
+        progressCbs[task.taskIdentifier] = progress
+        dlCompletionCbs[task.taskIdentifier] = DownloadCompletionCb(destination: destination, callback: completion)
+        task.resume()
 
-            let task = session.downloadTask(with: request)
-            progressCbs[task.taskIdentifier] = progress
-            dlCompletionCbs[task.taskIdentifier] = DownloadCompletionCb(destination: destination, callback: completion)
-            task.resume()
-
-            return task
-        }
+        return task
+    }
 
     /// Download a file with a get request, using a FileStreamDecoder
     ///
@@ -315,21 +309,19 @@ public class HttpSessionCore: NSObject {
     ///   - localFileUrl: the local file url of the downloaded file. Note that when the completion closure exits, this
     ///                   local file will deleted.
     /// - Returns: the request
-    public func downloadFile(
-        streamDecoder: StreamDecoder, request: URLRequest, destination: URL,
-        completion: @escaping (_ result: Result, _ localFileUrl: URL?) -> Void) -> CancelableCore {
+    public func downloadFile(streamDecoder: StreamDecoder, request: URLRequest, destination: URL,
+                             completion: @escaping (_ result: Result, _ localFileUrl: URL?) -> Void) -> CancelableCore {
+        var request = request
+        request.httpMethod = "GET"
 
-            var request = request
-            request.httpMethod = "GET"
+        let task = session.dataTask(with: request)
+        streamDlCompletionCbs[task.taskIdentifier] = DownloadCompletionCb(
+            destination: destination, callback: completion)
+        streamWriters[task.taskIdentifier] = StreamWriter(withFileUrl: destination, streamDecoder: streamDecoder)
+        task.resume()
 
-            let task = session.dataTask(with: request)
-            streamDlCompletionCbs[task.taskIdentifier] = DownloadCompletionCb(
-                destination: destination, callback: completion)
-            streamWriters[task.taskIdentifier] = StreamWriter(withFileUrl: destination, streamDecoder: streamDecoder)
-            task.resume()
-
-            return task
-        }
+        return task
+    }
 
     /// Request a delete
     ///
@@ -338,49 +330,50 @@ public class HttpSessionCore: NSObject {
     ///   - completion: completion callback
     ///   - result: the request result
     /// - Returns: the request
-    public func delete(
-        request: URLRequest, completion: @escaping (_ result: Result) -> Void) -> CancelableCore {
+    public func delete(request: URLRequest,
+                       completion: @escaping (_ result: Result) -> Void) -> CancelableCore {
+        var request = request
+        request.httpMethod = "DELETE"
 
-            var request = request
-            request.httpMethod = "DELETE"
-
-            var taskIdentifier: Int?
-            let task = session.dataTask(with: request) { _, response, error in
-                let result: Result
-                if let error = error {
-                    if (error as NSError).urlError == .canceled {
-                        result = .canceled
-                    } else {
-                        result = .error(error)
-                    }
-                } else if let response = response as? HTTPURLResponse {
-                    if response.statusCode == 200 {
-                        result = .success(response.statusCode)
-                    } else {
-                        result = .httpError(response.statusCode)
-                    }
+        var taskIdentifier: Int?
+        let task = session.dataTask(with: request) { _, response, error in
+            let result: Result
+            if let error = error {
+                if (error as NSError).urlError == .canceled {
+                    result = .canceled
                 } else {
-                    result = HttpSessionCore.defaultError
+                    result = .error(error)
                 }
-
-                // as we are in the delegateQueue, executes the call back in main thread
-                DispatchQueue.main.async {
-                    ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
-                           "did complete with result: \(result)")
-                    completion(result)
+            } else if let response = response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    result = .success(response.statusCode)
+                } else {
+                    result = .httpError(response.statusCode)
                 }
+            } else {
+                result = HttpSessionCore.defaultError
             }
-            taskIdentifier = task.taskIdentifier
-            task.resume()
 
-            return task
+            // as we are in the delegateQueue, executes the call back in main thread
+            DispatchQueue.main.async {
+                ULog.d(.httpClientTag, "Task \(taskIdentifier ?? -1) (\(request.url?.description ?? "")) " +
+                       "did complete with result: \(result)")
+                completion(result)
+            }
         }
+        taskIdentifier = task.taskIdentifier
+        task.resume()
+
+        return task
+    }
 }
 
 /// Extension of HttpSessionCore that implements all kind of URLSession delegates
 extension HttpSessionCore: URLSessionDelegate, URLSessionDataDelegate, URLSessionTaskDelegate {
 
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+    public func urlSession(_ session: URLSession,
+                           dataTask: URLSessionDataTask,
+                           didReceive data: Data) {
         // check if the task is a streamDownload task
         if let streamWriter = streamWriters[dataTask.taskIdentifier] {
             do {
@@ -402,23 +395,27 @@ extension HttpSessionCore: URLSessionDelegate, URLSessionDataDelegate, URLSessio
         }
     }
 
-    public func urlSession(
-        _ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64,
-        totalBytesExpectedToSend: Int64) {
+    public func urlSession(_ session: URLSession,
+                           task: URLSessionTask,
+                           didSendBodyData bytesSent: Int64,
+                           totalBytesSent: Int64,
+                           totalBytesExpectedToSend: Int64) {
 
-            // as we are in the delegateQueue, executes the call back in main thread
-            DispatchQueue.main.async {
-                guard let progressCb = self.progressCbs[task.taskIdentifier] else {
-                    ULog.e(.httpClientTag, "Progress callback not found for task \(task.taskIdentifier)")
-                    return
-                }
-                let progress = Int((Double(totalBytesSent) / Double(totalBytesExpectedToSend)) * 100)
-                ULog.d(.httpClientTag, "Upload progress of task \(task.taskIdentifier): \(progress)")
-                progressCb(progress)
+        // as we are in the delegateQueue, executes the call back in main thread
+        DispatchQueue.main.async {
+            guard let progressCb = self.progressCbs[task.taskIdentifier] else {
+                ULog.e(.httpClientTag, "Progress callback not found for task \(task.taskIdentifier)")
+                return
             }
+            let progress = Int((Double(totalBytesSent) / Double(totalBytesExpectedToSend)) * 100)
+            ULog.d(.httpClientTag, "Upload progress of task \(task.taskIdentifier): \(progress)")
+            progressCb(progress)
         }
+    }
 
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+    public func urlSession(_ session: URLSession,
+                           task: URLSessionTask,
+                           didCompleteWithError error: Error?) {
         // this function is only called when no completion closure is directly passed to the task, that happens
         // on download tasks or for streamDownload Tasks
 
@@ -500,75 +497,75 @@ extension HttpSessionCore: URLSessionDelegate, URLSessionDataDelegate, URLSessio
 }
 
 extension HttpSessionCore: URLSessionDownloadDelegate {
-    public func urlSession(
-        _ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+    public func urlSession(_ session: URLSession,
+                           downloadTask: URLSessionDownloadTask,
+                           didFinishDownloadingTo location: URL) {
+        // as we are in the delegateQueue, executes the call back in main thread
+        DispatchQueue.main.sync {
+            guard let completionCb = self.dlCompletionCbs[downloadTask.taskIdentifier] else {
+                ULog.e(.httpClientTag, "Completion callback not found for task \(downloadTask.taskIdentifier)")
+                return
+            }
 
-            // as we are in the delegateQueue, executes the call back in main thread
-            DispatchQueue.main.sync {
-                guard let completionCb = self.dlCompletionCbs[downloadTask.taskIdentifier] else {
-                    ULog.e(.httpClientTag, "Completion callback not found for task \(downloadTask.taskIdentifier)")
-                    return
-                }
-
-                var result: Result
-                if let response = downloadTask.response as? HTTPURLResponse {
-                    if response.statusCode == 200 {
-                        result = .success(response.statusCode)
-                    } else {
-                        result = .httpError(response.statusCode)
-                    }
+            var result: Result
+            if let response = downloadTask.response as? HTTPURLResponse {
+                if response.statusCode == 200 {
+                    result = .success(response.statusCode)
                 } else {
-                    result = .httpError(403)
+                    result = .httpError(response.statusCode)
                 }
+            } else {
+                result = .httpError(403)
+            }
 
-                var localFileUrlUsed: URL?
+            var localFileUrlUsed: URL?
 
-                if case .success = result {
-                    let localFileUrl = completionCb.destination
-                    if FileManager.default.fileExists(atPath: localFileUrl.path) {
-                        do {
-                            try FileManager.default.removeItem(atPath: localFileUrl.path)
-                        } catch let error {
-                            ULog.w(.httpClientTag, "Failed to remove file at \(localFileUrl): " +
-                                   error.localizedDescription)
-                        }
-                    }
+            if case .success = result {
+                let localFileUrl = completionCb.destination
+                if FileManager.default.fileExists(atPath: localFileUrl.path) {
                     do {
-                        try FileManager.default.createDirectory(
-                            at: localFileUrl.deletingLastPathComponent(), withIntermediateDirectories: true,
-                            attributes: nil)
-                        try FileManager.default.moveItem(at: location, to: localFileUrl)
-                        localFileUrlUsed = localFileUrl
+                        try FileManager.default.removeItem(atPath: localFileUrl.path)
                     } catch let error {
-                        result = .error(error)
-                        ULog.w(.httpClientTag, "Failed to move file at \(localFileUrl): " +
+                        ULog.w(.httpClientTag, "Failed to remove file at \(localFileUrl): " +
                                error.localizedDescription)
                     }
                 }
-                self.progressCbs[downloadTask.taskIdentifier] = nil
-                self.dlCompletionCbs[downloadTask.taskIdentifier] = nil
-
-                ULog.d(.httpClientTag, "Task \(downloadTask.taskIdentifier) " +
-                       "(\(downloadTask.currentRequest?.url?.description ?? "")) did complete with result: \(result)")
-                completionCb.callback(result, localFileUrlUsed)
-            }
-        }
-
-    public func urlSession(
-        _ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
-        totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-
-            // as we are in the delegateQueue, executes the call back in main thread
-            DispatchQueue.main.async {
-                guard let progressCb = self.progressCbs[downloadTask.taskIdentifier] else {
-                    ULog.e(.httpClientTag, "Progress callback not found for task \(downloadTask.taskIdentifier)")
-                    return
+                do {
+                    try FileManager.default.createDirectory(
+                        at: localFileUrl.deletingLastPathComponent(), withIntermediateDirectories: true,
+                        attributes: nil)
+                    try FileManager.default.moveItem(at: location, to: localFileUrl)
+                    localFileUrlUsed = localFileUrl
+                } catch let error {
+                    result = .error(error)
+                    ULog.w(.httpClientTag, "Failed to move file at \(localFileUrl): " +
+                           error.localizedDescription)
                 }
-
-                let progress = Int((Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)) * 100)
-                progressCb(progress)
             }
+            self.progressCbs[downloadTask.taskIdentifier] = nil
+            self.dlCompletionCbs[downloadTask.taskIdentifier] = nil
+
+            ULog.d(.httpClientTag, "Task \(downloadTask.taskIdentifier) " +
+                   "(\(downloadTask.currentRequest?.url?.description ?? "")) did complete with result: \(result)")
+            completionCb.callback(result, localFileUrlUsed)
         }
+    }
+
+    public func urlSession(_ session: URLSession,
+                           downloadTask: URLSessionDownloadTask,
+                           didWriteData bytesWritten: Int64,
+                           totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        // as we are in the delegateQueue, executes the call back in main thread
+        DispatchQueue.main.async {
+            guard let progressCb = self.progressCbs[downloadTask.taskIdentifier] else {
+                ULog.e(.httpClientTag, "Progress callback not found for task \(downloadTask.taskIdentifier)")
+                return
+            }
+
+            let progress = Int((Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)) * 100)
+            progressCb(progress)
+        }
+    }
 
 }
 

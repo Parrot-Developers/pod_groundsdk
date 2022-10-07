@@ -76,6 +76,10 @@ public protocol BatteryInfo: Instrument {
     /// - note: The size of this array if not empty is expected to be equal to
     /// `batteryDescription.cellCount`.
     var cellVoltages: [UInt?] { get }
+
+    /// Battery components' versions.
+    /// `nil` if not available. This can happen if the drone does not know or provide this information.
+    var version: BatteryVersion? { get }
 }
 
 /// The battery description.
@@ -135,6 +139,33 @@ public struct BatteryCapacity: Equatable {
     public init(fullChargeCapacity: UInt, remainingCapacity: UInt) {
         self.fullChargeCapacity = fullChargeCapacity
         self.remainingCapacity = remainingCapacity
+    }
+}
+
+/// The battery components' versions.
+public struct BatteryVersion: Equatable {
+    /// The battery hardware revision.
+    public let hardwareRevision: UInt
+    /// The battery firmware version.
+    public let firmwareVersion: String
+    /// The battery gauge version.
+    public let gaugeVersion: String
+    /// The battery USB version.
+    public let usbVersion: String
+
+    /// Constructor
+    ///
+    /// - Parameters:
+    ///   - hardwareRevision: the battery hardware revision
+    ///   - firmwareVersion: the battery firmware version
+    ///   - gaugeVersion: the battery gauge version
+    ///   - usbVersion: the battery USB version
+    public init(hardwareRevision: UInt, firmwareVersion: String, gaugeVersion: String,
+                usbVersion: String) {
+        self.hardwareRevision = hardwareRevision
+        self.firmwareVersion = firmwareVersion
+        self.gaugeVersion = gaugeVersion
+        self.usbVersion = usbVersion
     }
 }
 

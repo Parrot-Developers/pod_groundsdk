@@ -229,7 +229,7 @@ class FlightCameraRecordEngine: EngineBaseCore {
                         || (newInfo?.account != nil
                                 && newInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
                                 && newInfo?.oldDataPolicy == .denyUpload)) {
-                ULog.d(.myparrot,
+                ULog.d(.parrotCloudFcrTag,
                        "User account change with private mode or old data upload denied -> delete all records")
                 self.dropFlightCameraRecords()
                 self.userAccountInfo = newInfo

@@ -188,7 +188,7 @@ public enum FlightPlanDisconnectionPolicy {
 ///
 /// Allows to make the drone execute predefined flight plans.
 /// A flight plan is defined using a file in Mavlink format. For further information, please refer to
-/// [Parrot FlightPlan Mavlink documentation](https://developer.parrot.com/docs/mavlink-flightplan).
+/// [Parrot FlightPlan Mavlink documentation](https://developer.parrot.com/docs/mavlink-flightplan/overview.html).
 ///
 /// This piloting interface remains `.unavailable` until all `FlightPlanUnavailabilityReason` have
 /// been cleared:
@@ -403,6 +403,28 @@ public protocol FlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     /// - Returns: a clean media resources cancelable request
     func cleanBeforeRecovery(customId: String, resourceId: String,
                              completion: @escaping (_ result: CleanBeforeRecoveryResult) -> Void) -> CancelableCore?
+
+    /// - important: DO NOT USE THIS METHOD, IT IS UNSTABLE, EXPERIMENTAL AND
+    ///              WILL DISAPPEAR ON THE NEXT VERSION
+    ///
+    /// TODO: remove
+    ///
+    /// Prepares the drone for the upcoming flight plan activation.
+    ///
+    /// The drone will prepare the execution of a flight plan. This includes storing the current
+    /// camera settings that will be restored at the end of the flight plan.
+    ///
+    /// This method should be called:
+    ///   * **after** uploading the flight plan (cf `uploadFlightPlan(filepath:customFlightPlanId:)`
+    ///   * but **before** modifying the camera settings (camera settings that should be effective
+    ///     during the flight plan execution)
+    ///   * and **before** activating the flight plan (cf `activate(restart:)`,
+    ///    `activate(restart:interpreter:)` `activate(restart:interpreter:missionItem:)` and
+    ///    `activate(restart:interpreter:missionItem:disconnectionPolicy:)`).
+    ///
+    /// - note: The preparation is in a best-effort basis and thus can fail. In that case the drone
+    ///         will perform _no_ action of restoring any setting.
+    func prepareForFlightPlanActivation()
 }
 
 /// Flight Plan piloting interface for drones.

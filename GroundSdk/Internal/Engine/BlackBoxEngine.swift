@@ -54,7 +54,7 @@ class BlackBoxEngine: EngineBaseCore {
     let workDir: URL
 
     /// Name of the directory in which the black boxes should be stored
-    private let reportsDirName = "BlackBoxes"
+    private let blackBoxesDirName = "BlackBoxes"
 
     /// Monitor of the connectivity changes
     private var connectivityMonitor: MonitorCore!
@@ -65,16 +65,16 @@ class BlackBoxEngine: EngineBaseCore {
     /// User account information
     private var userAccountInfo: UserAccountInfoCore?
 
-    /// Black box reports collector
+    /// Black box collector
     private var collector: BlackBoxCollector?
 
-    /// List of reports waiting for upload.
+    /// List of black boxes waiting for upload.
     ///
-    /// This list is used as a queue: new reports are added at the end, report to upload is the first one.
-    /// The report to upload is removed from this list after it is fully and correctly uploaded.
+    /// This list is used as a queue: new black boxes are added at the end, black box to upload is the first one.
+    /// The black box to upload is removed from this list after it is fully and correctly uploaded.
     ///
     /// - Note: visibility is internal for testing purposes only.
-    private(set) var pendingReports: [BlackBox] = []
+    private(set) var pendingBlackBoxes: [BlackBox] = []
 
     /// The uploader.
     /// `nil` until engine is started.
@@ -94,7 +94,7 @@ class BlackBoxEngine: EngineBaseCore {
         ULog.d(.blackBoxEngineTag, "Loading BlackBoxEngine.")
 
         let cacheDirUrl = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        engineDir = cacheDirUrl.appendingPathComponent(reportsDirName, isDirectory: true)
+        engineDir = cacheDirUrl.appendingPathComponent(blackBoxesDirName, isDirectory: true)
         workDir = engineDir.appendingPathComponent(UUID().uuidString, isDirectory: true)
         spaceQuotaInMb = GroundSdkConfig.sharedInstance.blackBoxQuotaMb ?? 0
 
@@ -117,7 +117,7 @@ class BlackBoxEngine: EngineBaseCore {
                         || (newInfo?.account != nil
                                 && newInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
                                 && newInfo?.oldDataPolicy == .denyUpload)) {
-                ULog.d(.myparrot,
+                ULog.d(.parrotCloudBlackBoxTag,
                        "User account change with private mode or old data upload denied -> delete all black boxes")
                 self.stopAndDropAllBlackBoxes()
                 self.userAccountInfo = newInfo
@@ -135,7 +135,8 @@ class BlackBoxEngine: EngineBaseCore {
         collector = createCollector()
         collector?.collectBlackBoxes { [weak self] blackBoxes in
             if let `self` = self, self.started {
-                self.pendingReports.append(contentsOf: blackBoxes)
+                ULog.d(.parrotCloudBlackBoxTag, "Black boxes locally collected: \(blackBoxes)")
+                self.pendingBlackBoxes.append(contentsOf: blackBoxes)
                 self.startBlackBoxUploadProcess()
             }
         }
@@ -164,7 +165,7 @@ class BlackBoxEngine: EngineBaseCore {
         uploader = nil
         collector?.cancelCollection()
         collector = nil
-        pendingReports = []
+        pendingBlackBoxes = []
         connectivityMonitor.stop()
     }
 
@@ -175,9 +176,9 @@ class BlackBoxEngine: EngineBaseCore {
         guard userAccountInfo?.privateMode == false else {
             return
         }
-        collector?.archive(blackBoxData: blackBoxData) { [weak self] report in
-            self?.pendingReports.append(report)
-            ULog.d(.myparrot, "BLACKBOX append \(report)")
+        collector?.archive(blackBoxData: blackBoxData) { [weak self] blackBox in
+            ULog.d(.parrotCloudBlackBoxTag, "Add a file: \(blackBox)")
+            self?.pendingBlackBoxes.append(blackBox)
             self?.startBlackBoxUploadProcess()
         }
     }
@@ -196,9 +197,11 @@ class BlackBoxEngine: EngineBaseCore {
     /// uploading process is only started when it is not already uploading files.
     private func startBlackBoxUploadProcess() {
         guard !blackBoxReporter.isUploading else {
-            blackBoxReporter.update(pendingCount: pendingReports.count)
+            blackBoxReporter.update(pendingCount: pendingBlackBoxes.count)
+            ULog.d(.parrotCloudBlackBoxTag, "Did not start black box upload process (already uploading)")
             return
         }
+        ULog.d(.parrotCloudBlackBoxTag, "Start black box upload process")
         processNextBlackBox()
     }
 
@@ -208,92 +211,108 @@ class BlackBoxEngine: EngineBaseCore {
     /// is available, and if userAccount is set. A filter will be done on creation date if user deny upload of old
     /// file created before the user account was present.
     private func processNextBlackBox() {
-        blackBoxReporter.update(pendingCount: pendingReports.count)
-        if self.userAccountInfo?.account == nil
-            || (self.userAccountInfo?.dataUploadPolicy != .full
-                    && self.userAccountInfo?.dataUploadPolicy != .noMedia)
-            || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
+        blackBoxReporter.update(pendingCount: pendingBlackBoxes.count)
+
+        // Check if upload process can go on
+        let abortReason: String?
+        if userAccountInfo?.account == nil {
+            abortReason = "no account"
+        } else if userAccountInfo!.dataUploadPolicy != .full && userAccountInfo!.dataUploadPolicy != .noMedia {
+            abortReason = "denied by policy"
+        } else if uploader == nil {
+            abortReason = "no uploader"
+        } else if utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
+            abortReason = "no internet"
+        } else if currentUploadRequest != nil {
+            abortReason = "upload request in progress"
+        } else {
+            abortReason = nil
+        }
+
+        if let reason = abortReason {
+            ULog.d(.parrotCloudBlackBoxTag, "Stop black box upload process (\(reason))")
             blackBoxReporter.update(isUploading: false).notifyUpdated()
-            ULog.d(.myparrot, "BLACKBOX (no internet or no user, or upload denied))")
             return
         }
 
-        if let uploader = uploader,
-            currentUploadRequest == nil {
-            if let blackBox = pendingReports.first {
-                if self.userAccountInfo!.oldDataPolicy == .denyUpload {
-                    // check if the file is before the authentication date
-                    // if yes, we remove the file because the user did not accept the download of the data collected
-                    // before the authentication
-                    let toRemove: Bool
-                    if let attrs = try? FileManager.default.attributesOfItem(
-                        atPath: blackBox.url.path), let creationDate = attrs[.creationDate] as? Date,
-                        let userDate = userAccountInfo?.changeDate {
-                        toRemove = creationDate < userDate
-                        if toRemove {
-                            ULog.d(.myparrot, "BLACKBOX remove (creationDate < userDate)")
-                        }
-                    } else {
-                        ULog.d(.myparrot, "BLACKBOX remove (no date)")
-                        toRemove = true
-                    }
-                    if toRemove {
-                        self.deleteBlackBox(blackBox)
-                        self.processNextBlackBox()
-                        return
-                    }
-                }
+        guard let blackBox = pendingBlackBoxes.first else {
+            ULog.d(.parrotCloudBlackBoxTag, "Stop black box upload process (no file left)")
+            blackBoxReporter.update(isUploading: false).notifyUpdated()
+            return
+        }
 
-                blackBoxReporter.update(isUploading: true)
-                currentUploadRequest = uploader.upload(blackBox: blackBox) { report, error in
-                    self.currentUploadRequest = nil
+        ULog.d(.parrotCloudBlackBoxTag, "Process next black box \(blackBox.url.absoluteString)")
 
-                    if let error = error {
-                        switch error {
-                        case .badRequest:
-                            ULog.d(.myparrot, "BLACKBOX .badRequest \(report)")
-                            ULog.w(.blackBoxEngineTag, "Bad request sent to the server. This should be a dev error.")
-                            // delete file and stop uploading to avoid multiple errors
-                            self.deleteBlackBox(report)
-                            self.blackBoxReporter.update(isUploading: false).notifyUpdated()
-                        case .badReport:
-                            ULog.d(.myparrot, "BLACKBOX .badReport \(report)")
-                            self.deleteBlackBox(report)
-                            self.processNextBlackBox()
-                        case .serverError,
-                             .connectionError:
-                            ULog.d(.myparrot, "BLACKBOX .serverError, connectionError \(blackBox)")
-                            // Stop uploading if the server is not accessible
-                            self.blackBoxReporter.update(isUploading: false).notifyUpdated()
-                        case .canceled:
-                            ULog.d(.myparrot, "BLACKBOX .canceled \(report)")
-                            self.blackBoxReporter.update(isUploading: false).notifyUpdated()
-                        }
-                    } else {    // success
-                        ULog.d(.myparrot, "BLACKBOX SUCCESS \(report)")
-                        self.deleteBlackBox(report)
-                        self.processNextBlackBox()
-                    }
+        if userAccountInfo!.oldDataPolicy == .denyUpload {
+            // check if the file is before the authentication date
+            // if yes, we remove the file because the user did not accept the download of the data collected
+            // before the authentication
+            let toRemove: Bool
+            if let attrs = try? FileManager.default.attributesOfItem(
+                atPath: blackBox.url.path), let creationDate = attrs[.creationDate] as? Date,
+               let userDate = userAccountInfo?.changeDate {
+                toRemove = creationDate < userDate
+                if toRemove {
+                    ULog.d(.parrotCloudBlackBoxTag, "Remove (creationDate < userDate)")
                 }
             } else {
-                blackBoxReporter.update(isUploading: false)
+                ULog.d(.parrotCloudBlackBoxTag, "Remove (no date)")
+                toRemove = true
+            }
+            if toRemove {
+                deleteBlackBox(blackBox)
+                processNextBlackBox()
+                return
+            }
+        }
+
+        ULog.d(.parrotCloudBlackBoxTag, "Start uploading \(blackBox.name)")
+        blackBoxReporter.update(isUploading: true)
+
+        currentUploadRequest = uploader?.upload(blackBox: blackBox) { blackBox, error in
+            self.currentUploadRequest = nil
+
+            if let error = error {
+                switch error {
+                case .badRequest:
+                    ULog.d(.parrotCloudBlackBoxTag, "Upload error (bad request) \(blackBox.name)")
+                    // delete file and stop uploading to avoid multiple errors
+                    self.deleteBlackBox(blackBox)
+                    self.blackBoxReporter.update(isUploading: false).notifyUpdated()
+                case .badBlackBox:
+                    ULog.d(.parrotCloudBlackBoxTag, "Upload error (bad black box) \(blackBox.name)")
+                    self.deleteBlackBox(blackBox)
+                    self.processNextBlackBox()
+                case .serverError,
+                     .connectionError:
+                    ULog.d(.parrotCloudBlackBoxTag, "Upload error (server or connection) \(blackBox.name)")
+                    // Stop uploading if the server is not accessible
+                    self.blackBoxReporter.update(isUploading: false).notifyUpdated()
+                case .canceled:
+                    ULog.d(.parrotCloudBlackBoxTag, "Upload canceled \(blackBox.name)")
+                    self.blackBoxReporter.update(isUploading: false).notifyUpdated()
+                }
+            } else {    // success
+                ULog.d(.parrotCloudBlackBoxTag, "Black box successfully uploaded \(blackBox.name)")
+                self.deleteBlackBox(blackBox)
+                self.processNextBlackBox()
             }
         }
         blackBoxReporter.notifyUpdated()
     }
 
-    /// Remove the given report from the pending ones and delete it from the file system.
+    /// Remove the given black box from the pending ones and delete it from the file system.
     ///
-    /// - Parameter blackBox: the black box report to delete
+    /// - Parameter blackBox: the black box to delete
     private func deleteBlackBox(_ blackBox: BlackBox) {
-        ULog.d(.myparrot, "BLACKBOX deleteBlackBox \(blackBox)")
-        if pendingReports.first == blackBox {
-            pendingReports.remove(at: 0)
+        ULog.d(.parrotCloudBlackBoxTag, "Delete black box \(blackBox.name)")
+        if pendingBlackBoxes.first == blackBox {
+            pendingBlackBoxes.remove(at: 0)
         } else {
-            ULog.w(.blackBoxEngineTag, "Uploaded report is not the first one of the pending")
+            ULog.w(.parrotCloudBlackBoxTag, "Black box to remove is not the first one of the pending list")
             // fallback
-            if let index: Int = pendingReports.firstIndex(where: {$0 == blackBox}) {
-                pendingReports.remove(at: index)
+            if let index: Int = pendingBlackBoxes.firstIndex(where: {$0 == blackBox}) {
+                pendingBlackBoxes.remove(at: index)
             }
         }
 
@@ -302,7 +321,7 @@ class BlackBoxEngine: EngineBaseCore {
 
     /// Cancel the current upload if there is one.
     private func cancelCurrentUpload() {
-        ULog.d(.myparrot, "BLACKBOX cancel current upload request \(String(describing: self.currentUploadRequest))")
+        ULog.d(.parrotCloudBlackBoxTag, "Cancel current upload request \(String(describing: currentUploadRequest))")
         // stop current upload request
         self.currentUploadRequest?.cancel()
         self.currentUploadRequest = nil
@@ -313,16 +332,16 @@ class BlackBoxEngine: EngineBaseCore {
     /// Note: this function is called when a user is no more identified (and has not accepted the terms of use and
     /// confidentiality). Blackboxes are only recorded, archived, and sent when a authorized account is present
     private func stopAndDropAllBlackBoxes() {
-        ULog.d(.myparrot, "BLACKBOX stopAndDropAllBlackBoxes")
+        ULog.d(.parrotCloudBlackBoxTag, "Stop and drop all black boxes")
         // stop the upload if any
         cancelCurrentUpload()
 
-        pendingReports.forEach { (blackBox) in
+        pendingBlackBoxes.forEach { (blackBox) in
             collector?.deleteBlackBox(at: blackBox.url)
         }
 
         // clear all pending blackBoxes
-        pendingReports.removeAll()
+        pendingBlackBoxes.removeAll()
 
         // update the facility
         blackBoxReporter.update(isUploading: false).update(pendingCount: 0).notifyUpdated()

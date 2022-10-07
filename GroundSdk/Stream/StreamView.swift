@@ -215,7 +215,7 @@ open class StreamView: GLKView {
 
     /// Initializes OpenGL context.
     private func contextInit() {
-        context = EAGLContext.init(api: EAGLRenderingAPI.openGLES3)!
+        context = EAGLContext(api: EAGLRenderingAPI.openGLES3)!
         enableSetNeedsDisplay = true
     }
 

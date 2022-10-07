@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Parrot Drones SAS
+// Copyright (C) 2022 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,20 +29,54 @@
 
 import Foundation
 
-extension MavlinkStandard {
+/// Debug shell state.
+public enum DebugShellState: Equatable, CustomStringConvertible, CustomDebugStringConvertible {
+    /// The debug shell is disabled.
+    case disabled
+    /// The debug shell is enabled for the given public key.
+    case enabled(publicKey: String)
 
-    /// MAVLink command that cancels any previous ROI command returning the vehicle/sensors to
-    /// default flight characteristics.
-    ///
-    /// Issuing this command the drone will look towards the next waypoint.
-    public final class SetRoiNoneCommand: MavlinkStandard.MavlinkCommand {
-
-        /// Constructor.
-        ///
-        /// - Parameters:
-        ///   - frame: the reference frame of the coordinates.
-        public init(frame: Frame = .command) {
-            super.init(type: .setRoiNone, frame: frame)
+    public var description: String {
+        switch self {
+        case .enabled(let key): return "enabled publicKey: \"\(key.prefix(3))...\(key.suffix(3))\""
+        case .disabled: return "disabled"
         }
     }
+
+    public var debugDescription: String {
+        switch self {
+        case .enabled(let key): return "enabled publicKey: \"\(key)\""
+        case .disabled: return "disabled"
+        }
+    }
+}
+
+/// Setting providing access to the DebugShellState.
+public protocol DebugShellStateSetting: AnyObject {
+    /// Tells if the setting value has been changed and is waiting for change confirmation.
+    var updating: Bool { get }
+
+    /// Debug shell state value.
+    var value: DebugShellState { get set }
+}
+
+/// DebugShell peripheral interface.
+///
+/// This peripheral provides access to DebugShell settings.
+///
+/// This peripheral can be retrieved by:
+/// ```
+/// device.getPeripheral(Peripherals.debugShell)
+/// ```
+public protocol DebugShell: Peripheral {
+    /// DebugShell state setting.
+    var state: DebugShellStateSetting { get }
+}
+
+/// :nodoc:
+/// DebugShell description
+public class DebugShellDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = DebugShell
+    public let uid = PeripheralUid.debugShell.rawValue
+    public let parent: ComponentDescriptor? = nil
 }

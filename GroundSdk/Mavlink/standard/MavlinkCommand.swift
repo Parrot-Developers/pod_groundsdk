@@ -35,6 +35,8 @@ extension MavlinkStandard {
 
     /// A MAVLink command.
     ///
+    /// [Parrot FlightPlan Mavlink documentation](https://developer.parrot.com/docs/mavlink-flightplan/overview.html).
+    ///
     /// Clients of this API cannot instantiate this class directly, and must use
     /// one of the subclasses defining a specific MAVLink command. If a subclass
     /// does not describe the command you want to use use `OtherMavlinkCommand`.
@@ -158,11 +160,20 @@ extension MavlinkStandard {
             }
         }
 
+        /// The reference frame of the command.
+        public enum Frame: UInt, Equatable {
+            /// Global coordinate frame WGS84 coordinate system. Altitude are expressed in over mean
+            ///  sea level (MSL).
+            case global = 0
+            /// Not a coordinate frame, indicates a mission command
+            case command = 2
+            /// Coordinate frame, WGS84 coordinate system, relative altitude over ground with
+            /// respect to the home position.
+            case relative = 3
+        }
+
         /// Value always used for current waypoint; set to false.
         private static let currentWaypoint = 0
-
-        /// Value always used for coordinate frame; set to global coordinate frame, relative altitude over ground.
-        private static let frame = 3
 
         /// Value always used for auto-continue; set to true.
         private static let autoContinue = 1
@@ -175,6 +186,9 @@ extension MavlinkStandard {
         /// The MAVLink command type.
         internal let rawType: Int
 
+        /// The coordinate frame; set to global coordinate frame or relative altitude over ground.
+        public let frame: Frame
+
         /// The raw parameters of the command.
         internal let parameters: [Double]
 
@@ -185,15 +199,18 @@ extension MavlinkStandard {
         ///     `rawType` must be greater than 0.
         ///   - rawType: the MAVLink raw type. If greater than zero then `type`
         ///     must be `.other`.
+        ///   - frame: the reference frame of the coordinates.
         ///   - parameters: the raw parameters of the command.
         internal init(type: CommandType,
                       rawType: Int = -1,
+                      frame: Frame = .relative,
                       parameters: [Double] = [.nan, .nan, .nan, .nan, .nan, .nan, .nan]) {
             assert((type == .other && rawType > 0)
                     || (type != .other && rawType == -1))
             assert(parameters.count == 7)
             self.rawType = type == .other ? rawType : type.rawValue
             self.parameters = parameters
+            self.frame = frame
         }
 
         /// Constructor.
@@ -202,6 +219,7 @@ extension MavlinkStandard {
         ///   - type: the MAVLink command type. If the type is `.other` then
         ///           `rawType` must be greater than 0.
         ///   - rawType: the MAVLink raw type. If greater than zero then `type`
+        ///   - frame: the reference frame of the coordinates.
         ///   - param1: the first parameter of the command.
         ///   - param2: the second parameter of the command.
         ///   - param3: the third parameter of the command.
@@ -211,6 +229,7 @@ extension MavlinkStandard {
         ///   - altitude: the altitude of the command
         internal init(type: CommandType,
                       rawType: Int = -1,
+                      frame: Frame = .relative,
                       param1: Double = .nan,
                       param2: Double = .nan,
                       param3: Double = .nan,
@@ -223,6 +242,7 @@ extension MavlinkStandard {
             self.rawType = type == .other ? rawType : type.rawValue
             self.parameters = [param1, param2, param3, param4,
                                latitude, longitude, altitude]
+            self.frame = frame
         }
 
         public static func == (lhs: MavlinkCommand, rhs: MavlinkCommand) -> Bool {
@@ -234,13 +254,14 @@ extension MavlinkStandard {
                 return abs(a - b) < affinity
             }
             return lhs.rawType == rhs.rawType
-                && equal(lhs.parameters[0], rhs.parameters[0])
-                && equal(lhs.parameters[1], rhs.parameters[1])
-                && equal(lhs.parameters[2], rhs.parameters[2])
-                && equal(lhs.parameters[3], rhs.parameters[3])
-                && equal(lhs.parameters[4], rhs.parameters[4])
-                && equal(lhs.parameters[5], rhs.parameters[5])
-                && equal(lhs.parameters[6], rhs.parameters[6])
+            && lhs.frame == rhs.frame
+            && equal(lhs.parameters[0], rhs.parameters[0])
+            && equal(lhs.parameters[1], rhs.parameters[1])
+            && equal(lhs.parameters[2], rhs.parameters[2])
+            && equal(lhs.parameters[3], rhs.parameters[3])
+            && equal(lhs.parameters[4], rhs.parameters[4])
+            && equal(lhs.parameters[5], rhs.parameters[5])
+            && equal(lhs.parameters[6], rhs.parameters[6])
         }
 
         /// Writes the MAVLink command to the specified file.
@@ -248,10 +269,12 @@ extension MavlinkStandard {
         /// - Parameters:
         ///   - fileHandle: handle on the file the command is written to
         ///   - index: the index of the command
-        func write(fileHandle: FileHandle, index: Int) {
+        ///   - frame: the reference frame of the coordinates
+        func write(fileHandle: FileHandle, index: Int, frame: Frame = .relative) {
             doWrite(fileHandle: fileHandle,
                     index: index,
                     rawType: rawType,
+                    frame: frame,
                     param1: parameters[0],
                     param2: parameters[1],
                     param3: parameters[2],
@@ -267,6 +290,7 @@ extension MavlinkStandard {
         ///   - fileHandle: handle on the file the command is written to
         ///   - index: the index of the command
         ///   - rawType: the raw type of the command
+        ///   - frame: the reference frame of the coordinates
         ///   - param1: first parameter of the command, type dependant
         ///   - param2: second parameter of the command, type dependant
         ///   - param3: third parameter of the command, type dependant
@@ -274,11 +298,11 @@ extension MavlinkStandard {
         ///   - latitude: the latitude of the command
         ///   - longitude: the longitude of the command
         ///   - altitude: the altitude of the command
-        private func doWrite(fileHandle: FileHandle, index: Int, rawType: Int, param1: Double = .nan,
-                             param2: Double = .nan, param3: Double = .nan, param4: Double = .nan,
+        private func doWrite(fileHandle: FileHandle, index: Int, rawType: Int, frame: Frame = .relative,
+                             param1: Double = .nan, param2: Double = .nan, param3: Double = .nan, param4: Double = .nan,
                              latitude: Double = .nan, longitude: Double = .nan, altitude: Double = .nan) {
             let line = String(format: "%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%d\n",
-                              index, MavlinkCommand.currentWaypoint, MavlinkCommand.frame, rawType,
+                              index, MavlinkCommand.currentWaypoint, frame.rawValue, rawType,
                               param1, param2, param3, param4,
                               latitude, longitude, altitude, MavlinkCommand.autoContinue)
             if let data = line.data(using: .utf8) {
@@ -316,31 +340,38 @@ extension MavlinkStandard.MavlinkCommand {
         guard let type = CommandType(rawValue: rawType) else {
             return try MavlinkStandard.OtherMavlinkCommand(rawType: rawType, parameters: parameters)
         }
-        return try command(forType: type, parameters: parameters)
+        guard let frameRawValue = UInt(tokens[2]), let frame = Frame(rawValue: frameRawValue) else {
+            throw ParseError.invalidParameter("The mavlink frame is malformed")
+        }
+        return try command(forType: type, frame: frame, parameters: parameters)
     }
 
     /// Create a MAVLink command.
     ///
     /// - Parameters:
     ///   - rawType: the integer that describes the type of the MAVLink command.
+    ///   - frame: the reference frame of the coordinates.
     ///   - parameters: the raw parameters of the command.
     /// - Throws: MavlinkStandard.MavlinkCommand.ParseError if the parameters are wrong.
     /// - Returns: A MAVLink command.
-    static func create(rawType: Int, parameters: [Double]) throws -> MavlinkStandard.MavlinkCommand {
+    static func create(rawType: Int, frame: Frame, parameters: [Double]) throws -> MavlinkStandard.MavlinkCommand {
         guard parameters.count == 7 else {
             throw MavlinkStandard.MavlinkCommand.ParseError
             .incorrectNumberOfParameters("Expected 7 parameters but instead got \(parameters.count).")
         }
         if let type = CommandType(rawValue: rawType) {
-            return try command(forType: type, parameters: parameters)
+            return try command(forType: type, frame: frame, parameters: parameters)
         }
-        return try MavlinkStandard.OtherMavlinkCommand(rawType: rawType, parameters: parameters)
+        return try MavlinkStandard.OtherMavlinkCommand(rawType: rawType,
+                                                       frame: frame,
+                                                       parameters: parameters)
     }
 
     /// Create a MAVLink command.
     ///
     /// - Parameters:
     ///   - rawType: the integer that describes the type of the MAVLink command.
+    ///   - frame: the reference frame of the coordinates.
     ///   - param1: first parameter of the command, type dependant
     ///   - param2: second parameter of the command, type dependant
     ///   - param3: third parameter of the command, type dependant
@@ -350,7 +381,9 @@ extension MavlinkStandard.MavlinkCommand {
     ///   - altitude: the altitude of the command
     /// - Throws: MavlinkStandard.MavlinkCommand.ParseError if the parameters are wrong.
     /// - Returns: A MAVLink command.
-    static func create(rawType: Int, param1: Double = .nan,
+    static func create(rawType: Int,
+                       frame: Frame,
+                       param1: Double = .nan,
                        param2: Double = .nan,
                        param3: Double = .nan,
                        param4: Double = .nan,
@@ -358,6 +391,7 @@ extension MavlinkStandard.MavlinkCommand {
                        longitude: Double = .nan,
                        altitude: Double = .nan) throws -> MavlinkStandard.MavlinkCommand {
         return try create(rawType: rawType,
+                          frame: frame,
                           parameters: [param1, param2, param3, param4,
                                        latitude, longitude, altitude])
     }
@@ -371,6 +405,7 @@ extension MavlinkStandard.MavlinkCommand {
     ///
     /// - Parameters:
     ///   - type: the command type.
+    ///   - frame: the reference frame of the coordinates
     ///   - param1: first parameter of the command, type dependant
     ///   - param2: second parameter of the command, type dependant
     ///   - param3: third parameter of the command, type dependant
@@ -381,6 +416,7 @@ extension MavlinkStandard.MavlinkCommand {
     /// - Throws: MavlinkStandard.MavlinkCommand.ParseError if the parameters are wrong.
     /// - Returns: A MAVLink command.
     static private func command(forType type: CommandType,
+                                frame: Frame = .relative,
                                 param1: Double = .nan,
                                 param2: Double = .nan,
                                 param3: Double = .nan,
@@ -389,6 +425,7 @@ extension MavlinkStandard.MavlinkCommand {
                                 longitude: Double = .nan,
                                 altitude: Double = .nan) throws -> MavlinkStandard.MavlinkCommand {
         return try command(forType: type,
+                           frame: frame,
                            parameters: [param1, param2, param3, param4,
                                         latitude, longitude, altitude])
     }
@@ -397,50 +434,52 @@ extension MavlinkStandard.MavlinkCommand {
     ///
     /// - Parameters:
     ///   - type: the command type.
+    ///   - frame: the reference frame of the coordinates.
     ///   - parameters: the raw parameters.
     /// - Throws: MavlinkStandard.MavlinkCommand.ParseError if the parameters are wrong.
     /// - Returns: A MAVLink command.
     static private func command(forType type: CommandType,
+                                frame: Frame,
                                 parameters: [Double]) throws -> MavlinkStandard.MavlinkCommand {
         switch type {
         case .navigateToWaypoint:
-            return try MavlinkStandard.NavigateToWaypointCommand(parameters: parameters)
+            return try MavlinkStandard.NavigateToWaypointCommand(frame: frame, parameters: parameters)
         case .returnToLaunch:
-            return MavlinkStandard.ReturnToLaunchCommand()
+            return MavlinkStandard.ReturnToLaunchCommand(frame: frame)
         case .land:
-            return try MavlinkStandard.LandCommand(parameters: parameters)
+            return try MavlinkStandard.LandCommand(frame: frame, parameters: parameters)
         case .takeOff:
-            return try MavlinkStandard.TakeOffCommand(parameters: parameters)
+            return try MavlinkStandard.TakeOffCommand(frame: frame, parameters: parameters)
         case .delay:
-            return try MavlinkStandard.DelayCommand(parameters: parameters)
+            return try MavlinkStandard.DelayCommand(frame: frame, parameters: parameters)
         case .changeSpeed:
-            return try MavlinkStandard.ChangeSpeedCommand(parameters: parameters)
+            return try MavlinkStandard.ChangeSpeedCommand(frame: frame, parameters: parameters)
         case .setRoiLocation:
-            return try MavlinkStandard.SetRoiLocationCommand(parameters: parameters)
+            return try MavlinkStandard.SetRoiLocationCommand(frame: frame, parameters: parameters)
         case .setRoi:
-            return try MavlinkStandard.SetRoiCommand(parameters: parameters)
+            return try MavlinkStandard.SetRoiCommand(frame: frame, parameters: parameters)
         case .mountControl:
-            return try MavlinkStandard.MountControlCommand(parameters: parameters)
+            return try MavlinkStandard.MountControlCommand(frame: frame, parameters: parameters)
         case .cameraTriggerDistance:
-            return try MavlinkStandard.CameraTriggerDistanceCommand(parameters: parameters)
+            return try MavlinkStandard.CameraTriggerDistanceCommand(frame: frame, parameters: parameters)
         case .cameraTriggerInterval:
-            return try MavlinkStandard.CameraTriggerIntervalCommand(parameters: parameters)
+            return try MavlinkStandard.CameraTriggerIntervalCommand(frame: frame, parameters: parameters)
         case .startPhotoCapture:
-            return try MavlinkStandard.StartPhotoCaptureCommand(parameters: parameters)
+            return try MavlinkStandard.StartPhotoCaptureCommand(frame: frame, parameters: parameters)
         case .stopPhotoCapture:
-            return MavlinkStandard.StopPhotoCaptureCommand()
+            return MavlinkStandard.StopPhotoCaptureCommand(frame: frame)
         case .startVideoCapture:
-            return MavlinkStandard.StartVideoCaptureCommand()
+            return MavlinkStandard.StartVideoCaptureCommand(frame: frame)
         case .stopVideoCapture:
-            return MavlinkStandard.StopVideoCaptureCommand()
+            return MavlinkStandard.StopVideoCaptureCommand(frame: frame)
         case .createPanorama:
-            return try MavlinkStandard.CreatePanoramaCommand(parameters: parameters)
+            return try MavlinkStandard.CreatePanoramaCommand(frame: frame, parameters: parameters)
         case .setViewMode:
-            return try MavlinkStandard.SetViewModeCommand(parameters: parameters)
+            return try MavlinkStandard.SetViewModeCommand(frame: frame, parameters: parameters)
         case .setStillCaptureMode:
-            return try MavlinkStandard.SetStillCaptureModeCommand(parameters: parameters)
+            return try MavlinkStandard.SetStillCaptureModeCommand(frame: frame, parameters: parameters)
         case .setRoiNone:
-            return MavlinkStandard.SetRoiNoneCommand()
+            return MavlinkStandard.SetRoiNoneCommand(frame: frame)
         default:
             assert(false) // should not get to this point.
             throw ParseError.generic

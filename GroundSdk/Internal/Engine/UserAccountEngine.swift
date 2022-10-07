@@ -130,8 +130,8 @@ class UserAccountEngine: EngineBaseCore {
 
     private var userAccountInfo: UserAccountInfoCore? {
         didSet {
+            ULog.d(.parrotCloudTag, "Set user account \(String(describing: userAccountInfo))")
             userAccountUtilityCoreImpl.update(userAccountInfo: userAccountInfo)
-            ULog.d(.myparrot, "Engine set user \(String(describing: userAccountInfo))")
         }
     }
 
@@ -292,21 +292,20 @@ extension UserAccountEngine {
 
     /// Save persisting data
     private func saveData() {
+        ULog.d(.parrotCloudTag, "Save user account \(String(describing: userAccountInfo))")
         let encoder = PropertyListEncoder()
         do {
             let data = try encoder.encode(userAccountInfo)
             let savedDictionary = [PersistingDataKeys.userAccountData.rawValue: data]
             groundSdkUserDefaults.storeData(savedDictionary)
-            ULog.d(.myparrot, "save user data\(String(describing: userAccountInfo))")
         } catch {
-            // Handle error
-            ULog.e(.userAccountEngineTag, "saveData: " + error.localizedDescription)
+            ULog.e(.parrotCloudTag, "Failed to save user account: \(error)")
         }
     }
 
     /// Load persisting data
     private func loadData() {
-        ULog.d(.myparrot, "try to load previous user")
+        ULog.d(.parrotCloudTag, "Load persisting user account, if any")
         let loadedDictionary = groundSdkUserDefaults.loadData() as? [String: Any]
         if let accountData = loadedDictionary?[PersistingDataKeys.userAccountData.rawValue] as? Data {
             let decoder = PropertyListDecoder()

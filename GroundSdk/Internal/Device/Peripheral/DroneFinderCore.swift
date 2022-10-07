@@ -65,7 +65,7 @@ public class DiscoveredDroneCore: DiscoveredDrone {
     }
 }
 
-/// Internal manual copter piloting interface implementation
+/// Internal drone finder implementation
 public class DroneFinderCore: PeripheralCore, DroneFinder {
 
     /// Implementation backend

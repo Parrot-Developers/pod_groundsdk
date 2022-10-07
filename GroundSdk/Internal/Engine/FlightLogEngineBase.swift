@@ -94,6 +94,7 @@ class FlightLogEngineBase: EngineBaseCore {
         collector = createCollector()
         collector?.collectFlightLogs { [weak self] flightLogs in
             if let `self` = self, self.started {
+                ULog.d(.parrotCloudFlightLogTag, "Logs locally collected: \(flightLogs)")
                 self.pendingFlightLogUrls.append(contentsOf: flightLogs)
                 self.queueForProcessing()
             }
@@ -110,9 +111,9 @@ class FlightLogEngineBase: EngineBaseCore {
     /// Cancel the current upload if there is one.
     public func cancelCurrentUpload() {
         // stop current upload request
-        ULog.d(.myparrot, "FLIGHTLOG cancel current upload request \(String(describing: self.currentUploadRequest))")
-        self.currentUploadRequest?.cancel()
-        self.currentUploadRequest = nil
+        ULog.d(.parrotCloudFlightLogTag, "Cancel current upload request \(String(describing: currentUploadRequest))")
+        currentUploadRequest?.cancel()
+        currentUploadRequest = nil
     }
 
     /// Creates a collector
@@ -128,7 +129,7 @@ class FlightLogEngineBase: EngineBaseCore {
     /// If the upload was not started and the upload may start, it will start.
     /// - Parameter flightLogUrl: local url of the flightLog that have just been added
     func add(flightLogUrl: URL) {
-        ULog.d(.myparrot, "FLIGHTLOG add a file: \(flightLogUrl)")
+        ULog.d(.parrotCloudFlightLogTag, "Add a file: \(flightLogUrl)")
         pendingFlightLogUrls.append(flightLogUrl)
         queueForProcessing()
     }
@@ -158,7 +159,7 @@ class FlightLogEngineBase: EngineBaseCore {
         do {
             try FileManager.default.createDirectory(at: debugDir, withIntermediateDirectories: true)
         } catch let err {
-            ULog.e(.myparrot, "Failed to create folder at \(debugDir.path): \(err)")
+            ULog.e(.flightLogEngineTag, "Failed to create folder at \(debugDir.path): \(err)")
         }
     }
 
@@ -176,7 +177,7 @@ class FlightLogEngineBase: EngineBaseCore {
                 try FileManager.default.removeItem(at: file)
             }
         } catch {
-            ULog.e(.myparrot, "Failed to recover file: \(file)")
+            ULog.e(.flightLogEngineTag, "Failed to recover file: \(file)")
         }
     }
 }

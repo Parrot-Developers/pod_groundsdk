@@ -99,7 +99,7 @@ internal class GGLView: GLKView {
     }
 
     private func contextInit() {
-        context = EAGLContext.init(api: EAGLRenderingAPI.openGLES3)!
+        context = EAGLContext(api: EAGLRenderingAPI.openGLES3)!
         contentScaleFactor = UIScreen.main.scale
         self.drawableMultisample = .multisample4X
         self.drawableColorFormat = .RGBA8888

@@ -52,6 +52,9 @@ public protocol LogControl: Peripheral {
     ///
     /// - Returns: `true` if the deactivation has been asked, `false` otherwise
     func deactivateLogs() -> Bool
+
+    /// Setting controlling whether mission logs are recorded.
+    var missionLogs: BoolSetting? { get }
 }
 
 /// :nodoc:

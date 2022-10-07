@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Parrot Drones SAS
+// Copyright (C) 2022 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,20 +29,39 @@
 
 import Foundation
 
-extension MavlinkStandard {
+/// CellularSession instrument implementation.
+public class CellularSessionCore: InstrumentCore, CellularSession {
 
-    /// MAVLink command that cancels any previous ROI command returning the vehicle/sensors to
-    /// default flight characteristics.
+    /// Celullar session status, or `nil` if not available.
+    public var status: CellularSessionStatus?
+
+    /// Debug description
+    public override var description: String {
+        return "CellularSessionCore: status \(status?.description ?? "nil")"
+    }
+
+    /// Constructor.
     ///
-    /// Issuing this command the drone will look towards the next waypoint.
-    public final class SetRoiNoneCommand: MavlinkStandard.MavlinkCommand {
+    /// - Parameter store: component store owning this component
+    public init(store: ComponentStoreCore) {
+        super.init(desc: Instruments.cellularSession, store: store)
+    }
+}
 
-        /// Constructor.
-        ///
-        /// - Parameters:
-        ///   - frame: the reference frame of the coordinates.
-        public init(frame: Frame = .command) {
-            super.init(type: .setRoiNone, frame: frame)
+/// Backend callback methods.
+extension CellularSessionCore {
+
+    /// Updates cellular session status.
+    ///
+    /// - Parameter status: new cellular session status
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult
+    public func update(status newValue: CellularSessionStatus?) -> CellularSessionCore {
+        if status != newValue {
+            markChanged()
+            status = newValue
         }
+        return self
     }
 }

@@ -68,6 +68,9 @@ public class BatteryInfoCore: InstrumentCore, BatteryInfo {
     /// Battery cell voltages in mV
     public private(set) var cellVoltages: [UInt?] = []
 
+    /// Battery components' versions
+    public private(set) var version: BatteryVersion?
+
     /// Debug description
     public override var description: String {
         return "BatteryInfo: level = \(batteryLevel)"
@@ -204,6 +207,21 @@ extension BatteryInfoCore {
 
         if cellVoltages[index] != cellVoltage {
             cellVoltages[index] = cellVoltage
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes battery version.
+    ///
+    /// - Parameters:
+    ///   - version: the battery version to set
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(version newValue: BatteryVersion) -> BatteryInfoCore {
+        if version != newValue {
+            version = newValue
             markChanged()
         }
         return self

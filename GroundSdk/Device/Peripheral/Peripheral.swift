@@ -44,163 +44,171 @@ public protocol PeripheralClassDesc: ComponentApiDescriptor {
 @objcMembers
 @objc(GSPeripherals)
 public class Peripherals: NSObject {
-    /// Magnetometer peripheral.
-    public static let magnetometer = MagnetometerDesc()
-    /// 3-steps calibration magnetometer peripheral.
-    public static let magnetometerWith3StepCalibration = MagnetometerWith3StepCalibrationDesc()
-    /// 1-step calibration magnetometer peripheral.
-    public static let magnetometerWith1StepCalibration = MagnetometerWith1StepCalibrationDesc()
-    /// Drone finder peripheral.
-    public static let droneFinder = DroneFinderDesc()
-    /// Video stream peripheral.
-    public static let streamServer = StreamServerDesc()
-    /// Main camera peripheral.
-    public static let mainCamera = MainCameraDesc()
-    /// Thermal camera peripheral.
-    public static let thermalCamera = ThermalCameraDesc()
-    /// Blended thermal camera peripheral.
-    public static let blendedThermalCamera = BlendedThermalCameraDesc()
-    /// Main camera 2 peripheral.
-    public static let mainCamera2 = MainCamera2Desc()
-    /// System info peripheral.
-    public static let systemInfo = SystemInfoDesc()
-    /// Media store peripheral.
-    public static let mediaStore = MediaStoreDesc()
-    /// Virtual gamepad peripheral.
-    public static let virtualGamepad = VirtualGamepadDesc()
-    /// SkyController3 gamepad peripheral.
-    public static let skyCtrl3Gamepad = SkyCtrl3GamepadDesc()
-    /// SkyController4 gamepad peripheral.
-    public static let skyCtrl4Gamepad = SkyCtrl4GamepadDesc()
-    /// Firmware updater peripheral.
-    public static let updater = UpdaterDesc()
-    /// Copter motors peripheral.
-    public static let copterMotors = CopterMotorsDesc()
-    /// Wifi scanner peripheral.
-    public static let wifiScanner = WifiScannerDesc()
-    /// Crash report downloader peripheral.
-    public static let crashReportDownloader = CrashReportDownloaderDesc()
-    /// Wifi access point peripheral.
-    public static let wifiAccessPoint = WifiAccessPointDesc()
-    /// Removable user storage.
-    public static let removableUserStorage = RemovableUserStorageDesc()
-    /// Internal user storage.
-    public static let internalUserStorage = InternalUserStorageDesc()
-    /// Beeper.
-    public static let beeper = BeeperDesc()
-    /// Gimbal.
-    public static let gimbal = GimbalDesc()
-    /// Front Stereo Gimbal.
-    public static let frontStereoGimbal = FrontStereoGimbalDesc()
     /// Anti-flicker.
     public static let antiflicker = AntiflickerDesc()
-    /// Target Tracker
-    public static let targetTracker = TargetTrackerDesc()
-    /// Geofence.
-    public static let geofence = GeofenceDesc()
-    /// File Data (PUD) downloader.
-    public static let flightDataDownloader = FlightDataDownloaderDesc()
-    /// Flight Log downloader.
-    public static let flightLogDownloader = FlightLogDownloaderDesc()
-    /// Flight camera record downloader.
-    public static let flightCameraRecordDownloader = FlightCameraRecordDownloaderDesc()
-    /// Precise home.
-    public static let preciseHome = PreciseHomeDesc()
-    /// Thermal control.
-    public static let thermalControl = ThermalControlDesc()
-    /// Leds.
-    public static let leds = LedsDesc()
-    /// Copilot.
-    public static let copilot = CopilotDesc()
-    /// Piloting control.
-    public static let pilotingControl = PilotingControlDesc()
-    /// Radio control.
-    public static let radioControl = RadioControlDesc()
-    /// Onboard tracker.
-    public static let onboardTracker = OnboardTrackerDesc()
     /// Battery gauge updater.
     public static let batteryGaugeUpdater = BatteryGaugeUpdaterDesc()
+    /// Beeper.
+    public static let beeper = BeeperDesc()
+    /// Blended thermal camera peripheral.
+    public static let blendedThermalCamera = BlendedThermalCameraDesc()
+    /// Cellular.
+    public static let cellular = CellularDesc()
+    /// Certificate Uploader.
+    public static let certificateUploader = CertificateUploaderDesc()
+    /// Copilot.
+    public static let copilot = CopilotDesc()
+    /// Copter motors peripheral.
+    public static let copterMotors = CopterMotorsDesc()
+    /// Crash report downloader peripheral.
+    public static let crashReportDownloader = CrashReportDownloaderDesc()
+    /// Debug shell peripheral.
+    public static let debugShell = DebugShellDesc()
     /// Development toolbox.
     public static let devToolbox = DevToolboxDesc()
     /// Dri.
     public static let dri = DriDesc()
-    /// Stereo vision sensor.
-    public static let stereoVisionSensor = StereoVisionSensorDesc()
+    /// Drone finder peripheral.
+    public static let droneFinder = DroneFinderDesc()
+    /// Flight camera record downloader.
+    public static let flightCameraRecordDownloader = FlightCameraRecordDownloaderDesc()
+    /// Flight camera recorder.
+    public static let flightCameraRecorder = FlightCameraRecorderDesc()
+    /// Flight data (PUD) downloader.
+    public static let flightDataDownloader = FlightDataDownloaderDesc()
+    /// Flight log (FDR-lite) downloader.
+    public static let flightLogDownloader = FlightLogDownloaderDesc()
+    /// Front stereo gimbal.
+    public static let frontStereoGimbal = FrontStereoGimbalDesc()
+    /// Geofence.
+    public static let geofence = GeofenceDesc()
+    /// Gimbal.
+    public static let gimbal = GimbalDesc()
+    /// Internal user storage.
+    public static let internalUserStorage = InternalUserStorageDesc()
+    /// Leds.
+    public static let leds = LedsDesc()
+    /// Log control.
+    public static let logControl = LogControlDesc()
+    /// Magnetometer peripheral.
+    public static let magnetometer = MagnetometerDesc()
+    /// 1-step calibration magnetometer peripheral.
+    public static let magnetometerWith1StepCalibration = MagnetometerWith1StepCalibrationDesc()
+    /// 3-steps calibration magnetometer peripheral.
+    public static let magnetometerWith3StepCalibration = MagnetometerWith3StepCalibrationDesc()
+    /// Main camera peripheral.
+    public static let mainCamera = MainCameraDesc()
+    /// Main camera 2 peripheral.
+    public static let mainCamera2 = MainCamera2Desc()
+    /// Media store peripheral.
+    public static let mediaStore = MediaStoreDesc()
+    /// Microhard.
+    public static let microhard = MicrohardDesc()
     /// Missions.
     public static let missionManager = MissionManagerDesc()
     /// Mission Store.
     public static let missionsUpdater = MissionUpdaterDesc()
-    /// Log Control.
-    public static let logControl = LogControlDesc()
-    /// Certificate Uploader
-    public static let certificateUploader = CertificateUploaderDesc()
-    /// Cellular.
-    public static let cellular = CellularDesc()
     /// Network control.
     public static let networkControl = NetworkControlDesc()
     /// Obstacle avoidance.
     public static let obstacleAvoidance = ObstacleAvoidanceDesc()
-    /// FlightCameraRecorder
-    public static let flightCameraRecorder = FlightCameraRecorderDesc()
+    /// Onboard tracker.
+    public static let onboardTracker = OnboardTrackerDesc()
+    /// Piloting control.
+    public static let pilotingControl = PilotingControlDesc()
+    /// Precise home.
+    public static let preciseHome = PreciseHomeDesc()
+    /// Radio control.
+    public static let radioControl = RadioControlDesc()
+    /// Removable user storage.
+    public static let removableUserStorage = RemovableUserStorageDesc()
     /// SecureElement.
     public static let secureElement = SecureElementDesc()
-    /// Microhard.
-    public static let microhard = MicrohardDesc()
+    /// SkyController3 gamepad peripheral.
+    public static let skyCtrl3Gamepad = SkyCtrl3GamepadDesc()
+    /// SkyController4 gamepad peripheral.
+    public static let skyCtrl4Gamepad = SkyCtrl4GamepadDesc()
+    /// Stereo vision sensor.
+    public static let stereoVisionSensor = StereoVisionSensorDesc()
+    /// Video stream peripheral.
+    public static let streamServer = StreamServerDesc()
+    /// System info peripheral.
+    public static let systemInfo = SystemInfoDesc()
+    /// Target Tracker.
+    public static let targetTracker = TargetTrackerDesc()
+    /// Thermal camera peripheral.
+    public static let thermalCamera = ThermalCameraDesc()
+    /// Thermal control.
+    public static let thermalControl = ThermalControlDesc()
+    /// Firmware updater peripheral.
+    public static let updater = UpdaterDesc()
+    /// Virtual gamepad peripheral.
+    public static let virtualGamepad = VirtualGamepadDesc()
+    /// Wifi access point peripheral.
+    public static let wifiAccessPoint = WifiAccessPointDesc()
+    /// Wifi scanner peripheral.
+    public static let wifiScanner = WifiScannerDesc()
+
+    // Internal peripherals.
+    /// Latest flight log (FDR) downloader.
+    internal static let latestLogDownloader = LatestLogDownloaderDesc()
 }
 
 /// Peripheral uid.
 enum PeripheralUid: Int {
+    case antiflicker
+    case batteryGaugeUpdater
+    case beeper
+    case blendedThermalCamera
+    case cellular
+    case certificateUploader
+    case copilot
+    case copterMotors
+    case crashReportDownloader
+    case debugShell
+    case devToolbox
+    case dri
+    case droneFinder
+    case flightCameraRecordDownloader
+    case flightCameraRecorder
+    case flightDataDownloader
+    case flightLogDownloader
+    case frontStereoGimbal
+    case geofence
+    case gimbal
+    case internalUserStorage
+    case latestLogDownloader
+    case leds
+    case logControl
     case magnetometer
     case magnetometerWith1StepCalibration
     case magnetometerWith3StepCalibration
-    case droneFinder
-    case streamServer
     case mainCamera
-    case thermalCamera
-    case blendedThermalCamera
     case mainCamera2
-    case systemInfo
     case mediaStore
-    case virtualGamepad
-    case skyCtrl3Gamepad
-    case skyCtrl4Gamepad
-    case updater
-    case copterMotors
-    case wifiScanner
-    case wifiAccessPoint
-    case crashReportDownloader
-    case removableUserStorage
-    case internalUserStorage
-    case beeper
-    case gimbal
-    case frontStereoGimbal
-    case antiflicker
-    case targetTracker
-    case geofence
-    case flightDataDownloader
-    case flightLogDownloader
-    case flightCameraRecordDownloader
-    case preciseHome
-    case thermalControl
-    case leds
-    case copilot
-    case pilotingControl
-    case radioControl
-    case onboardTracker
-    case batteryGaugeUpdater
-    case devToolbox
-    case dri
-    case stereoVisionSensor
+    case microhard
     case missionManager
     case missionUpdater
-    case logControl
-    case certificateUploader
-    case cellular
     case networkControl
     case obstacleAvoidance
-    case flightCameraRecorder
+    case onboardTracker
+    case pilotingControl
+    case preciseHome
+    case radioControl
+    case removableUserStorage
     case secureElement
-    case microhard
+    case skyCtrl3Gamepad
+    case skyCtrl4Gamepad
+    case stereoVisionSensor
+    case streamServer
+    case systemInfo
+    case targetTracker
+    case thermalCamera
+    case thermalControl
+    case updater
+    case virtualGamepad
+    case wifiAccessPoint
+    case wifiScanner
 }
 
 /// Objective-C wrapper of Ref<Peripheral>. Required because swift generics can't be used from Objective-C.

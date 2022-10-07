@@ -37,8 +37,11 @@ extension MavlinkStandard {
     public final class ReturnToLaunchCommand: MavlinkStandard.MavlinkCommand {
 
         /// Constructor.
-        public init() {
-            super.init(type: .returnToLaunch)
+        ///
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates.
+        public init(frame: Frame = .command) {
+            super.init(type: .returnToLaunch, frame: frame)
         }
     }
 }

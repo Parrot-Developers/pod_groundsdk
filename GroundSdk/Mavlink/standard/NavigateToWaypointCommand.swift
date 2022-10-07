@@ -75,16 +75,19 @@ extension MavlinkStandard {
         ///     yaw to home, etc.).
         ///   - holdTime: time to stay at waypoint, in seconds
         ///   - acceptanceRadius: acceptance radius, in meters
+        ///   - frame: the reference frame of the coordinates
         public init(latitude: Double, longitude: Double, altitude: Double, yaw: Double, holdTime: Double = 0,
-                    acceptanceRadius: Double = 5) {
-            super.init(type: .navigateToWaypoint, param1: holdTime, param2: acceptanceRadius,
+                    acceptanceRadius: Double = 5, frame: Frame = .relative) {
+            super.init(type: .navigateToWaypoint, frame: frame, param1: holdTime, param2: acceptanceRadius,
                        param4: yaw, latitude: latitude, longitude: longitude, altitude: altitude)
         }
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .relative, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
@@ -97,7 +100,7 @@ extension MavlinkStandard {
             let holdTime = parameters[0]
             let acceptanceRadius = parameters[1]
             self.init(latitude: latitude, longitude: longitude, altitude: altitude, yaw: yaw, holdTime: holdTime,
-                      acceptanceRadius: acceptanceRadius)
+                      acceptanceRadius: acceptanceRadius, frame: frame)
         }
     }
 }

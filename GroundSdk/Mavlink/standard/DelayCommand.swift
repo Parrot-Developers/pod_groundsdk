@@ -41,22 +41,26 @@ extension MavlinkStandard {
 
         /// Constructor.
         ///
-        /// - Parameter delay: delay, in seconds (decimal).
-        public init(delay: Double) {
-            super.init(type: .delay, param1: delay)
+        /// - Parameters:
+        ///   - delay: delay, in seconds (decimal).
+        ///   - frame: the reference frame of the coordinates.
+        public init(delay: Double, frame: Frame = .command) {
+            super.init(type: .delay, frame: frame, param1: delay)
         }
 
         /// Constructor from generic MAVLink parameters.
         ///
-        /// - Parameter parameters: generic command parameters
-        convenience init(parameters: [Double]) throws {
+        /// - Parameters:
+        ///   - frame: the reference frame of the coordinates
+        ///   - parameters: generic command parameters
+        convenience init(frame: Frame = .command, parameters: [Double]) throws {
             assert(parameters.count == 7)
             guard parameters.count == 7 else {
                 throw MavlinkStandard.MavlinkCommand.ParseError
                 .incorrectNumberOfParameters("Expected 7 parameters but instead got \(parameters.count).")
             }
             let delay = parameters[0]
-            self.init(delay: delay)
+            self.init(delay: delay, frame: frame)
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Parrot Drones SAS
+// Copyright (C) 2022 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,20 +29,29 @@
 
 import Foundation
 
-extension MavlinkStandard {
+/// Latest Log Downloader peripheral interface.
+///
+/// This internal peripheral allows to retrieve latest logs (FDR) from the device.
+///
+/// This peripheral can be retrieved by:
+/// ```
+/// device.getPeripheral(Peripherals.latestLogDownloader)
+/// ```
+public protocol LatestLogDownloader: Peripheral {
+    /// State of the log collection.
+    var state: LogCollectorState { get }
 
-    /// MAVLink command that cancels any previous ROI command returning the vehicle/sensors to
-    /// default flight characteristics.
-    ///
-    /// Issuing this command the drone will look towards the next waypoint.
-    public final class SetRoiNoneCommand: MavlinkStandard.MavlinkCommand {
+    /// Downloads the device logs for the current boot id.
+    func downloadLogs(toDirectory directory: URL)
 
-        /// Constructor.
-        ///
-        /// - Parameters:
-        ///   - frame: the reference frame of the coordinates.
-        public init(frame: Frame = .command) {
-            super.init(type: .setRoiNone, frame: frame)
-        }
-    }
+    /// Cancels an ongoing log download.
+    func cancelDownload()
+}
+
+/// :nodoc:
+/// LatestLogDownloader description
+class LatestLogDownloaderDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = LatestLogDownloader
+    public let uid = PeripheralUid.latestLogDownloader.rawValue
+    public let parent: ComponentDescriptor? = nil
 }

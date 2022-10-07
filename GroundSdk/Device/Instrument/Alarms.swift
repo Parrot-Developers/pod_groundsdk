@@ -61,6 +61,9 @@ public class Alarm: NSObject {
         /// Battery authentication has failed.
         case batteryAuthenticationFailure
 
+        /// Battery poor connection.
+        case batteryPoorConnection
+
         /// Hovering is difficult due to a lack of GPS positioning and not enough light to use its vertical camera.
         case hoveringDifficultiesNoGpsTooDark
 
@@ -193,6 +196,15 @@ public class Alarm: NSObject {
         /// Stereo camera is decalibrated.
         case stereoCameraDecalibrated
 
+        /// Propeller are critically iced, so forced landing auto trigger is planned.
+        case automaticLandingPropellerIcingIssue
+
+        /// Battery is too hot, so forced landing auto trigger is planned.
+        case automaticLandingBatteryTooHot
+
+        /// Battery is too cold, so forced landing auto trigger is planned.
+        case automaticLandingBatteryTooCold
+
         /// Debug description.
         public var description: String {
             switch self {
@@ -204,6 +216,7 @@ public class Alarm: NSObject {
             case .batteryTooCold:                                return "batteryTooCold"
             case .batteryGaugeUpdateRequired:                    return "batteryGaugeUpdateRequired"
             case .batteryAuthenticationFailure:                  return "batteryAuthenticationFailure"
+            case .batteryPoorConnection:                         return "batteryPoorConnection"
             case .hoveringDifficultiesNoGpsTooDark:              return "hoveringDifficultiesNoGpsTooDark"
             case .hoveringDifficultiesNoGpsTooHigh:              return "hoveringDifficultiesNoGpsTooHigh"
             case .automaticLandingBatteryIssue:                  return "automaticLandingBatteryIssue"
@@ -234,13 +247,16 @@ public class Alarm: NSObject {
             case .obstacleAvoidanceFreeze:                       return "obstacleAvoidanceFreeze"
             case .freeFallDetected:                              return "freeFallDetected"
             case .stereoCameraDecalibrated:                      return "stereoCameraDecalibrated"
+            case .automaticLandingPropellerIcingIssue:           return "automaticLandingPropellerIcingIssue"
+            case .automaticLandingBatteryTooHot:                 return "automaticLandingBatteryTooHot"
+            case .automaticLandingBatteryTooCold:                return "automaticLandingBatteryTooCold"
             }
         }
 
         /// Set containing all possible kinds of alarm.
         public static let allCases: Set<Kind> = [
             .power, .motorCutOut, .userEmergency, .motorError, .batteryTooHot, .batteryTooCold,
-            .batteryGaugeUpdateRequired, .batteryAuthenticationFailure,
+            .batteryGaugeUpdateRequired, .batteryAuthenticationFailure, .batteryPoorConnection,
             .hoveringDifficultiesNoGpsTooDark, .hoveringDifficultiesNoGpsTooHigh,
             .automaticLandingBatteryIssue, .wind, .verticalCamera, .strongVibrations,
             .magnetometerPertubation, .magnetometerLowEarthField, .unreliableControllerLocation,
@@ -252,7 +268,8 @@ public class Alarm: NSObject {
             .obstacleAvoidancePoorGps, .obstacleAvoidanceComputationalError,
             .obstacleAvoidanceBlindMotionDirection, .inclinationTooHigh, .horizontalGeofenceReached,
             .verticalGeofenceReached, .obstacleAvoidanceFreeze, .freeFallDetected,
-            .stereoCameraDecalibrated]
+            .stereoCameraDecalibrated, .automaticLandingPropellerIcingIssue, .automaticLandingBatteryTooHot,
+            .automaticLandingBatteryTooCold]
     }
 
     /// Alarm level.

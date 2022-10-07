@@ -115,20 +115,23 @@ extension ULogTag {
     /// Ephemeris tag of ground sdk ephemeris engine (internal)
     static let ephemerisEngineTag = ULogTag(name: "gsdk.core.engine.ephemeris")
 
-    /// FileManager Extension tag of ground sdk (internal)
-    static let fileManagerExtensionTag = ULogTag(name: "gsdk.core.filemanager")
-
     /// Logging tag of stream in ground sdk core (internal)
     static let streamTag = ULogTag(name: "gsdk.core.stream")
 
     /// Logging tag of ground sdk video stream engine (internal)
     static let videoStreamEngineTag = ULogTag(name: "gsdk.core.engine.stream")
 
-    /// Logging tag of ground sdk flight camera record collecting and upload to Parrot Cloud
+    /// Logging tag of ground sdk file collecting and upload to Parrot Cloud (internal)
+    static let parrotCloudTag = ULogTag(name: "gsdk.parrotcloud")
+
+    /// Logging tag of ground sdk flight log collecting and upload to Parrot Cloud (internal)
+    static let parrotCloudFlightLogTag = ULogTag(name: "gsdk.parrotcloud.flightlog")
+
+    /// Logging tag of ground sdk flight camera record collecting and upload to Parrot Cloud (internal)
     static let parrotCloudFcrTag = ULogTag(name: "gsdk.parrotcloud.flightcamerarecord")
 
-    /// tag myparrot debug
-    static let myparrot = ULogTag(name: "MYPARROT-gsdkv1-")
+    /// Logging tag of ground sdk black box collecting and upload to Parrot Cloud (internal)
+    static let parrotCloudBlackBoxTag = ULogTag(name: "gsdk.parrotcloud.blackbox")
 
     /// tag Hmd
     static let hmdTag = ULogTag(name: "gsdk.hmd")
@@ -138,4 +141,7 @@ extension ULogTag {
 
     /// tag MAVLink standard
     static let mavlinkStandardTag = ULogTag(name: "gsdk.mavlink-standard")
+
+    /// Logging tag of ground sdk log collector (internal)
+    static let logCollectorTag = ULogTag(name: "gsdk.core.logcollector")
 }

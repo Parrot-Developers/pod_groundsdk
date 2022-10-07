@@ -29,35 +29,35 @@
 
 import Foundation
 
-/// CellularLinkStatus instrument implementation.
-public class CellularLinkStatusCore: InstrumentCore, CellularLinkStatus {
+/// CellularLink instrument implementation.
+public class CellularLinkCore: InstrumentCore, CellularLink {
 
     /// Celullar link status, or `nil` if not available.
-    public var status: CellularLinkStatusStatus?
+    public var status: CellularLinkStatus?
 
     /// Debug description
     public override var description: String {
-        return "CellularLinkStatusCore: status \(status?.description ?? "nil")"
+        return "CellularLinkCore: status \(status?.description ?? "nil")"
     }
 
     /// Constructor.
     ///
     /// - Parameter store: component store owning this component
     public init(store: ComponentStoreCore) {
-        super.init(desc: Instruments.cellularLinkStatus, store: store)
+        super.init(desc: Instruments.cellularLink, store: store)
     }
 }
 
 /// Backend callback methods.
-extension CellularLinkStatusCore {
+extension CellularLinkCore {
 
     /// Updates cellular link status.
     ///
-    /// - Parameter status: new status
+    /// - Parameter status: new cellular link status
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult
-    public func update(status newValue: CellularLinkStatusStatus?) -> CellularLinkStatusCore {
+    public func update(status newValue: CellularLinkStatus?) -> CellularLinkCore {
         if status != newValue {
             markChanged()
             status = newValue

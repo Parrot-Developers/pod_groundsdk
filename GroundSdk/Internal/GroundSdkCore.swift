@@ -198,6 +198,20 @@ public class GroundSdkCore: NSObject {
             let fileReplayCore = FileReplayCore(source: source)
             return FileReplayRefCore(stream: fileReplayCore, observer: observer)
         }
+
+        /// Collects latest logs from the given sources and bundles them in an archive in the given destination
+        /// directory.
+        ///
+        /// - Parameters:
+        ///   - sources: sources of the logs to collect
+        ///   - directory: destination directory
+        ///   - observer: observer called when the LogCollector changes, indicating collection progress
+        /// - Returns: a reference on a LogCollector
+        public func newLogCollector(from sources: Set<LogCollectorSource>,
+                                    toDirectory directory: URL,
+                                    observer: @escaping (LogCollector?) -> Void) -> Ref<LogCollector> {
+            return LogCollectorRefCore(from: sources, toDirectory: directory, observer: observer)
+        }
     }
 
     /// Singleton instance

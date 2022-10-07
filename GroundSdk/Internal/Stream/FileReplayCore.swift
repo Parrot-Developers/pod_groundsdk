@@ -36,9 +36,6 @@ public class FileReplayCore: ReplayCore, FileReplay {
     /// Played back file.
     public let source: FileReplaySource
 
-    /// Pomp loop for pdraw.
-    private var pompLoopUtil: PompLoopUtil?
-
     /// Constructor
     ///
     /// - Parameter source: source to be played back

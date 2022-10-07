@@ -84,7 +84,7 @@ class FlightLogEngine: FlightLogEngineBase {
                         || (newInfo?.account != nil
                                 && newInfo?.dataUploadPolicy != .deny // keep old data until upload is allowed
                                 && newInfo?.oldDataPolicy == .denyUpload)) {
-                ULog.d(.myparrot,
+                ULog.d(.parrotCloudFlightLogTag,
                        "User account change with private mode or old data upload denied -> delete all flight logs")
                 self.dropFlightLogs()
                 self.userAccountInfo = newInfo
@@ -98,14 +98,14 @@ class FlightLogEngine: FlightLogEngineBase {
             try? FileManager.cleanOldInDirectory(url: engineDir, fileExt: "bin",
                                                     totalMaxSizeMb: spaceQuotaInMb, includingSubfolders: true)
         }
-        ULog.d(.myparrot, "FLIGHTLOG active connectivityMonitor")
+
         connectivityMonitor = utilities.getUtility(Utilities.internetConnectivity)!
             .startMonitoring { [unowned self] internetAvailable in
                 if internetAvailable {
-                    ULog.d(.myparrot, "FLIGHTLOG internet ready")
+                    ULog.d(.parrotCloudFlightLogTag, "Internet ready")
                     self.startFlightLogUploadProcess()
                 } else {
-                    ULog.d(.myparrot, "FLIGHTLOG internet NOT ready")
+                    ULog.d(.parrotCloudFlightLogTag, "Internet NOT ready")
                     self.cancelCurrentUpload()
                 }
         }
@@ -128,7 +128,6 @@ class FlightLogEngine: FlightLogEngineBase {
 
     /// Queue for processing flight logs
     override func queueForProcessing() {
-        ULog.d(.myparrot, "FLIGHTLOG (local) \(pendingFlightLogUrls)")
         if userAccountInfo?.privateMode == true {
             dropFlightLogs()
         } else {
@@ -136,20 +135,21 @@ class FlightLogEngine: FlightLogEngineBase {
         }
     }
 
-    /// Start the uploading process of flight log files
+    /// Starts the uploading process of flight log files.
     ///
-    /// if an upload is already started we are only updating the pending count
-    /// uploading process is only started when it is not already uploading files.
+    /// If an uploading process is already started, we only update the pending count.
     private func startFlightLogUploadProcess() {
-        ULog.d(.myparrot, "startFlightLogUploadProcess")
-        guard !flightLogReporter.isUploading,
-            GroundSdkConfig.sharedInstance.flightLogServer != nil,
-            GroundSdkConfig.sharedInstance.applicationKey != nil, userAccountInfo?.token != nil,
-            self.userAccountInfo!.token! != "" else {
-            flightLogReporter.update(pendingCount: pendingFlightLogUrls.count)
-            ULog.d(.myparrot, "startFlightLogUploadProcess abort (was uploading)")
+        guard GroundSdkConfig.sharedInstance.flightLogServer != nil,
+              GroundSdkConfig.sharedInstance.applicationKey != nil else {
+              ULog.d(.parrotCloudFlightLogTag, "Flight log server or application key not defined.")
+              return
+        }
+        guard !flightLogReporter.isUploading else {
+            flightLogReporter.update(pendingCount: pendingFlightLogUrls.count).notifyUpdated()
+            ULog.d(.parrotCloudFlightLogTag, "Did not start flight log upload process (already uploading)")
             return
         }
+        ULog.d(.parrotCloudFlightLogTag, "Start flight log upload process")
         processNextFlightLog()
     }
 
@@ -158,71 +158,86 @@ class FlightLogEngine: FlightLogEngineBase {
     /// It will only start the upload if the engine is not currently uploading a flightLog, if Internet connectivity
     /// is available, if user account is present, if a token is present, and if data upload is allowed.
     private func processNextFlightLog() {
-        ULog.d(.myparrot, "processNextFlightLog")
         flightLogReporter.update(pendingCount: pendingFlightLogUrls.count)
-        if userAccountInfo?.account == nil
-            || userAccountInfo?.token == nil
-            || userAccountInfo?.token == ""
-            || userAccountInfo?.dataUploadPolicy == .deny
-            || utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
+
+        // Check if upload process can go on
+        let abortReason: String?
+        if userAccountInfo?.account == nil {
+            abortReason = "no account"
+        } else if userAccountInfo!.token == nil || userAccountInfo!.token! == "" {
+            abortReason = "no token"
+        } else if userAccountInfo!.dataUploadPolicy == .deny {
+            abortReason = "denied by policy"
+        } else if uploader == nil {
+            abortReason = "no uploader"
+        } else if utilities.getUtility(Utilities.internetConnectivity)?.internetAvailable == false {
+            abortReason = "no internet"
+        } else {
+            abortReason = nil
+        }
+
+        if let reason = abortReason {
+            ULog.d(.parrotCloudFlightLogTag, "Stop flight log upload process (\(reason))")
             flightLogReporter.update(isUploading: false).notifyUpdated()
-            ULog.d(.myparrot, "processNextFlightLog nothing to do")
             return
         }
 
-        if uploader != nil, let baseUrl = URL(string: GroundSdkConfig.sharedInstance.flightLogServer!),
-            currentUploadRequest == nil {
-            if let flightLog = pendingFlightLogUrls.first {
-                if userAccountInfo?.oldDataPolicy == .denyUpload {
-                    // check if the file is before the authentication date
-                    // if yes, we remove the file because the user did not accept the download of the data collected
-                    // before the authentication
-                    let toRemove: Bool
-                    if let attrs = try? FileManager.default.attributesOfItem(
-                        atPath: flightLog.path), let creationDate = attrs[.creationDate] as? Date,
-                        let userDate = userAccountInfo?.changeDate {
-                        toRemove = creationDate < userDate
-                        if toRemove {
-                            ULog.d(.myparrot, "FLIGHTLOG remove (creationDate < userDate)")
-                        }
-                    } else {
-                        ULog.d(.myparrot, "FLIGHTLOG remove (no date)")
-                        toRemove = true
-                    }
-                    if toRemove {
-                        deleteFlightLog(at: flightLog, reason: "denied")
-                        processNextFlightLog()
-                        return
-                    }
-                }
+        guard let baseUrl = URL(string: GroundSdkConfig.sharedInstance.flightLogServer!) else {
+            ULog.d(.parrotCloudFlightLogTag, "Stop flight log upload process (server incorrectly configured)")
+            flightLogReporter.update(isUploading: false).notifyUpdated()
+            return
+        }
 
-                if let attrs = try? FileManager.default.attributesOfItem(
-                    atPath: flightLog.path) {
-                    let fileSize = attrs[.size] as? UInt64
-                    ULog.d(.myparrot, "FLIGHTLOG SIZE: \(String(describing: fileSize)) \(flightLog)")
-                }
+        guard let flightLog = pendingFlightLogUrls.first else {
+            ULog.d(.parrotCloudFlightLogTag, "Stop flight log upload process (no file left)")
+            flightLogReporter.update(isUploading: false).notifyUpdated()
+            return
+        }
 
-                /// Anonymize file if necessary.
-                switch userAccountInfo?.dataUploadPolicy {
-                case .anonymous:
-                    anonymize(baseUrl: baseUrl, flightLog: flightLog, profile: .ANONYMOUS_PROFILE)
-                case .noGps:
-                    anonymize(baseUrl: baseUrl, flightLog: flightLog, profile: .NO_GPS_PROFILE)
-                case .full, .noMedia:
-                    uploadFlight(baseUrl: baseUrl, flightLogUrl: flightLog)
-                case .deny, .none:
-                    /// should not happen
-                    break
+        ULog.d(.parrotCloudFlightLogTag, "Process next flight log \(flightLog.absoluteString)")
+
+        if userAccountInfo?.oldDataPolicy == .denyUpload {
+            // check if the file is before the authentication date
+            // if yes, we remove the file because the user did not accept the download of the data collected
+            // before the authentication
+            let toRemove: Bool
+            if let attrs = try? FileManager.default.attributesOfItem(
+                atPath: flightLog.path), let creationDate = attrs[.creationDate] as? Date,
+               let userDate = userAccountInfo?.changeDate {
+                toRemove = creationDate < userDate
+                if toRemove {
+                    ULog.d(.parrotCloudFlightLogTag, "Remove (creationDate < userDate)")
                 }
             } else {
-                flightLogReporter.update(isUploading: false)
-                flightLogReporter.notifyUpdated()
+                ULog.d(.parrotCloudFlightLogTag, "Remove (no date)")
+                toRemove = true
             }
-        } else {
-            ULog.d(.myparrot, "FLIGHTLOG / process Next flight log abort (no uploader)")
-            flightLogReporter.notifyUpdated()
+            if toRemove {
+                deleteFlightLog(at: flightLog, reason: "denied")
+                processNextFlightLog()
+                return
+            }
         }
-    }
+
+        if let attrs = try? FileManager.default.attributesOfItem(atPath: flightLog.path) {
+            let fileSize = attrs[.size] as? UInt64
+            ULog.d(.parrotCloudFlightLogTag,
+                   "Flight log \(flightLog.lastPathComponent) size: \(String(describing: fileSize))")
+        }
+
+        /// Anonymize file if necessary.
+        switch userAccountInfo?.dataUploadPolicy {
+        case .anonymous:
+            anonymize(baseUrl: baseUrl, flightLog: flightLog, profile: .ANONYMOUS_PROFILE)
+        case .noGps:
+            anonymize(baseUrl: baseUrl, flightLog: flightLog, profile: .NO_GPS_PROFILE)
+        case .full, .noMedia:
+            uploadFlight(baseUrl: baseUrl, flightLogUrl: flightLog)
+        case .deny, .none:
+            /// should not happen
+            break
+        }
+   }
 
     /// Anonymization of flight log
     ///
@@ -249,7 +264,7 @@ class FlightLogEngine: FlightLogEngineBase {
             do {
                 try fileManager.moveItem(at: flightLog, to: processingFlightLog)
             } catch {
-                ULog.e(.myparrot, "FLIGHTLOG - Anonymization: move flight log failed.")
+                ULog.e(.parrotCloudFlightLogTag, "Failed to rename log to processing file \(flightLog.absoluteString)")
                 return
             }
             queue.async {
@@ -259,7 +274,8 @@ class FlightLogEngine: FlightLogEngineBase {
                     do {
                         try fileManager.moveItem(at: processingFlightLog, to: flightLog)
                     } catch {
-                        ULog.e(.myparrot, "FLIGHTLOG - Anonymization: move flight log back failed.")
+                        ULog.e(.parrotCloudFlightLogTag,
+                               "Failed to rename processing file to log \(flightLog.absoluteString)")
                         return
                     }
                     if result == AnonymizerResult.SUCCESS {
@@ -281,39 +297,45 @@ class FlightLogEngine: FlightLogEngineBase {
     ///    - baseUrl: url of the server
     ///    - flightLogUrl: url of the flight log to upload
     private func uploadFlight(baseUrl: URL, flightLogUrl: URL) {
-        self.flightLogReporter.update(isUploading: true)
-        self.currentUploadRequest = uploader?.upload(baseUrl: baseUrl, flightLogUrl: flightLogUrl,
-                                token: self.userAccountInfo!.token!) { flightLogUrl, error in
+        let logFileName = flightLogUrl.lastPathComponent
+        ULog.d(.parrotCloudFlightLogTag, "Start uploading \(logFileName)")
+
+        guard currentUploadRequest == nil else {
+            ULog.d(.parrotCloudFlightLogTag, "Did not upload flight log (upload request in progress)")
+            flightLogReporter.update(isUploading: false).notifyUpdated()
+            return
+        }
+
+        flightLogReporter.update(isUploading: true).notifyUpdated()
+        currentUploadRequest = uploader?.upload(baseUrl: baseUrl, flightLogUrl: flightLogUrl,
+                                                token: self.userAccountInfo!.token!) { flightLogUrl, error in
             self.currentUploadRequest = nil
             if let error = error {
                 switch error {
                 case .badRequest:
-                    ULog.d(.myparrot, "FLIGHTLOG .badRequest \(flightLogUrl)")
-                    ULog.w(.flightLogEngineTag, "Bad request sent to the server. This should be a dev error.")
+                    ULog.d(.parrotCloudFlightLogTag, "Upload error (bad request) \(logFileName)")
                     // delete file and stop uploading to avoid multiple errors
                     self.deleteFlightLog(at: flightLogUrl, reason: "error")
                     self.flightLogReporter.update(isUploading: false).notifyUpdated()
                 case .badFlightLog:
-                    ULog.d(.myparrot, "FLIGHTLOG .badFlightLog \(flightLogUrl)")
+                    ULog.d(.parrotCloudFlightLogTag, "Upload error (bad flight log) \(logFileName)")
                     self.deleteFlightLog(at: flightLogUrl, reason: "error")
                     self.processNextFlightLog()
                 case .serverError,
                      .connectionError:
                     // Stop uploading if the server is not accessible
-                    ULog.d(.myparrot, "FLIGHTLOG .serverError or .connectionError \(flightLogUrl)")
+                    ULog.d(.parrotCloudFlightLogTag, "Upload error (server or connection) \(logFileName)")
                     self.flightLogReporter.update(isUploading: false).notifyUpdated()
                 case .canceled:
-                    ULog.d(.myparrot, "FLIGHTLOG .canceled \(flightLogUrl)")
+                    ULog.d(.parrotCloudFlightLogTag, "Upload canceled \(logFileName)")
                     self.flightLogReporter.update(isUploading: false).notifyUpdated()
                 }
             } else {    // success
-                ULog.d(.myparrot, "FLIGHTLOG SUCCESS \(flightLogUrl)")
+                ULog.d(.parrotCloudFlightLogTag, "Flight log successfully uploaded \(logFileName)")
                 self.deleteFlightLog(at: flightLogUrl, reason: "sent")
                 self.processNextFlightLog()
             }
         }
-
-    self.flightLogReporter.notifyUpdated()
     }
 
     /// Remove the given flightLog from the pending ones and delete it from the file system.
@@ -331,14 +353,16 @@ class FlightLogEngine: FlightLogEngineBase {
         }
 
         /// remove original file
-        ULog.d(.myparrot, "FLIGHTLOG remove (in upload list) : \(flightLogUrlReal)")
-        if self.pendingFlightLogUrls.first == flightLogUrlReal {
-            self.pendingFlightLogUrls.remove(at: 0)
+        ULog.d(.parrotCloudFlightLogTag, "Delete flight log (\(reason)) \(flightLogUrl.lastPathComponent)")
+        if pendingFlightLogUrls.first == flightLogUrlReal {
+            pendingFlightLogUrls.remove(at: 0)
         } else {
-            ULog.w(.flightLogEngineTag, "Uploaded flightLog is not the first one of the pending")
+            ULog.w(.parrotCloudFlightLogTag, "Flight log to remove is not the first one of the pending list")
             // fallback
-            if let index: Int = self.pendingFlightLogUrls.firstIndex(where: {$0 == flightLogUrlReal}) {
-                self.pendingFlightLogUrls.remove(at: index)
+            if let index: Int = pendingFlightLogUrls.firstIndex(where: {$0 == flightLogUrlReal}) {
+                pendingFlightLogUrls.remove(at: index)
+            } else {
+                ULog.w(.parrotCloudFlightLogTag, "Flight log not found in the pending list")
             }
         }
         collector?.deleteFlightLog(at: flightLogUrlReal)
