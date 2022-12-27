@@ -44,7 +44,11 @@ public class CancelableTaskCore: CancelableCore {
     public var request: CancelableCore?
 
     /// Constructor
-    public init() {
+    ///
+    /// - Parameters:
+    ///   - request: The encapsulated cancelable request
+    public init(request: CancelableCore? = nil) {
+        self.request = request
     }
 
     /// Cancel the task.
@@ -53,5 +57,6 @@ public class CancelableTaskCore: CancelableCore {
     public func cancel() {
         canceled = true
         request?.cancel()
+        request = nil
     }
 }

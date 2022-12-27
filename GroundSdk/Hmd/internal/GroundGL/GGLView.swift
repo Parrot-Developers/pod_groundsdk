@@ -154,7 +154,7 @@ internal class GGLView: GLKView {
         glClear(GLbitfield(GL_COLOR_BUFFER_BIT))
         glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA))
         glEnable(GLenum(GL_BLEND))
-        // Draw all drawable objects (if they are `enable` and and correctly initialized at the OpenGl level)
+        // Draw all drawable objects (if they are `enable` and correctly initialized at the OpenGl level)
         for drawable in drawableObjects {
             if drawable.enable && drawable.isGlReady {
                 drawable.renderDrawable(frame: boundsScaled)

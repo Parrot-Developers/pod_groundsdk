@@ -139,24 +139,17 @@ public protocol MissionUpdater: Peripheral {
     /// Progress of the upload.
     var currentProgress: Int? { get }
 
-    /// Uploads a mission to the server and installs it immediately.
-    /// The mission will be activable on next reboot, the `complete` function should be called for this purpose.
-    ///
-    /// - Parameters:
-    ///    - filePath: internal id (given by the drone when the mission was installed).
-    ///    - overwrite: overwrite the mission if it is present on drone.
-    func upload(filePath: URL, overwrite: Bool) -> CancelableCore?
-
     /// Uploads a mission to the server.
     /// The mission is installed immediately or upon next reboot, depending on the `postpone` parameter.
     /// In any case, the mission will be activable on next reboot, the `complete` function should be called for this
     /// purpose.
     ///
     /// - Parameters:
-    ///    - filePath: internal id (given by the drone when the mission was installed).
-    ///    - overwrite: overwrite the mission if it is present on drone.
-    ///    - postpone: postpone the installation until next reboot.
-    func upload(filePath: URL, overwrite: Bool, postpone: Bool) -> CancelableCore?
+    ///    - filePath: URL of the mission file to upload
+    ///    - overwrite: `true` to overwrite any potentially existing mission with the same uid
+    ///    - postpone: `true` to postpone the installation until next reboot
+    ///    - makeDefault: `true` to make the uploaded mission the default one (starts at drone boot)
+    func upload(filePath: URL, overwrite: Bool, postpone: Bool, makeDefault: Bool) -> CancelableCore?
 
     /// Deletes a mission.
     ///
@@ -170,6 +163,25 @@ public protocol MissionUpdater: Peripheral {
 
     /// Completes the installation of the uploaded missions by rebooting the drone.
     func complete()
+}
+
+/// Extension providing default parameter values to functions to ensure backward compatibility.
+public extension MissionUpdater {
+
+    /// Uploads a mission to the server.
+    /// The mission is installed immediately or upon next reboot, depending on the `postpone` parameter.
+    /// In any case, the mission will be activable on next reboot, the `complete` function should be called for this
+    /// purpose.
+    ///
+    /// - Parameters:
+    ///    - filePath: URL of the mission file to upload
+    ///    - overwrite: `true` to overwrite any potentially existing mission with the same uid
+    ///    - postpone: `true` to postpone the installation until next reboot
+    ///    - makeDefault: `true` to make the uploaded mission the default one (starts at drone boot)
+    func upload(filePath: URL, overwrite: Bool = true, postpone: Bool = false, makeDefault: Bool = false)
+        -> CancelableCore? {
+            return upload(filePath: filePath, overwrite: overwrite, postpone: postpone, makeDefault: makeDefault)
+    }
 }
 
 /// :nodoc:

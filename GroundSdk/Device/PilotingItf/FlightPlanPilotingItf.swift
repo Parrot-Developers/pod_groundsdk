@@ -47,6 +47,8 @@ public enum FlightPlanUnavailabilityReason: Int, CustomStringConvertible {
     case cannotTakeOff
     /// Drone camera is not available.
     case cameraUnavailable
+    /// First waypoint is too far to be reached.
+    case firstWaypointTooFar
     /// Drone is in an invalid state
     case droneInvalidState
 
@@ -60,6 +62,7 @@ public enum FlightPlanUnavailabilityReason: Int, CustomStringConvertible {
         case .cannotTakeOff:            return "cannotTakeOff"
         case .cameraUnavailable:        return "cameraUnavailable"
         case .droneInvalidState:        return "droneInvalidState"
+        case .firstWaypointTooFar:      return "firstWaypointTooFar"
         }
     }
 }

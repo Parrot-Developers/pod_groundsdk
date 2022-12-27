@@ -28,18 +28,41 @@
 //    SUCH DAMAGE.
 
 import Foundation
-import UIKit
+
+/// A media websocket event
+public enum MediaStoreChangeEvent {
+    /// The first resource of a new media has been created.
+    /// - Parameter media: The media that was created
+    case createdMedia(_ media: MediaItemCore)
+    /// A new resource of an existing media has been created.
+    /// - Parameter resource: The resource that was created
+    case createdResource(_ resource: MediaItemResourceCore, mediaId: String)
+    /// The last resource of a media has been removed.
+    /// - Parameter mediaId: The id of the media that was removed
+    case removedMedia(mediaId: String)
+    /// A resource of a media has been removed, the media still has remaining resource
+    /// - Parameter resourceId: The id of the resource that was removed
+    case removedResource(resourceId: String)
+    /// All media were removed
+    case allMediaRemoved
+    /// The indexing state changed
+    /// - Parameters:
+    ///   - oldState: the old indexing state
+    ///   - newState: the new indexing state
+    case indexingStateChanged(oldState: MediaStoreIndexingState,
+                              newState: MediaStoreIndexingState)
+}
 
 /// MediaResourceList concrete implementation
 public class MediaResourceListCore: MediaResourceList {
 
     /// List entry
     struct Entry {
-        // media
+        /// media
         let media: MediaItemCore
-        // resources
+        /// resources
         let resources: [MediaItemResourceCore]
-        // true if `resources` contains all resources of the media
+        /// `true` if `resources` contains all resources of the media
         var allResourcesOfMedia: Bool {
             return media.resources.filter {return resources.contains($0 as! MediaItemResourceCore)}.count
                 == media.resources.count
@@ -54,10 +77,9 @@ public class MediaResourceListCore: MediaResourceList {
     /// - Parameter mediaList: list of media to include
     convenience init(allOf mediaList: [MediaItem]) {
         self.init()
-        for media in mediaList {
-            mediaResourceList.append(Entry(
-                media: media as! MediaItemCore,
-                resources: media.resources as! [MediaItemResourceCore]))
+        self.mediaResourceList = mediaList.map { (media: MediaItem) in
+            Entry(media: media as! MediaItemCore,
+                resources: media.resources as! [MediaItemResourceCore])
         }
     }
 
@@ -67,10 +89,8 @@ public class MediaResourceListCore: MediaResourceList {
     convenience init(allButDngOf mediaList: [MediaItem]) {
         self.init()
         for media in mediaList {
-            media.resources.forEach { resource in
-                if resource.format != .dng {
-                    self.add(media: media, resource: resource)
-                }
+            for resource in media.resources where resource.format != .dng {
+                self.add(media: media, resource: resource)
             }
         }
     }
@@ -78,10 +98,10 @@ public class MediaResourceListCore: MediaResourceList {
     /// Add a media resource to the list
     ///
     /// - Parameters:
-    ///    - media: media to add a resource of
-    ///    - resource: resource to add
+    ///   - media: media to add a resource of
+    ///   - resource: resource to add
     public func add(media: MediaItem, resource: MediaItem.Resource) {
-        if let idx = mediaResourceList.firstIndex(where: {$0.media === media}) {
+        if let idx = mediaResourceList.firstIndex(where: { $0.media === media }) {
             mediaResourceList[idx] = Entry(
                 media: mediaResourceList[idx].media,
                 resources: mediaResourceList[idx].resources + [resource as! MediaItemResourceCore])
@@ -94,7 +114,7 @@ public class MediaResourceListCore: MediaResourceList {
     /// Add all resources of a media to the list
     ///
     /// - Parameters:
-    ///    - media: media to add all resources of
+    ///   - media: media to add all resources of
     public func add(media: MediaItem) {
         if let idx = mediaResourceList.firstIndex(where: {$0.media === media}) {
             mediaResourceList[idx] = Entry(
@@ -117,17 +137,17 @@ public class MediaResourceListCore: MediaResourceList {
         /// List to iterate
         private let list: [Entry]
         /// Number of media in the iterator
-        public let mediaCount: Int
+        public var mediaCount: Int { list.count }
         /// Number of resources in the iterator
         public let resourceCount: Int
         /// Total resources size in the iterator
         public let totalSize: UInt64
         /// Index of the current media
-        private (set) public var currentMediaIdx = 0
+        fileprivate private(set) var currentMediaIdx = 0
         /// Index of the current resource
-        private (set) public var currentResourceIdx = 0
+        fileprivate private(set) var currentResourceIdx = 0
         /// Iterated resources total size
-        private (set) public var currentSize = UInt64(0)
+        fileprivate private(set) var currentSize = UInt64(0)
         /// Size of the current resource
         public var currentResourceSize: UInt64 {
             return currentResource?.size ?? 0
@@ -147,13 +167,12 @@ public class MediaResourceListCore: MediaResourceList {
         /// - Parameter list: list to iterate on
         fileprivate init(list: [Entry]) {
             self.list = list
-            self.mediaCount = list.count
-            self.resourceCount = list.reduce(0) { val, entry in
-                return val + entry.resources.count
+            self.resourceCount = list.reduce(0) { sum, entry in
+                sum + entry.resources.count
             }
-            self.totalSize = list.reduce(0) { val, entry in
-                return val + entry.resources.reduce(0) { val, resource in
-                    return val + resource.size
+            self.totalSize = list.reduce(0) { sum, entry in
+                sum + entry.resources.reduce(0) { sum_, resource in
+                    sum_ + resource.size
                 }
             }
             entriesIterator = AnyIterator<MediaResourceListCore.Entry>(list.makeIterator())
@@ -162,7 +181,7 @@ public class MediaResourceListCore: MediaResourceList {
         /// Advances to the next element and returns it, or `nil` if no next element
         /// exists. Once `nil` has been returned, all subsequent calls return `nil`.
         ///
-        /// - Returns: next entry, nil at the end of the list
+        /// - Returns: next entry, `nil` at the end of the list
         public func next() -> (media: MediaItemCore, resource: MediaItemResourceCore)? {
             var next: (media: MediaItemCore, resource: MediaItemResourceCore)?
             // move to the next resource
@@ -177,7 +196,7 @@ public class MediaResourceListCore: MediaResourceList {
                 repeat {
                     currentEntry = entriesIterator.next()
                     if let currentEntry = currentEntry {
-                        currentMediaIdx+=1
+                        currentMediaIdx += 1
                         resourcesIterator = AnyIterator<MediaItemResourceCore>(currentEntry.resources.makeIterator())
                         currentResource = resourcesIterator!.next()
                         if let currentResource = currentResource {
@@ -187,17 +206,17 @@ public class MediaResourceListCore: MediaResourceList {
                 } while next == nil && currentEntry != nil
             }
             if let next = next {
-                currentResourceIdx+=1
-                currentSize+=next.resource.size
+                currentResourceIdx += 1
+                currentSize += next.resource.size
             }
             return next
         }
 
-        /// Advance to the resource of the current media or to the next media if the list contains all resources of
-        /// the current media.
+        /// Advance to the resource of the current media or to the next media if the list contains
+        /// all resources of the current media.
         ///
-        /// - Returns: next entry, nil at the end of the list. If all resource of the current media are in the list,
-        ///   returned tuple field `resource` is nil
+        /// - Returns: next entry, `nil` at the end of the list. If all resource of the current
+        ///   media are in the list, returned tuple field `resource` is nil
         public func nextMediaOrResource() -> (media: MediaItemCore, resource: MediaItemResourceCore?)? {
             var next: (media: MediaItemCore, resource: MediaItemResourceCore?)?
             // move to the next resource
@@ -250,10 +269,10 @@ public class MediaDownloaderCore: MediaDownloader {
     ///   - currentMedia : current downloading media
     ///   - fileUrl : url of downloaded file when progress is at 1.0, nil in other cases
     ///   - signatureUrl : url of downloaded signature when progress is at 1.0, nil in other cases
-    public init(mediaResourceListIterator iterator: MediaResourceListCore.Iterator, currentFileProgress: Float,
-                status: MediaTaskStatus, currentMedia: MediaItem? = nil, fileUrl: URL? = nil,
-                signatureUrl: URL? = nil) {
-        let progress  = (Float(iterator.currentSize - iterator.currentResourceSize) +
+    public init(mediaResourceListIterator iterator: MediaResourceListCore.Iterator,
+                currentFileProgress: Float, status: MediaTaskStatus, currentMedia: MediaItem? = nil,
+                fileUrl: URL? = nil, signatureUrl: URL? = nil) {
+        let progress = (Float(iterator.currentSize - iterator.currentResourceSize) +
             Float(iterator.currentResourceSize) * currentFileProgress) / Float(iterator.totalSize)
         super.init(totalMedia: iterator.mediaCount, countMedia: iterator.currentMediaIdx,
                    totalResources: iterator.resourceCount, countResources: iterator.currentResourceIdx,
@@ -338,7 +357,7 @@ public protocol MediaStoreBackend: AnyObject {
     /// - Parameters:
     ///   - completion: completion closure called when the request is terminated.
     ///   - medias: list of medias
-    /// - Returns: browse request, or nil if the request can't be sent
+    /// - Returns: browse request, or `nil` if the request can't be sent
     func browse(completion: @escaping (_ medias: [MediaItemCore]) -> Void) -> CancelableCore?
 
     /// Browse medias in a specific storage.
@@ -347,18 +366,19 @@ public protocol MediaStoreBackend: AnyObject {
     ///   - storage: storage type to browse
     ///   - completion: completion closure called when the request is terminated.
     ///   - medias: list of medias
-    /// - Returns: browse request, or nil if the request can't be sent
-    func browse(storage: StorageType?, completion: @escaping (_ medias: [MediaItemCore]) -> Void) -> CancelableCore?
+    /// - Returns: browse request, or `nil` if the request can't be sent
+    func browse(storage: StorageType?,
+                completion: @escaping (_ medias: [MediaItemCore]) -> Void) -> CancelableCore?
 
     /// Download a thumbnail
     ///
     /// - Parameters:
     ///   - media: media item to download the thumbnail
     ///   - completion: closure called when the thumbnail has been downloaded or if there is an error.
-    ///   - thumbnailData: downloaded thumbnail data, nil if there is a error
-    /// - Returns: download thumbnail request, or nil if the request can't be sent
+    ///   - thumbnailData: downloaded thumbnail data, `nil` if there is a error
+    /// - Returns: download thumbnail request, or `nil` if the request can't be sent
     func downloadThumbnail(for owner: MediaStoreThumbnailCacheCore.ThumbnailOwner,
-                           completion: @escaping (_ thumbnailData: Data?) -> Void) -> CancelableCore?
+                           completion: @escaping (_ thumbnailData: Data?) -> Void) -> IdentifiableCancelableCore?
 
     /// Download media resources
     ///
@@ -367,9 +387,9 @@ public protocol MediaStoreBackend: AnyObject {
     ///   - type: download type
     ///   - destination: download destination
     ///   - progress: download progress callback
-    /// - Returns: download media resources request, or nil if the request can't be sent
+    /// - Returns: download media resources request, or `nil` if the request can't be sent
     func download(mediaResources: MediaResourceListCore, type: DownloadType, destination: DownloadDestination,
-                  progress: @escaping (MediaDownloader) -> Void) -> CancelableTaskCore?
+                  progress: @escaping (MediaDownloader) -> Void) -> CancelableCore?
 
     /// Uploads media resources.
     ///
@@ -379,23 +399,25 @@ public protocol MediaStoreBackend: AnyObject {
     ///   - progress: upload progress callback
     /// - Returns: resource upload request, or `nil` if the request can't be sent.
     func upload(resources: [URL], target: MediaItemCore,
-                progress: @escaping (ResourceUploader?) -> Void) -> CancelableTaskCore?
+                progress: @escaping (ResourceUploader?) -> Void) -> CancelableCore?
 
     /// Delete medias resources
     ///
     /// - Parameters:
     ///   - mediaResources: list of media resources to delete
     ///   - progress: progress closure called after each deleted files
-    /// - Returns: delete request, or nil if the request can't be sent
+    /// - Returns: delete request, or `nil` if the request can't be sent
     func delete(mediaResources: MediaResourceListCore, progress: @escaping (MediaDeleter) -> Void)
-        -> CancelableTaskCore?
+        -> CancelableCore?
 
     /// Delete all medias
     ///
     /// - Parameter progress: progress closure called when the state of the delete task changes
-    /// - Returns: delete request, or nil if the request can't be sent
-    func deleteAll(progress: @escaping (AllMediasDeleter) -> Void) -> CancelableTaskCore?
+    /// - Returns: delete request, or `nil` if the request can't be sent
+    func deleteAll(progress: @escaping (AllMediasDeleter) -> Void) -> CancelableCore?
 
+    /// The current indexing state of the media store.
+    var indexingState: MediaStoreIndexingState { get }
 }
 
 /// Internal MediaStore implementation
@@ -403,12 +425,15 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
     /// Listener notified when the media store content changes
     class Listener: NSObject {
         /// Closure called when the media store content changes.
-        fileprivate let didChange: () -> Void
+        /// - Parameter event: The event that occurred.
+        fileprivate let didChange: (_ event: MediaStoreChangeEvent) -> Void
 
         /// Constructor
         ///
-        /// - Parameter didChange: closure called when the state changes
-        fileprivate init(didChange: @escaping () -> Void) {
+        /// - Parameters:
+        ///  - didChange: closure called when the state changes
+        ///  - event: The event that occurred
+        fileprivate init(didChange: @escaping (_ event: MediaStoreChangeEvent) -> Void) {
             self.didChange = didChange
         }
     }
@@ -422,14 +447,14 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
     /// Listeners
     private var listeners: Set<Listener> = []
 
-    private(set) public var indexingState = MediaStoreIndexingState.unavailable
-    private(set) public var photoMediaCount = 0
-    private(set) public var videoMediaCount = 0
-    private(set) public var photoResourceCount = 0
-    private(set) public var videoResourceCount = 0
+    public private(set) var indexingState = MediaStoreIndexingState.unavailable
+    public private(set) var photoMediaCount = 0
+    public private(set) var videoMediaCount = 0
+    public private(set) var photoResourceCount = 0
+    public private(set) var videoResourceCount = 0
 
-    /// `true` if the mediastore content has changed.
-    private var storeContentChanged = false
+    /// not `nil` if the mediastore content has changed, the event describes how it has changed
+    private var storeChangeEvent: MediaStoreChangeEvent?
 
     /// Constructor
     ///
@@ -480,8 +505,9 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
     public func newThumbnailDownloader(
         media: MediaItem, observer: @escaping (_ thumbnail: UIImage?) -> Void) -> Ref<UIImage> {
 
-        return MediaThumbnailRefCore(
-            thumbnailCache: self.thumbnailCache, owner: .media(media as! MediaItemCore), observer: observer)
+        return MediaThumbnailRefCore(thumbnailCache: self.thumbnailCache,
+                                     owner: .media(media as! MediaItemCore),
+                                     observer: observer)
     }
 
     /// Create a new resource thumbnail downloader
@@ -494,10 +520,10 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
     ///   to be called.
     public func newThumbnailDownloader(
         resource: MediaItem.Resource, observer: @escaping (_ thumbnail: UIImage?) -> Void) -> Ref<UIImage> {
-        let res = resource as! MediaItemResourceCore
-        return MediaThumbnailRefCore(
-            thumbnailCache: self.thumbnailCache, owner: .resource(res.media!, res), observer: observer)
-    }
+            return MediaThumbnailRefCore(thumbnailCache: self.thumbnailCache,
+                                         owner: .resource(resource as! MediaItemResourceCore),
+                                         observer: observer)
+        }
 
     /// Create a new media resource downloader
     ///
@@ -562,7 +588,9 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
 
     /// Reset component state. Called when the component is unpublished.
     override func reset() {
-        listeners.forEach {$0.didChange()}
+        listeners.forEach {
+            $0.didChange(.allMediaRemoved)
+        }
         thumbnailCache.clear()
     }
 
@@ -570,7 +598,7 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
     ///
     /// - Parameter didChange: closure to call when the store content changes
     /// - Returns: created listener, to unregister it
-    func register(didChange: @escaping () -> Void) -> Listener {
+    func register(didChange: @escaping (MediaStoreChangeEvent) -> Void) -> Listener {
         let listener = Listener(didChange: didChange)
         if listeners.isEmpty {
             backend.startWatchingContentChanges()
@@ -592,11 +620,30 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
     /// Notify changes made by previously called setters
     public override func notifyUpdated() {
         // store content changed, notify listeners
-        if storeContentChanged {
-            storeContentChanged = false
-            listeners.forEach {$0.didChange()}
+        if let storeChangeEvent = self.storeChangeEvent {
+            handleCacheInvalidation(storeChangeEvent)
+            self.storeChangeEvent = nil
+            listeners.forEach {
+                $0.didChange(storeChangeEvent)
+            }
         }
         super.notifyUpdated()
+    }
+
+    /// Handles thumbnail cache invalidation based on a change event.
+    ///
+    /// - Parameters:
+    ///   - event: the change event
+    private func handleCacheInvalidation(_ event: MediaStoreChangeEvent) {
+        switch event {
+        case .removedResource(resourceId: let id),
+                .createdResource(_, mediaId: let id):
+            thumbnailCache.invalidate(id)
+        case .allMediaRemoved:
+            thumbnailCache.clear()
+        default:
+            break
+        }
     }
 }
 
@@ -679,6 +726,7 @@ extension MediaStoreCore {
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult
+    @objc
     public func update(indexingState newValue: MediaStoreIndexingState) -> MediaStoreCore {
         if indexingState != newValue {
             indexingState = newValue
@@ -748,8 +796,8 @@ extension MediaStoreCore {
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult
-    public func markContentChanged() -> MediaStoreCore {
-        storeContentChanged = true
+    public func markContentChanged(withEvent event: MediaStoreChangeEvent) -> MediaStoreCore {
+        storeChangeEvent = event
         markChanged()
         return self
     }

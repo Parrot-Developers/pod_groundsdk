@@ -61,7 +61,7 @@ class ObstacleAvoidanceSettingCore: ObstacleAvoidanceSetting, CustomDebugStringC
         }
         set {
             if _preferredValue != newValue {
-                if backend(newValue) && supportedValues.contains(newValue) {
+                if supportedValues.contains(newValue) && backend(newValue) {
                     let oldValue = _preferredValue
                     // value sent to the backend, update setting value and mark it updating
                     _preferredValue = newValue
@@ -109,8 +109,7 @@ class ObstacleAvoidanceSettingCore: ObstacleAvoidanceSetting, CustomDebugStringC
     ///
     /// - Parameter completionClosure: block that will be called if a rollback was pending
     func cancelRollback(completionClosure: () -> Void) {
-        if timeout.isScheduled {
-            timeout.cancel()
+        if timeout.cancel() {
             completionClosure()
         }
     }

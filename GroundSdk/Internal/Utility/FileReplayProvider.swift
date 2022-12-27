@@ -30,19 +30,22 @@
 import Foundation
 
 /// FileReplay backend provider utility.
-public protocol FileReplayBackendProvider: UtilityCore {
-    /// Retrieves FileReplay stream backend.
+public protocol FileReplayProvider: AnyObject, UtilityCore {
+
+    /// Creates a new `FileReplayCore` instance to stream the given local file replay source.
     ///
-    /// - Parameters:
-    ///    - url: url of the media to stream
-    ///    - trackName: track name to stream
-    ///    - stream: stream owner of the backend
-    /// - Returns: a new FileReplay stream backend
-    func getStreamBackend(url: URL, trackName: String, stream: StreamCore) -> StreamBackend
+    /// - Parameter source: file replay source to stream
+    /// - Returns the new `FileReplayCore`
+    func newFileReplay(source: FileReplaySource) -> FileReplayCore
+
+    /// Releases the given file replay stream.
+    ///
+    /// - Parameter stream: file replay stream to release
+    func releaseFileReplay(stream: FileReplayCore)
 }
 
 /// FileReplay backend provider utility description.
-public class FileReplayBackendProviderCoreDesc: NSObject, UtilityCoreApiDescriptor {
-    public typealias ApiProtocol = FileReplayBackendProvider
-    public let uid = UtilityUid.fileReplayBackendProvider.rawValue
+public class FileReplayProviderCoreDesc: NSObject, UtilityCoreApiDescriptor {
+    public typealias ApiProtocol = FileReplayProvider
+    public let uid = UtilityUid.fileReplayProvider.rawValue
 }

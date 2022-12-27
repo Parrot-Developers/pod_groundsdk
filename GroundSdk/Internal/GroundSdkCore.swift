@@ -195,8 +195,12 @@ public class GroundSdkCore: NSObject {
         ///            or 'nil' in case the provided file cannot be streamed
         func newFileReplay(source: FileReplaySource,
                            observer: @escaping (_ stream: FileReplay?) -> Void) -> Ref<FileReplay>? {
-            let fileReplayCore = FileReplayCore(source: source)
-            return FileReplayRefCore(stream: fileReplayCore, observer: observer)
+            guard let provider = GroundSdkCore.getInstance().utilities.getUtility(Utilities.fileReplayProvider) else {
+                return Ref(observer: observer)
+            }
+
+            let fileReplayCore = provider.newFileReplay(source: source)
+            return FileReplayRefCore(provider: provider, stream: fileReplayCore, observer: observer)
         }
 
         /// Collects latest logs from the given sources and bundles them in an archive in the given destination

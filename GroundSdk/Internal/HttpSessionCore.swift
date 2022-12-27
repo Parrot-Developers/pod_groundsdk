@@ -140,7 +140,7 @@ public class HttpSessionCore: NSObject {
                     result = .error(error)
                 }
             } else if let response = response as? HTTPURLResponse {
-                if response.statusCode == 200 {
+                if response.isSuccessful() {
                     result = .success(response.statusCode)
                 } else {
                     result = .httpError(response.statusCode)
@@ -188,7 +188,7 @@ public class HttpSessionCore: NSObject {
                     result = .error(error)
                 }
             } else if let response = response as? HTTPURLResponse {
-                if response.statusCode == 200 {
+                if response.isSuccessful() {
                     result = .success(response.statusCode)
                 } else {
                     result = .httpError(response.statusCode)
@@ -240,7 +240,7 @@ public class HttpSessionCore: NSObject {
                     result = .error(error)
                 }
             } else if let response = response as? HTTPURLResponse {
-                if response.statusCode == 200 {
+                if response.isSuccessful() {
                     result = .success(response.statusCode)
                 } else {
                     result = .httpError(response.statusCode)
@@ -345,7 +345,7 @@ public class HttpSessionCore: NSObject {
                     result = .error(error)
                 }
             } else if let response = response as? HTTPURLResponse {
-                if response.statusCode == 200 {
+                if response.isSuccessful() {
                     result = .success(response.statusCode)
                 } else {
                     result = .httpError(response.statusCode)
@@ -509,7 +509,7 @@ extension HttpSessionCore: URLSessionDownloadDelegate {
 
             var result: Result
             if let response = downloadTask.response as? HTTPURLResponse {
-                if response.statusCode == 200 {
+                if response.isSuccessful() {
                     result = .success(response.statusCode)
                 } else {
                     result = .httpError(response.statusCode)
@@ -571,3 +571,13 @@ extension HttpSessionCore: URLSessionDownloadDelegate {
 
 /// Extension of URLSessionTask that declare that this object implements the CancelableCore protocol
 extension URLSessionTask: CancelableCore { }
+
+/// HTTPURLResponse extension
+extension HTTPURLResponse {
+    /// Checks if response is a success.
+    ///
+    /// - Returns: `true` if response has a successful HTTP status
+    func isSuccessful() -> Bool {
+        return 200..<300 ~= statusCode
+    }
+}

@@ -33,6 +33,9 @@ import Foundation
 protocol TimeProviderProtocol {
     /// Reference time interval
     var timeInterval: TimeInterval { get }
+
+    /// Reference dispatch time
+    var dispatchTime: DispatchTime { get }
 }
 
 /// Utility class that provides a time information
@@ -44,6 +47,13 @@ public class TimeProvider {
     /// On default implementation, corresponds to the time interval since reference date.
     public static var timeInterval: TimeInterval {
         return instance.timeInterval
+    }
+
+    /// Reference dispatch time.
+    ///
+    /// On default implementation, corresponds to the amount of time the system has been running.
+    public static var dispatchTime: DispatchTime {
+        return instance.dispatchTime
     }
 
     /// Current TimeProvider singleton instance.
@@ -68,8 +78,22 @@ private class DefaultTimeProvider: TimeProviderProtocol {
         return Date.timeIntervalSinceReferenceDate
     }
 
+    /// Reference dispatch time.
+    /// Corresponds to the amount of time the system has been running.
+    var dispatchTime: DispatchTime {
+        return DispatchTime.now()
+    }
+
     /// Private constructor
     fileprivate init() {
 
+    }
+}
+
+/// Extension of DispatchTime that adds uptime conversion.
+public extension DispatchTime {
+    /// The number of seconds since boot, excluding any time the system spent asleep.
+    var uptimeSeconds: Double {
+        return Double(uptimeNanoseconds) / 1_000_000_000.0
     }
 }

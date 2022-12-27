@@ -307,6 +307,23 @@ extension DriTypeConfig {
         // verify operator identifier with Luhn mod 36 algorithm
         return secretOperatorId.validateLuhn(base: 36)
     }
+
+    /// Tells if an operator identifier conforms to ASTM F3411 standard.
+    ///
+    /// Per ASTM F3411, operator string contains 20 ASCII characters.
+    ///
+    /// - Parameter uasOperator: operator identifier to verify
+    /// - Returns: `true` if the operator identifier is valid, `false` otherwise
+    func validateAstmf3411UasOperator(_ uasOperator: String) -> Bool {
+        guard 0 < uasOperator.count, uasOperator.count <= 20 else {
+            // invalid operator length
+            return false
+        }
+        let uasOperatorSet = CharacterSet(charactersIn: uasOperator)
+        let ascii = String(Array(0...127).map { Character(Unicode.Scalar($0)) })
+        let asciiSet = CharacterSet(charactersIn: ascii)
+        return asciiSet.isSuperset(of: uasOperatorSet)
+    }
 }
 
 /// Extension for validation with Luhn mod N algorithm.

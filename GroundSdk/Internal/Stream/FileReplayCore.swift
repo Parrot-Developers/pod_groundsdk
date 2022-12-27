@@ -38,32 +38,16 @@ public class FileReplayCore: ReplayCore, FileReplay {
 
     /// Constructor
     ///
-    /// - Parameter source: source to be played back
-    public init(source: FileReplaySource) {
+    /// - Parameters:
+    ///    - source: source to be played back
+    ///    - backend: stream backend
+    public init(source: FileReplaySource, backend: StreamCoreBackend) {
         self.source = source
 
         super.init()
 
-        let provider = GroundSdkCore.getInstance().utilities.getUtility(Utilities.fileReplayBackendProvider)!
-
-        backend = provider.getStreamBackend(url: source.file, trackName: source.trackName, stream: self)
-
+        self.backend = backend
         registerAppBackgroundObserver()
-    }
-
-    /// Create a stream backend.
-    ///
-    /// This is kept in a separated method, for testing purpose.
-    ///
-    /// - Parameters:
-    ///    - pompLoopUtil: pomp loop utility
-    ///    - source: video stream source
-    ///    - listener: listener that will be called when events happen on the stream
-    /// - Returns: a new 'ArsdkStream' instance on success, otherwise 'nil'
-    func createSdkCoreStream(pompLoopUtil: PompLoopUtil,
-                             source: SdkCoreFileSource,
-                             listener: ArsdkStreamListener) -> ArsdkStream? {
-        return ArsdkStream(pompLoopUtil: pompLoopUtil, listener: listener)
     }
 }
 

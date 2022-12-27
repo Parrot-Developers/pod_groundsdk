@@ -109,13 +109,9 @@ public extension BatteryDescription {
     ///   - cellMinVoltage: cell minimum voltage in mV
     ///   - cellMaxVoltage: cell maximum voltage in mV
     ///   - designCapacity: design capacity in mAh
-    init(date: String, serial: String, cellCount: UInt, cellMinVoltage: UInt, cellMaxVoltage: UInt,
+    init(date: Date?, serial: String, cellCount: UInt, cellMinVoltage: UInt, cellMaxVoltage: UInt,
          designCapacity: UInt) {
-        var datetime: tm = tm()
-        let configurationDate = strptime_l(date.cString(using: .utf8), "%d/%m/%Y", &datetime, nil).map { _ -> Date in
-            Date(timeIntervalSince1970: TimeInterval(mktime(&datetime)))
-        }
-        self = BatteryDescription(configurationDate: configurationDate,
+        self = BatteryDescription(configurationDate: date,
                                   serial: serial,
                                   cellCount: cellCount,
                                   cellMinVoltage: cellMinVoltage,

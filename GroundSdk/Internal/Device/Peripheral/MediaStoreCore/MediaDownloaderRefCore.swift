@@ -30,14 +30,14 @@
 import Foundation
 
 /// MediaDownloader Reference implementation
-class MediaDownloaderRefCore: Ref<MediaDownloader> {
+class MediaDownloaderRefCore: Ref<MediaDownloader>, MediaOperationRef {
 
     /// Media store instance
     private let mediaStore: MediaStoreCore
     /// number of media to download
     private let total: Int
     /// active delete request
-    private var request: CancelableTaskCore?
+    private(set) var request: CancelableCore?
 
     /// Constructor
     ///
@@ -57,14 +57,13 @@ class MediaDownloaderRefCore: Ref<MediaDownloader> {
                       type: type,
                       destination: destination) { [weak self] mediaDownloader in
                 // weak self in case backend call callback after cancelling request
-                self?.update(newValue: mediaDownloader)
+                guard let self = self else { return }
+                self.update(newValue: mediaDownloader)
         }
     }
 
     /// destructor
     deinit {
-        if let request = request {
-            request.cancel()
-        }
+        cancel()
     }
 }

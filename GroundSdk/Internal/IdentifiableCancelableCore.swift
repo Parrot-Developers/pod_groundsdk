@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2022 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,21 +29,23 @@
 
 import Foundation
 
-/// Core class for MediaReplay.
-public class MediaReplayCore: ReplayCore, MediaReplay {
+/// An identifiable cancelable core
+public protocol IdentifiableCancelableCore: CancelableCore {
+    /// The identifier.
+    var id: String { get }
+}
 
-    /// Played back media source.
-    public var source: MediaReplaySource
+/// A task of multiple request that can be canceled
+public class IdentifiableCancelableTaskCore: CancelableTaskCore, IdentifiableCancelableCore {
+    public let id: String
 
     /// Constructor
     ///
     /// - Parameters:
-    ///    - source: media source to be played back
-    ///    - backend: video stream backend
-    public init(source: MediaSourceCore, backend: StreamCoreBackend) {
-        self.source = source
-
-        super.init()
-        self.backend = backend
+    ///   - id: the identifier of the cancelable
+    ///   - request: the encapsulated cancelable request
+    public init(id: String, request: CancelableCore?) {
+        self.id = id
+        super.init(request: request)
     }
 }

@@ -30,18 +30,30 @@
 import Foundation
 
 /// Stream state.
-@objc(GSState)
+@objc(GSStreamState)
 public enum StreamState: Int, CustomStringConvertible {
     /// Stream is stopped.
+    ///
+    /// In this state, specific stream child interfaces do not provide any meaningful playback state information.
     case stopped
 
     /// Stream is suspended.
+    ///
+    /// In this state, specific stream child interfaces inform about the playback state that the stream will try
+    /// to recover once it can start again.
+    ///
+    /// Note that only `CameraLive` stream supports suspension.
     case suspended
 
     /// Stream is starting.
+    ///
+    /// In this state, specific stream child interfaces inform about the playback state that the stream will try
+    /// to apply once it is fully started.
     case starting
 
     /// Stream is started.
+    ///
+    /// In this state, specific stream child interfaces inform about the stream's current playback state.
     case started
 
     /// Debug description.
@@ -67,14 +79,11 @@ public protocol StreamSinkConfig {
 /// Stream sink interface.
 @objc(GSStreamSink)
 public protocol StreamSink {
-
-    /// Closes the sink.
-    func close()
 }
 
 /// Base stream interface.
 @objc(GSStream)
-public protocol Stream {
+public protocol Stream: AnyObject {
 
     /// Current state.
     var state: StreamState { get }
@@ -85,11 +94,4 @@ public protocol Stream {
     /// - Returns: the opened sink
     func openSink(config: StreamSinkConfig) -> StreamSink
 
-    /// Opens a YUV sink on the stream.
-    ///
-    /// - Parameters:
-    ///    - queue: queue into which callback are dispatched
-    ///    - listener: sink listener
-    /// - Returns: the opened sink
-    func openYuvSink(queue: DispatchQueue, listener: YuvSinkListener) -> StreamSink
 }

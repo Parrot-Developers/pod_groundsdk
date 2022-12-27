@@ -49,7 +49,7 @@ protocol GGLShaderLoader: AnyObject {
 extension GGLShaderLoader {
 
     @discardableResult
-    func loadShaders(vshName: String, fshName: String, bindClosure:((_ program: GLuint) -> Void) = {_ in }) -> Bool {
+    func loadShaders(vshName: String, fshName: String, bindClosure: ((_ program: GLuint) -> Void) = {_ in }) -> Bool {
         var vertShader: GLuint = 0, fragShader: GLuint = 0
 
         // Create shader program.

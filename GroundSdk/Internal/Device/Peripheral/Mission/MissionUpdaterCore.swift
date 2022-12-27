@@ -35,10 +35,11 @@ public protocol MissionUpdaterBackend: AnyObject {
     /// Uploads a mission to the server.
     ///
     /// - Parameters:
-    ///    - filePath: internal id (given by the drone when the mission was installed).
-    ///    - overwrite: overwrite the mission if it is present on drone.
-    ///    - postpone: postpone the installation until next reboot.
-    func upload(filePath: URL, overwrite: Bool, postpone: Bool) -> CancelableCore?
+    ///    - filePath: URL of the mission file to upload
+    ///    - overwrite: `true` to overwrite any potentially existing mission with the same uid
+    ///    - postpone: `true` to postpone the installation until next reboot
+    ///    - makeDefault: `true` to make the uploaded mission the default one (starts at drone boot)
+    func upload(filePath: URL, overwrite: Bool, postpone: Bool, makeDefault: Bool) -> CancelableCore?
 
     /// Deletes a mission.
     ///
@@ -80,44 +81,20 @@ public class MissionUpdaterCore: PeripheralCore, MissionUpdater {
         super.init(desc: Peripherals.missionsUpdater, store: store)
     }
 
-    /// Uploads a mission to the server and installs it immediately.
-    /// The mission will be activable on next reboot, the `complete` function should be called for this purpose.
-    ///
-    /// - Parameters:
-    ///    - filePath: internal id (given by the drone when the mission was installed).
-    ///    - overwrite: overwrite the mission if it is present on drone.
-    public func upload(filePath: URL, overwrite: Bool) -> CancelableCore? {
-        return self.backend.upload(filePath: filePath, overwrite: overwrite, postpone: false)
+    public func upload(filePath: URL, overwrite: Bool, postpone: Bool, makeDefault: Bool)
+        -> CancelableCore? {
+            return self.backend.upload(filePath: filePath, overwrite: overwrite, postpone: postpone,
+                                       makeDefault: makeDefault)
     }
 
-    /// Uploads a mission to the server.
-    /// The mission is installed immediately or upon next reboot, depending on the `postpone` parameter.
-    /// In any case, the mission will be activable on next reboot, the `complete` function should be called for this
-    /// purpose.
-    ///
-    /// - Parameters:
-    ///    - filePath: internal id (given by the drone when the mission was installed).
-    ///    - overwrite: overwrite the mission if it is present on drone.
-    ///    - postpone: postpone the installation until next reboot.
-    public func upload(filePath: URL, overwrite: Bool, postpone: Bool = false) -> CancelableCore? {
-        return self.backend.upload(filePath: filePath, overwrite: overwrite, postpone: postpone)
-    }
-
-    /// Deletes a mission.
-    ///
-    /// - Parameters:
-    ///    - uid: internal id (given by the drone when the mission was installed).
-    ///    - success: true if the delete was successfull, else false
     public func delete(uid: String, success: @escaping (Bool) -> Void) {
         return self.backend.delete(uid: uid, success: success)
     }
 
-    /// Browses all missions.
     public func browse() {
         self.backend.browse()
     }
 
-    /// Completes the installation of the uploaded missions by rebooting the drone.
     public func complete() {
         self.backend.complete()
     }

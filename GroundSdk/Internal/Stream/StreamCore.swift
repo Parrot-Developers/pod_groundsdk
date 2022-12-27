@@ -29,6 +29,26 @@
 
 import Foundation
 
+/// SinkCore Handler
+/// Used to close sinkCore when StreamSinkCore is deinit.
+public class StreamSinkCore: StreamSink {
+
+    /// SinkCore handled
+    weak var sinkCore: SinkCore?
+
+    /// Constructor
+    ///
+    /// - Parameter sinkCore: sinkCore handled
+    init(sinkCore: SinkCore) {
+        self.sinkCore = sinkCore
+    }
+
+    /// Destructor
+    deinit {
+        sinkCore?.close()
+    }
+}
+
 /// Stream play state.
 public enum StreamPlayState: Int {
     /// Stream stopped, nothing reserved on the drone.
@@ -49,7 +69,7 @@ public enum StreamPlayState: Int {
 }
 
 /// Stream backend.
-public protocol StreamBackend {
+public protocol StreamCoreBackend {
 
     /// If `false` the stream is forced to stop regardless of the `state`,
     /// if `true` the stream is enabled and the `state` is effective.
@@ -66,23 +86,17 @@ public protocol StreamBackend {
 
     /// Seeks to a time position.
     ///
-    /// - Parameter position: position to seek, in second
+    /// - Parameter position: position to seek, in seconds
     func seek(position: Int)
 
     /// Stops the stream.
     func stop()
 
-    /// Retrieves RendererSink backend.
+    /// Creates a new `SinkCore` on the stream with given `config`.
     ///
-    /// - Parameter renderSink: GlRenderSinkCore owner of this backend.
-    /// - returns: new GlRenderSink backend
-    func getRenderSinkBackend(renderSink: GlRenderSinkCore) -> GlRenderSinkBackend
-
-    /// Retrieves YuvSink backend.
-    ///
-    /// - Parameter yuvSink: YuvSinkCore owner of this backend.
-    /// - returns: new YuvSink backend
-    func getYuvSinkBackend(yuvSink: YuvSinkCore) -> YuvSinkBackend
+    /// - Parameter config: sink configuration
+    /// - Returns: the opened sink
+    func newSink(config: SinkCoreConfig) -> SinkCore
 }
 
 /// Internal Stream implementation.
@@ -114,7 +128,7 @@ public class StreamCore: NSObject, Stream {
     }
 
     /// Video stream backend, nil when closed.
-    var backend: StreamBackend!
+    var backend: StreamCoreBackend!
 
     /// Current stream state.
     public var state: StreamState = .stopped
@@ -130,6 +144,7 @@ public class StreamCore: NSObject, Stream {
 
     /// Destructor.
     deinit {
+        unpublish()
         listeners.removeAll()
     }
 
@@ -139,28 +154,8 @@ public class StreamCore: NSObject, Stream {
     /// - Returns: the opened sink
     public func openSink(config: StreamSinkConfig) -> StreamSink {
         let config = config as! SinkCoreConfig
-        let sink = config.openSink(stream: self)
-        return sink
-    }
-
-    public func openYuvSink(queue: DispatchQueue, listener: YuvSinkListener) -> StreamSink {
-        return openSink(config: YuvSinkCore.config(queue: queue, listener: listener))
-    }
-
-    /// Retrieves RendererSink backend.
-    ///
-    /// - Parameter renderSink: GlRenderSinkCore owner of this backend.
-    /// - returns : new GlRenderSink backend
-    public func getRenderSinkBackend(renderSink: GlRenderSinkCore) -> GlRenderSinkBackend {
-        return backend.getRenderSinkBackend(renderSink: renderSink)
-    }
-
-    /// Retrieves YuvSink backend.
-    ///
-    /// - Parameter yuvSink: YuvSinkCore owner of this backend.
-    /// - returns: new YuvSink backend
-    public func getYuvSinkBackend(yuvSink: YuvSinkCore) -> YuvSinkBackend {
-        return backend.getYuvSinkBackend(yuvSink: yuvSink)
+        let sinkCore = backend.newSink(config: config)
+        return StreamSinkCore(sinkCore: sinkCore)
     }
 
     /// Register a new listener.
@@ -210,26 +205,6 @@ public class StreamCore: NSObject, Stream {
         }
     }
 
-    /// Interrupts the stream, allowing it (if supported) to be resumed automatically later.
-    /// Default impementation just stop the stream.
-    /// Subclasses may override this method to properly interrupt the stream.
-    public func interrupt() {
-        if released {
-            ULog.w(.streamTag, "interrupt failed: stream already released.")
-            return
-        }
-
-        backend.enabled = false
-        backend.stop()
-    }
-
-    /// Resumes the stream (if supported), after have been interrupted.
-    /// Default impementation do nothing.
-    /// Subclasses may override this method to properly resume the stream.
-    public func resume() {
-        backend.enabled = true
-    }
-
     /// Stops the stream.
     public func stop() {
         if released {
@@ -240,7 +215,7 @@ public class StreamCore: NSObject, Stream {
         backend.stop()
     }
 
-    /// Release the stream, stopping it if required.
+    /// Releases the stream.
     ///
     /// Stream must not be used after this method is called.
     public func releaseStream() {
@@ -248,11 +223,9 @@ public class StreamCore: NSObject, Stream {
             ULog.w(.streamTag, "release failed: stream already released.")
             return
         }
-        backend.stop()
         released = true
         unpublish()
         listeners.removeAll()
-        onRelease()
     }
 
     /// Notifies that the stream playback starts.
@@ -284,10 +257,6 @@ public class StreamCore: NSObject, Stream {
     ///
     /// - Parameter playState: stream play state
     func onPlayStateChanged(playState: StreamPlayState) {}
-
-    /// Notifies that the stream has been released.
-    /// Subclasses may override this method to properly update their own state.
-    func onRelease() {}
 }
 
 /// Backend callback methods.

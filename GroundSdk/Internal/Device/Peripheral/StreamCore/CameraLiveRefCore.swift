@@ -33,7 +33,9 @@ import Foundation
 class CameraLiveRefCore: Ref<CameraLive> {
 
     /// Camera live stream instance
-    private let stream: CameraLiveCore
+    private var stream: CameraLiveCore? {
+        value as? CameraLiveCore
+    }
 
     /// Camera live stream listener
     private var streamListener: CameraLiveCore.Listener!
@@ -44,7 +46,6 @@ class CameraLiveRefCore: Ref<CameraLive> {
     ///   - observer: observer notified of state change
     ///   - stream: camera live stream instance
     init(observer: @escaping Observer, stream: CameraLiveCore) {
-        self.stream = stream
         super.init(observer: observer)
         // register ourself on change notifications
         streamListener = stream.register(
@@ -54,6 +55,7 @@ class CameraLiveRefCore: Ref<CameraLive> {
             },
             unpublish: { [unowned self] in
                 // unpublish stream
+                self.stream?.unregister(listener: streamListener)
                 self.update(newValue: nil)
         })
         setup(value: stream)
@@ -61,6 +63,6 @@ class CameraLiveRefCore: Ref<CameraLive> {
 
     /// Destructor
     deinit {
-        stream.unregister(listener: streamListener)
+        stream?.unregister(listener: streamListener)
     }
 }

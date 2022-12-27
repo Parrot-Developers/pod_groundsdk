@@ -29,58 +29,68 @@
 
 import Foundation
 
-/// A node of a list
-/// T: node data
-class LinkedListNode<T> {
-    /// Next node in the list
-    fileprivate var next: LinkedListNode?
-    /// Previous node
-    fileprivate weak var prev: LinkedListNode?
-    /// Node content
-    var content: T?
-
-    /// Constructor
-    init() {
-    }
-
-    /// Constructor with an initial content
-    ///
-    /// - Parameter content: initial content
-    init(content: T) {
-        self.content = content
-    }
-}
-
 /// A Double linked list
 /// T: List entry type
 class LinkedList<T> {
 
+    /// A node of a list
+    /// T: node data
+    class Node {
+        /// Next node in the list
+        fileprivate var next: Node?
+        /// Previous node
+        fileprivate weak var prev: Node?
+        /// Node content
+        var content: T?
+
+        /// Constructor
+        init() {
+        }
+
+        /// Constructor with an initial content
+        ///
+        /// - Parameter content: initial content
+        init(content: T) {
+            self.content = content
+        }
+    }
+
     /// Root node
-    private let list = LinkedListNode<T>()
+    private let root = Node()
 
     /// Constructor
     init() {
-        list.next = list
-        list.prev = list
+        root.next = root
+        root.prev = root
     }
 
     /// Push a node on the list head
     ///
     /// - Parameter node: note to push. It will become the first element of the list.
-    func push(_ node: LinkedListNode<T>) {
-        list.next?.prev = node
-        node.next = list.next
-        node.prev = list
-        list.next = node
+    func insert(_ node: LinkedList<T>.Node) {
+        root.next?.prev = node
+        node.next = root.next
+        node.prev = root
+        root.next = node
     }
 
     /// Pop the node on the list head
     ///
     /// - Returns: first node, nil if the list is empty
-    func pop() ->  LinkedListNode<T>? {
-        let node = list.next
-        if node !== list {
-            remove(node!)
+    func pop() -> LinkedList<T>.Node? {
+        guard let node = head() else {
+            return nil
+        }
+        remove(node)
+        return node
+    }
+
+    /// Pop the node on the list head
+    ///
+    /// - Returns: first node, nil if the list is empty
+    func head() -> LinkedList<T>.Node? {
+        let node = root.next
+        if node !== root {
             return node
         }
         return nil
@@ -89,17 +99,28 @@ class LinkedList<T> {
     /// Queue a node at the tail of the list
     ///
     /// - Parameter node: node to queue. It will become the last element of the list
-    func queue(_ node: LinkedListNode<T>) {
-        list.prev!.next = node
-        node.next = list
-        node.prev = list.prev
-        list.prev = node
+    func enqueue(_ node: LinkedList<T>.Node) {
+        root.prev!.next = node
+        node.next = root
+        node.prev = root.prev
+        root.prev = node
+    }
+
+    /// Queue a node at the tail of the list
+    ///
+    /// - Parameter node: node to queue. It will become the last element of the list
+    func tail() -> LinkedList<T>.Node? {
+        let node = root.prev
+        if node !== root {
+            return node
+        }
+        return nil
     }
 
     /// Remove a node from the list
     ///
     /// - Parameter node: node to remove
-    func remove(_ node: LinkedListNode<T>) {
+    func remove(_ node: LinkedList<T>.Node) {
          if let next = node.next, let prev = node.prev {
             next.prev = prev
             prev.next = next
@@ -111,11 +132,11 @@ class LinkedList<T> {
     /// Walk through the list in forward order
     ///
     /// - Parameter until: closure called for each node, while it return true
-    func walk(while: (LinkedListNode<T>) -> Bool) {
-        var node = list.next!
+    func walk(while: (LinkedList<T>.Node) -> Bool) {
+        var node = root.next!
         // preload next to allow closure to remove current node
         var next = node.next!
-        while node !== list && `while`(node) {
+        while node !== root && `while`(node) {
             node = next
             next = node.next!
         }
@@ -124,11 +145,11 @@ class LinkedList<T> {
     /// Walk through the list in reverse order
     ///
     /// - Parameter until: closure called for each node, while it return true
-    func reverseWalk(while: (LinkedListNode<T>) -> Bool) {
-        var node = list.prev!
+    func reverseWalk(while: (LinkedList<T>.Node) -> Bool) {
+        var node = root.prev!
         // preload previous to allow closure to remove current node
         var prev = node.prev!
-        while node !== list && `while`(node) {
+        while node !== root && `while`(node) {
             node = prev
             prev = node.prev!
         }
@@ -136,7 +157,7 @@ class LinkedList<T> {
 
     /// Remove all items from the list
     func reset() {
-        list.next = list
-        list.prev = list
+        root.next = root
+        root.prev = root
     }
 }

@@ -101,7 +101,7 @@ public enum DeviceModel: CustomStringConvertible {
 
     /// List of devices that can be connectable through usb.
     private static var usbDevices: Set<DeviceModel> = [.rc(.skyCtrl3), .rc(.skyCtrl4), .rc(.skyCtrl4Black),
-                                                       .rc(.skyCtrlUA)]
+                                                       .rc(.skyCtrlUA), .rc(.skyCtrl5)]
 
     /// List of devices that can be connectable through wifi.
     private static var wifiDevices: Set<DeviceModel> = [.drone(.anafi4k), .drone(.anafiThermal), .drone(.anafi2),

@@ -325,13 +325,9 @@ open class StreamView: GLKView {
             return
         }
 
-        if let sink = self.sink {
-            sink.close()
-            self.sink = nil
-        }
+        sink = nil
 
         self.stream = stream
-
         if let stream = self.stream {
             sink = stream.openSink(config: GlRenderSinkCore.config(listener: self))
         }

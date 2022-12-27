@@ -29,12 +29,12 @@
 
 import Foundation
 
-class MediaDeleterRefCore: Ref<MediaDeleter> {
+class MediaDeleterRefCore: Ref<MediaDeleter>, MediaOperationRef {
 
     /// Media store instance
     private let mediaStore: MediaStoreCore
     /// active delete request
-    private var request: CancelableTaskCore?
+    private(set) var request: CancelableCore?
 
     /// Constructor
     ///
@@ -57,18 +57,16 @@ class MediaDeleterRefCore: Ref<MediaDeleter> {
 
     /// destructor
     deinit {
-        if let request = request {
-            request.cancel()
-        }
+        cancel()
     }
 }
 
-class AllMediasDeleterRefCore: Ref<AllMediasDeleter> {
+class AllMediasDeleterRefCore: Ref<AllMediasDeleter>, MediaOperationRef {
 
     /// Media store instance
     private let mediaStore: MediaStoreCore
     /// active delete request
-    private var request: CancelableTaskCore?
+    private(set) var request: CancelableCore?
 
     /// Constructor
     ///
@@ -80,16 +78,13 @@ class AllMediasDeleterRefCore: Ref<AllMediasDeleter> {
         super.init(observer: observer)
         request = mediaStore.backend.deleteAll { [weak self] mediaDeleter in
             // weak self in case backend call callback after cancelling request
-            if let `self` = self {
-                `self`.update(newValue: mediaDeleter)
-            }
+            guard let self = self else { return }
+            self.update(newValue: mediaDeleter)
         }
     }
 
     /// destructor
     deinit {
-        if let request = request {
-            request.cancel()
-        }
+        cancel()
     }
 }

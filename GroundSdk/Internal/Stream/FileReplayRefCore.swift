@@ -33,18 +33,24 @@ import Foundation
 class FileReplayRefCore: Ref<FileReplay> {
 
     /// File replay stream instance
-    private let stream: FileReplayCore
+    private var stream: FileReplayCore? {
+        value as? FileReplayCore
+    }
 
     /// File replay stream listener
     private var streamListener: FileReplayCore.Listener!
 
+    /// Utility providing the stream
+    private weak var provider: FileReplayProvider?
+
     /// Constructor
     ///
     /// - Parameters:
-    ///   - stream: file replay stream instance
+    ///   - provider: utility providing the stream
+    ///   - stream: local file replay stream instance
     ///   - observer: observer notified of state change
-    init(stream: FileReplayCore, observer: @escaping Observer) {
-        self.stream = stream
+    init(provider: FileReplayProvider, stream: FileReplayCore, observer: @escaping Observer) {
+        self.provider = provider
         super.init(observer: observer)
         // register ourself on change notifications
         streamListener = stream.register(
@@ -61,7 +67,9 @@ class FileReplayRefCore: Ref<FileReplay> {
 
     /// Destructor
     deinit {
-        stream.unregister(listener: streamListener)
-        stream.releaseStream()
+        if let stream = stream {
+            stream.unregister(listener: streamListener)
+            provider?.releaseFileReplay(stream: stream)
+        }
     }
 }

@@ -54,6 +54,9 @@ public enum DriType: String, CustomStringConvertible, CaseIterable {
     /// DRI wifi beacon respects the french regulation.
     case french
 
+    /// DRI wifi beacon respects the ASTN F341122 US regulation.
+    case astmF3411
+
     /// Debug description.
     public var description: String { rawValue }
 }
@@ -64,6 +67,10 @@ public enum DriTypeConfig: Hashable, CustomStringConvertible {
     /// - operatorId: operator identifier
     case en4709_002(operatorId: String = "")
 
+    /// DRI wifi beacon respects the ASTN F341122 US regulation.
+    /// - operatorId: operator identifier
+    case astmF3411(operatorId: String = "")
+
     /// DRI wifi beacon respects the french regulation.
     case french
 
@@ -71,6 +78,7 @@ public enum DriTypeConfig: Hashable, CustomStringConvertible {
     public var type: DriType {
         switch self {
         case .en4709_002: return .en4709_002
+        case .astmF3411: return .astmF3411
         case .french: return .french
         }
     }
@@ -82,6 +90,7 @@ public enum DriTypeConfig: Hashable, CustomStringConvertible {
     public var isValid: Bool {
         switch self {
         case .en4709_002(let operatorId): return validateEn4709UasOperator(operatorId)
+        case .astmF3411(let operatorId): return validateAstmf3411UasOperator(operatorId)
         case .french: return true
         }
     }
@@ -91,6 +100,7 @@ public enum DriTypeConfig: Hashable, CustomStringConvertible {
         switch self {
         case .french: return "french"
         case .en4709_002(let operatorId): return "en4709_002 \(operatorId)"
+        case .astmF3411(let operatorId): return "astmF3411 \(operatorId)"
         }
     }
 }

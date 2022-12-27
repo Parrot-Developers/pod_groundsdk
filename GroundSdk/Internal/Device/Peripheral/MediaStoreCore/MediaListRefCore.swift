@@ -30,13 +30,31 @@
 import Foundation
 
 /// Implementation of a reference on a list of media items
-class MediaListRefCore: Ref<[MediaItem]> {
+class MediaListRefCore: Ref<[MediaItem]>, MediaOperationRef {
     /// Media store instance
     private let mediaStore: MediaStoreCore
     /// Media store listener
     private var mediaStoreListener: MediaStoreCore.Listener!
     /// Running media browse request, nil if there are no queries running
-    private var request: CancelableCore?
+    private(set) var request: CancelableCore?
+
+    /// A list of the change events that occurred after the initial browse request, that should be
+    /// treated upon the completion of the initial browse request.
+    private var pendingChangeEvents = [MediaStoreChangeEvent]()
+
+    /// The current storage type that is being browsed.
+    private var storageType: StorageType?
+
+    /// The current indexing state.
+    private var indexingState: MediaStoreIndexingState {
+        mediaStore.indexingState
+    }
+
+    /// Convenience accessor to the `value` of the `Ref` returning the `value` typed to a
+    /// implementation dependent type.
+    private var medias: [MediaItemCore] {
+        self.value as! [MediaItemCore]
+    }
 
     /// Constructor
     ///
@@ -45,67 +63,118 @@ class MediaListRefCore: Ref<[MediaItem]> {
     ///   - mediaStore: media store instance
     ///   - observer: observer notified when the list changes
     init(storage: StorageType? = nil, mediaStore: MediaStoreCore, observer: @escaping Observer) {
+        self.storageType = storage
         self.mediaStore = mediaStore
         super.init(observer: observer)
         // register ourself on store change notifications
-        mediaStoreListener = mediaStore.register {  [unowned self] in
+        mediaStoreListener = mediaStore.register { [unowned self] event in
             // store content changed, update media list
-            self.updateMediaList(storageType: storage)
+            self.mediaEventOccured(event, forStorageType: storage)
         }
         setup(value: nil)
         // send the initial query
-        updateMediaList(storageType: storage)
+        if indexingState == .indexed {
+            browse(storageType: storage)
+        }
     }
 
     /// destructor
     deinit {
-        if let request = request {
-            request.cancel()
-        }
+        cancel()
         mediaStore.unregister(listener: mediaStoreListener)
     }
+}
+
+private extension MediaListRefCore {
 
     /// Send a request to load media list
-    private func updateMediaList(storageType: StorageType? = nil) {
-        if mediaStore.published {
-            if request == nil {
-                if let storageType = storageType {
-                    request = mediaStore.backend.browse(storage: storageType, completion: { [weak self] medias in
+    func mediaEventOccured(_ event: MediaStoreChangeEvent, forStorageType storageType: StorageType? = nil) {
+        guard mediaStore.published  else {
+            // not published, set the media list to nil
+            pendingChangeEvents = []
+            update(newValue: nil)
+            return
+        }
+        switch event {
+        case .indexingStateChanged(oldState: let old, newState: let new):
+            // if the new state is indexed then browse the whole media store
+            if old != .indexed, new == .indexed {
+                browse(storageType: storageType)
+            }
+        default:
+            // while browsing there can be changes, keep them so they can be replayed after
+            // the browsing ends
+            if request != nil {
+                pendingChangeEvents.append(event)
+            } else {
+                let newList = process(event: event, medias: self.medias)
+                update(newValue: newList)
+            }
+        }
+    }
 
-                        // weak self in case backend call callback after cancelling request
-                        if let `self` = self {
-                            `self`.request = nil
-                            // copy user data into the new items
-                            if let currentList = self.value as? [MediaItemCore] {
-                                for media in medias {
-                                    media.userData = currentList.first(where: {return $0.uid == media.uid})?.userData
-                                }
-                            }
-                            // update the ref with the new list
-                            `self`.update(newValue: medias)
-                        }
-                    })
-                } else {
-                    request = mediaStore.backend.browse { [weak self] medias in
+    /// Apply the change described by a `MediaStoreChangeEvent` to a given list of medias returning
+    /// the resulting list of medias.
+    ///
+    /// - Parameters:
+    ///   - event: the change event describing the change that occured.
+    ///   - medias: the list to act upon.
+    /// - Returns: a new list that reflects the change as described by the `event`.
+    func process(event: MediaStoreChangeEvent, medias: [MediaItemCore]) -> [MediaItemCore] {
+        var newList = medias
+        switch event {
+        case .allMediaRemoved:
+            newList = []
 
-                        // weak self in case backend call callback after cancelling request
-                        if let `self` = self {
-                            `self`.request = nil
-                            // copy user data into the new items
-                            if let currentList = self.value as? [MediaItemCore] {
-                                for media in medias {
-                                    media.userData = currentList.first(where: {return $0.uid == media.uid})?.userData
-                                }
-                            }
-                            // update the ref with the new list
-                            `self`.update(newValue: medias)
-                        }
-                    }
+        case .createdMedia(let newMedia):
+            if storageType == nil || (storageType != nil && newMedia.resources.first?.storage == storageType) {
+                newList.append(newMedia)
+            }
+
+        case .removedMedia(mediaId: let removedMediaId):
+            newList.removeAll(where: { $0.uid == removedMediaId })
+
+        case .createdResource(let newResource, mediaId: let mediaId):
+            if storageType == nil || (storageType != nil && newResource.storage == storageType),
+               let concernedMediaIndex = newList.firstIndex(where: { $0.uid == mediaId }) {
+                newList[concernedMediaIndex] = newList[concernedMediaIndex].mediaWithResource(newResource)
+            }
+
+        case .removedResource(resourceId: let removedResourceId):
+            if let concernedMediaIndex = newList.firstIndex(where: { (media: MediaItemCore) in
+                media.resources.contains(where: { $0.uid == removedResourceId })
+            }) {
+                newList[concernedMediaIndex] = newList[concernedMediaIndex]
+                    .mediaWithoutResource(removedResourceId)
+            }
+        default:
+            break
+        }
+        return newList
+    }
+
+    func browse(storageType: StorageType?) {
+        guard request == nil else { return }
+        pendingChangeEvents = []
+        request = mediaStore.backend.browse(storage: storageType, completion: { [weak self] medias in
+            // weak self in case backend call callback after cancelling request
+            guard let self = self else { return }
+            self.request = nil
+            var medias = medias
+            // copy user data into the new items
+            if let currentList = self.value as? [MediaItemCore] {
+                for media in medias {
+                    media.userData = currentList.first(where: {
+                        $0.uid == media.uid
+                    })?.userData
                 }
             }
-        } else {
-            // not published, set the media list to nil
-            update(newValue: nil)
-        }
+            self.pendingChangeEvents.forEach { event in
+                medias = self.process(event: event, medias: medias)
+            }
+            self.pendingChangeEvents = []
+            // update the ref with the new list
+            self.update(newValue: medias)
+        })
     }
 }

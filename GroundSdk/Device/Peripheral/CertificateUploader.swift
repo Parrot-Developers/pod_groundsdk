@@ -29,6 +29,52 @@
 
 import Foundation
 
+/// Certificate upload state.
+public enum CertificateUploadState: CustomStringConvertible {
+
+    /// The certificate upload is in progress.
+    case uploading
+
+    /// The certificate upload was successful.
+    case success
+
+    /// The certificate upload has failed.
+    case failed
+
+    /// The certificate upload has been canceled.
+    case canceled
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .uploading:    return "uploading"
+        case .success:      return "success"
+        case .failed:       return "failed"
+        case .canceled:     return "canceled"
+        }
+    }
+}
+
+/// Information about the certificate.
+public struct CertificateInfo {
+
+    /// The list of debug features.
+    public let debugFeatures: [String]
+
+    /// The list of premium features.
+    public let premiumFeatures: [String]
+
+    /// Constructor.
+    ///
+    /// - Parameters:
+    ///   - debugFeatures: list of debug features
+    ///   - premiumFeatures: list of premium features
+    public init(debugFeatures: [String], premiumFeatures: [String]) {
+        self.debugFeatures = debugFeatures
+        self.premiumFeatures = premiumFeatures
+    }
+}
+
 /// Certificate Uploader peripheral interface.
 ///
 /// This peripheral allows to upload certificates to connected devices, in order to unlock new features on the drone.
@@ -38,13 +84,29 @@ import Foundation
 /// device.getPeripheral(Peripherals.certificateUploader)
 /// ```
 public protocol CertificateUploader: Peripheral {
+    /// Latest upload state.
+    var state: CertificateUploadState? { get }
 
     /// Uploads a certificate file to the drone.
     ///
-    /// When the upload ends, the drone will restart
+    /// For a successful upload, the drone has to remain in a landed state for the whole upload duration.
     ///
-    /// - Parameter filepath: local path of the file to upload
-    func upload(certificate filepath: String)
+    /// - Parameter certificate: local path of the file to upload
+    func upload(certificate filepath: String) -> CancelableCore?
+
+    /// Fetches the signature of the current license certificate installed on the device.
+    ///
+    /// - Parameters:
+    ///   - completion: the completion callback
+    ///   - signature: the retrieved signature
+    func fetchSignature(completion: @escaping (_ signature: String?) -> Void)
+
+    /// Fetches the information of the current license certificate installed on the drone.
+    ///
+    /// - Parameters:
+    ///   - completion: the completion callback
+    ///   - info: the retrieved information
+    func fetchInfo(completion: @escaping (_ info: CertificateInfo?) -> Void)
 }
 
 /// :nodoc:

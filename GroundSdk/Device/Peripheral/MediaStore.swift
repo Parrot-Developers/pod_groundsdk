@@ -77,12 +77,20 @@ public enum MediaTaskStatus: Int, CustomStringConvertible {
     }
 }
 
+public protocol MediaOperation: AnyObject {
+}
+
+public protocol MediaOperationRef: MediaOperation, CancelableCore {
+    /// Active request
+    var request: CancelableCore? { get }
+}
+
 /// Media deleter, containing info on a delete medias task.
 ///
 /// - Seealso: `MediaStore.newDeleter(medias:observer:)`
 @objcMembers
 @objc(GSMediaDeleter)
-public class MediaDeleter: NSObject {
+public class MediaDeleter: NSObject, MediaOperation {
     /// Total number of media to delete.
     public let totalCount: Int
 
@@ -110,7 +118,7 @@ public class MediaDeleter: NSObject {
 /// - Seealso: `MediaStore.newAllMediaDeleter(observer:)`
 @objcMembers
 @objc(GSAllMediaDeleter)
-public class AllMediasDeleter: NSObject {
+public class AllMediasDeleter: NSObject, MediaOperation {
     /// Delete progress status.
     public let status: MediaTaskStatus
 
@@ -222,7 +230,7 @@ public enum StorageType: Int, CustomStringConvertible {
 /// - Seealso: `MediaStore.newDownloader`
 @objcMembers
 @objc(GSMediaDownloader)
-public class MediaDownloader: NSObject {
+public class MediaDownloader: NSObject, MediaOperation {
     /// Total number of media to download.
     public let totalMediaCount: Int
 
@@ -284,11 +292,11 @@ public class MediaDownloader: NSObject {
 /// Resource uploader, containing info on a resource upload task.
 ///
 /// - Seealso: `MediaStore.newUploader`
-public class ResourceUploader {
+public class ResourceUploader: MediaOperation {
     /// Media item with which uploaded resource files will be associated.
     public let targetMedia: MediaItem
 
-    /// Total number of resource to upload.
+    /// Total number of resources to upload.
     public let totalResourceCount: Int
 
     /// Number of already uploaded resources.
@@ -349,43 +357,46 @@ public protocol MediaStore: Peripheral {
 
     /// Creates a new Media list.
     ///
-    /// This function starts loading the media store content, and notify when it has been loaded and each time
-    /// the content changes.
+    /// This function starts loading the media store content, and notifies when it has been loaded
+    /// and each time the content changes.
     ///
     /// - Parameters:
-    ///   - observer: observer notified when the media list has been loaded or has change.
+    ///   - observer: observer which gets notified when the media list loads or changes
     ///   - medias: list media, `nil` if the store has been removed
-    /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
-    ///   called.
+    /// - Returns: a reference on a list of `MediaItem`. Caller must keep this instance referenced
+    ///   for the observer to be called.
     func newList(observer: @escaping (_ medias: [MediaItem]?) -> Void) -> Ref<[MediaItem]>
 
     /// Creates a new Media list for a specific storage.
     ///
-    /// This function starts loading the media store content on  a specific storage, and notify when it has been loaded
-    /// and each time the content changes.
+    /// This function starts loading the media store content on a specific storage, and notifies
+    /// when it has been loaded and each time the content changes.
     ///
     /// - Parameters:
     ///   - storage: storage type on which the Media list will be created
-    ///   - observer: observer notified when the media list has been loaded or has change.
+    ///   - observer: observer which gets notified when the media list loads or changes
     ///   - medias: list media, `nil` if the store has been removed
-    /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
-    ///   called.
-    /// - Note: if storage is `nil`, the MediaItem in any storage are returned in medias.
-    func newList(storage: StorageType?, observer: @escaping (_ medias: [MediaItem]?) -> Void) -> Ref<[MediaItem]>
+    /// - Returns: a reference on a list of `MediaItem`. Caller must keep this instance referenced
+    ///   for the observer to be called.
+    /// - Note: if storage is `nil`, `MediaItem`s in any storage are returned in the list.
+    func newList(storage: StorageType?,
+                 observer: @escaping (_ medias: [MediaItem]?) -> Void) -> Ref<[MediaItem]>
 
     /// Creates a new media thumbnail downloader.
     ///
     /// - Parameters:
     ///   - media: media item to download the thumbnail from
-    ///   - observer: observer called when the thumbnail has been downloaded. Observer is called immediately if the
-    ///     thumbnail is already cached
+    ///   - observer: observer called when the thumbnail has been downloaded. Observer is called
+    ///     immediately if the thumbnail is already cached
     ///   - thumbnail: loaded or cached thumbnail, `nil` if the thumbnail can't be downloaded
-    /// - Returns: A reference of the media downloader. Caller must keep this instance referenced for the observer
-    ///   to be called.
-    /// - Note: Typical usage in a UITableView is to call 'newMediaThumbnailDownloader' in 'UITableViewDataSource.
-    ///   tableView:cellForRowAt:' and store the returned 'Ref<UIImage>' inside the 'UITableViewCell'.
-    ///   Then in the 'UITableViewCell.prepareForReuse' function set the 'Ref<UIImage>' to cancel the download request.
-    func newThumbnailDownloader(media: MediaItem, observer: @escaping (_ thumbnail: UIImage?) -> Void) -> Ref<UIImage>
+    /// - Returns: A reference of the media downloader. Caller must keep this instance referenced
+    ///   for the observer to be called.
+    /// - Note: Typical usage in a `UITableView` is to call `newMediaThumbnailDownloader()` in
+    ///   `UITableViewDataSource.(tableView:cellForRowAt:)` and store the returned `Ref<UIImage>`
+    ///   inside the `UITableViewCell`. Then in the `UITableViewCell.prepareForReuse()` function
+    ///   set the stored `Ref<UIImage>` to `nil` to cancel the download request.
+    func newThumbnailDownloader(media: MediaItem,
+                                observer: @escaping (_ thumbnail: UIImage?) -> Void) -> Ref<UIImage>
 
     /// Create a new resource thumbnail downloader.
     ///
@@ -394,13 +405,14 @@ public protocol MediaStore: Peripheral {
     ///   - observer: observer called when the thumbnail has been downloaded. Observer is called immediately if the
     ///     thumbnail is already cached
     ///   - thumbnail: loaded or cached thumbnail, `nil` if the thumbnail can't be downloaded
-    /// - Returns: A reference of the resource downloader. Caller must keep this instance referenced for the observer
-    ///   to be called.
-    /// - Note: Typical usage in a UITableView is to call 'newMediaThumbnailDownloader' in 'UITableViewDataSource.
-    ///   tableView:cellForRowAt:' and store the returned 'Ref<UIImage>' inside the 'UITableViewCell'.
-    ///   Then in the 'UITableViewCell.prepareForReuse' function set the 'Ref<UIImage>' to cancel the download request.
-    func newThumbnailDownloader(
-        resource: MediaItem.Resource, observer: @escaping (_ thumbnail: UIImage?) -> Void) -> Ref<UIImage>
+    /// - Returns: A reference of the resource downloader. Caller must keep this instance referenced
+    ///   for the observer to be called.
+    /// - Note: Typical usage in a `UITableView` is to call `newMediaThumbnailDownloader()` in
+    ///   `UITableViewDataSource.(tableView:cellForRowAt:)` and store the returned `Ref<UIImage>`
+    ///   inside the `UITableViewCell`. Then in the `UITableViewCell.prepareForReuse()` function
+    ///   set the stored `Ref<UIImage>` to `nil` to cancel the download request.
+    func newThumbnailDownloader(resource: MediaItem.Resource,
+                                observer: @escaping (_ thumbnail: UIImage?) -> Void) -> Ref<UIImage>
 
     /// Creates a new media resource downloader.
     ///
@@ -408,9 +420,10 @@ public protocol MediaStore: Peripheral {
     ///   - mediaResources: list of media resources to download
     ///   - type: download type
     ///   - destination: download destination
-    ///   - observer: observer called when the Media downloader changes, indicating download progress
-    /// - Returns: a reference on a MediaDownloader. Caller must keep this instance referenced until all media are
-    ///   downloaded. Setting it to nil cancels the download.
+    ///   - observer: observer called when the `MediaDownloader` changes, indicating download
+    ///     progress
+    /// - Returns: a reference on a `MediaDownloader`. Caller must keep this instance referenced
+    ///   until all media are downloaded. Setting it to `nil` cancels the download.
     /// - Note: If `full` type is selected (default), signatures will also be downloaded. If `preview` type is
     ///   selected, no signature will be downloaded and videos will be ignored.
     func newDownloader(mediaResources: MediaResourceList, type: DownloadType, destination: DownloadDestination,
@@ -424,9 +437,10 @@ public protocol MediaStore: Peripheral {
     /// - Parameters:
     ///   - resources: resource files to upload
     ///   - target: target media item to attach uploaded resource files to
-    ///   - observer: observer notified of upload progress and status
-    /// - Returns: a reference on a ResourceUploader. Caller must keep this instance referenced for the observer to be
-    ///   called.
+    ///   - observer: observer called when the `ResourceUploader` changes, indicating upload
+    ///      progress and status
+    /// - Returns: a reference on a `ResourceUploader`. Caller must keep this instance referenced
+    ///   for the observer to be called. Setting it to `nil` cancels the upload.
     func newUploader(resources: [URL], target: MediaItem,
                      observer: @escaping (_ uploader: ResourceUploader?) -> Void) -> Ref<ResourceUploader>
 
@@ -434,33 +448,34 @@ public protocol MediaStore: Peripheral {
     ///
     /// - Parameters:
     ///   - medias: medias to delete.
-    ///   - observer: observer notified progress of the delete task. Referenced media deleter is `nil` if the
-    ///     delete task is interrupted.
+    ///   - observer: observer called when the `MediaDeleter` changes, indicating progress of the
+    ///     delete task. Referenced media deleter is `nil` if the delete task was interrupted.
     ///   - deleter: deleter storing the delete progress info
-    /// - Returns: a reference on a MediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancels the delete.
-    func newDeleter(medias: [MediaItem], observer: @escaping (_ deleter: MediaDeleter?) -> Void) -> Ref<MediaDeleter>
+    /// - Returns: a reference on a `MediaDeleter`. Caller must keep this instance referenced until
+    ///   all media are deleted. Setting it to `nil` cancels the delete.
+    func newDeleter(medias: [MediaItem],
+                    observer: @escaping (_ deleter: MediaDeleter?) -> Void) -> Ref<MediaDeleter>
 
     /// Creates a new Media deleter, to delete a list of media resources.
     ///
     /// - Parameters:
     ///   - mediaResources: list of media resources to delete
-    ///   - observer: observer notified progress of the delete task. Referenced media deleter is `nil` if the
-    ///     delete task is interrupted.
+    ///   - observer: observer called with `MediaDeleter` changes, indicating progress of the delete
+    ///     task. Referenced media deleter is `nil` if the delete task was interrupted.
     ///   - deleter: deleter storing the delete progress info
-    /// - Returns: a reference on a MediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancels the delete.
-    func newDeleter(mediaResources: MediaResourceList, observer: @escaping (_ deleter: MediaDeleter?) -> Void)
-        -> Ref<MediaDeleter>
+    /// - Returns: a reference on a `MediaDeleter`. Caller must keep this instance referenced until
+    ///   all media are deleted. Setting it to `nil` cancels the delete.
+    func newDeleter(mediaResources: MediaResourceList,
+                    observer: @escaping (_ deleter: MediaDeleter?) -> Void) -> Ref<MediaDeleter>
 
     /// Creates a new media deleter to delete all medias.
     ///
     /// - Parameters:
-    ///   - observer: observer notified progress of the delete task. Referenced media deleter is `nil` if the
-    ///     delete task is interrupted.
+    ///   - observer: observer called when `AllMediasDeleter` changes, indicating progress of the
+    ///     delete task. Referenced media deleter is `nil` if the delete task was interrupted.
     ///   - deleter: deleter storing the delete progress info
-    /// - Returns: a reference on a AllMediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancels the delete.
+    /// - Returns: a reference on a `AllMediaDeleter`. Caller must keep this instance referenced
+    ///   until all media are deleted. Setting it to `nil` cancels the delete.
     func newAllMediasDeleter(observer: @escaping (_ deleter: AllMediasDeleter?) -> Void) -> Ref<AllMediasDeleter>
 }
 
@@ -473,14 +488,21 @@ public extension MediaStore {
     ///   - mediaResources: list of media resources to download
     ///   - type: download type
     ///   - destination: download destination
-    ///   - observer: observer called when the Media downloader changes, indicating download progress
-    /// - Returns: a reference on a MediaDownloader. Caller must keep this instance referenced until all media are
-    ///   downloaded. Setting it to nil cancels the download.
+    ///   - observer: observer called when the `MediaDownloader` changes, indicating download
+    ///     progress
+    /// - Returns: a reference on a `MediaDownloader`. Caller must keep this instance referenced
+    ///   until all media are downloaded. Setting it to `nil` cancels the download.
     func newDownloader(mediaResources: MediaResourceList, type: DownloadType = .full,
                        destination: DownloadDestination,
                        observer: @escaping (_ downloader: MediaDownloader?) -> Void) -> Ref<MediaDownloader> {
         return newDownloader(mediaResources: mediaResources, type: type, destination: destination,
                              observer: observer)
+    }
+}
+
+extension MediaOperationRef {
+    public func cancel() {
+        request?.cancel()
     }
 }
 
@@ -563,7 +585,7 @@ public class GSDownloadDestination: NSObject {
 /// Objective-C wrapper of Ref<MediaDownloader>. Required because swift generics can't be used from Objective-C.
 /// - Note: This class is for Objective-C only and must not be used in Swift.
 @objcMembers
-public class GSMediaDownloaderRef: NSObject {
+public class GSMediaDownloaderRef: NSObject, MediaOperation {
     /// Wrapper reference.
     private let ref: Ref<MediaDownloader>
 
@@ -583,7 +605,7 @@ public class GSMediaDownloaderRef: NSObject {
 /// Objective-C wrapper of Ref<MediaDeleter>. Required because swift generics can't be used from Objective-C.
 /// - Note: This class is for Objective-C only and must not be used in Swift.
 @objcMembers
-public class GSMediaDeleterRef: NSObject {
+public class GSMediaDeleterRef: NSObject, MediaOperation {
     /// Wrapper reference
     private let ref: Ref<MediaDeleter>
 
@@ -603,7 +625,7 @@ public class GSMediaDeleterRef: NSObject {
 /// Objective-C wrapper of Ref<AllMediaDeleter>. Required because swift generics can't be used from Objective-C.
 /// - Note: This class is for Objective-C only and must not be used in Swift.
 @objcMembers
-public class GSAllMediasDeleterRef: NSObject {
+public class GSAllMediasDeleterRef: NSObject, MediaOperation {
     /// Wrapper reference.
     private let ref: Ref<AllMediasDeleter>
 
@@ -641,47 +663,49 @@ public protocol GSMediaStore: Peripheral {
 
     /// Creates a new Media list.
     ///
-    /// This function starts loading the media store content, and notify when it has been loaded and each time
-    /// the content changes.
+    /// This function starts loading the media store content, and notifies when it has been loaded
+    /// and each time the content changes.
     ///
     /// - Parameters:
-    ///   - observer: observer  notified when the media list has been loaded or has change.
+    ///   - observer: observer which gets notified when the media list loads or changes
     ///   - medias: list media, `nil` if the store has been removed
-    /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
-    ///   called.
+    /// - Returns: a reference on a list of `MediaItem`. Caller must keep this instance referenced
+    ///   for the observer to be called.
     /// - Note: This function is for Objective-C only.
-    ///     If storage is `nil`, the MediaItem in any storage are returned in medias.
     @objc(newList:)
     func newListRef(observer: @escaping (_ medias: [MediaItem]?) -> Void) -> GSMediaListRef
 
     /// Creates a new Media list for a specific storage.
     ///
-    /// This function starts loading the media store content on  a specific storage, and notify when it has been loaded
-    /// and each time the content changes.
+    /// This function starts loading the media store content on a specific storage, and notifies
+    /// when it has been loaded and each time the content changes.
     ///
     /// - Parameters:
     ///   - storage: storage type on which the Media list will be created
-    ///   - observer: observer  notified when the media list has been loaded or has change.
+    ///   - observer: observer which gets notified when the media list loads or changes
     ///   - medias: list media, `nil` if the store has been removed
-    /// - Returns: a reference on a list of MediaItem. Caller must keep this instance referenced for the observer to be
-    ///   called.
+    /// - Returns: a reference on a list of `MediaItem`. Caller must keep this instance referenced
+    ///   for the observer to be called.
+    /// - Note: if storage is `nil`, `MediaItem`s in any storage are returned in the list.
     /// - Note: This function is for Objective-C only.
     @objc(newList:storage:)
     func newListRef(storage: StorageType,
                     observer: @escaping (_ medias: [MediaItem]?) -> Void) -> GSMediaListRef
 
-    /// Creates a new thumbnail downloader.
+    /// Creates a new media thumbnail downloader.
     ///
     /// - Parameters:
     ///   - media: media item to download the thumbnail from
-    ///   - observer: observer called when the thumbnail has been downloaded. Observer is called immediately if the
-    ///     thumbnail is already cached
+    ///   - observer: observer called when the thumbnail has been downloaded. Observer is called
+    ///     immediately if the thumbnail is already cached
     ///   - thumbnail: loaded or cached thumbnail, `nil` if the thumbnail can't be downloaded
-    /// - Returns: A reference of the media downloader. Caller must keep this instance referenced for the observer
-    ///   to be called.
-    /// - Note: typical usage in a UITableView is to call 'newMediaThumbnailDownloader' in 'UITableViewDataSource.
-    ///   tableView:cellForRowAt:' and store the returned 'Ref<UIImage>' inside the 'UITableViewCell'.
-    ///   Then in the 'UITableViewCell.prepareForReuse' function set the 'Ref<UIImage>' to cancel the download request.
+    /// - Returns: A reference of the media downloader. Caller must keep this instance referenced
+    ///   for the observer to be called.
+    /// - Note: Typical usage in a `UITableView` is to call `newMediaThumbnailDownloader()` in
+    ///   `UITableViewDataSource.(tableView:cellForRowAt:)` and store the returned `Ref<UIImage>`
+    ///   inside the `UITableViewCell`. Then in the `UITableViewCell.prepareForReuse()` function
+    ///   set the stored `Ref<UIImage>` to `nil` to cancel the download request.
+    /// - Note: This function is for Objective-C only.
     @objc(newThumbnailDownloaderForMedia:observer:)
     func newThumbnailDownloaderRef(media: MediaItem, observer: @escaping (_ thumbnail: UIImage?) -> Void)
         -> GSMediaImageRef
@@ -691,9 +715,13 @@ public protocol GSMediaStore: Peripheral {
     /// - Parameters:
     ///   - mediaResources: list of media resources to download
     ///   - destination: download destination
-    ///   - observer: observer called when the Media downloader changes, indicating download progress
-    /// - Returns: a reference on a MediaDownloader. Caller must keep this instance referenced until all media are
-    ///   downloaded. Setting it to nil cancels the download.
+    ///   - observer: observer called when the `MediaDownloader` changes, indicating download
+    ///     progress
+    /// - Returns: a reference on a `GSMediaDownloaderRef`. Caller must keep this instance referenced
+    ///   until all media are downloaded. Setting it to `nil` cancels the download.
+    /// - Note: If `full` type is selected (default), signatures will also be downloaded. If `preview` type is
+    ///   selected, no signature will be downloaded and videos will be ignored.
+    /// - Note: This function is for Objective-C only.
     @objc(newDownloaderForMediaResources:destination:observer:)
     func newDownloaderRef(mediaResources: MediaResourceList, destination: GSDownloadDestination,
                           observer: @escaping (_ downloader: MediaDownloader?) -> Void) -> GSMediaDownloaderRef
@@ -701,12 +729,12 @@ public protocol GSMediaStore: Peripheral {
     /// Creates a new Media deleter, to delete a list of media.
     ///
     /// - Parameters:
-    ///   - medias: medias to delete.
-    ///   - observer: observer notified progress of the delete task. Referenced media deleter is `nil` if the
-    ///     delete task is interrupted.
+    ///   - medias: list of media to delete
+    ///   - observer: observer called with `MediaDeleter` changes, indicating progress of the delete
+    ///     task. Referenced media deleter is `nil` if the delete task was interrupted.
     ///   - deleter: deleter storing the delete progress info
-    /// - Returns: a reference on a MediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancels the delete.
+    /// - Returns: a reference on a `GSMediaDeleterRef`. Caller must keep this instance referenced
+    ///   until all media are deleted. Setting it to `nil` cancels the delete.
     /// - Note: This function is for Objective-C only.
     @objc(newDeleterForMedia:observer:)
     func newDeleterRef(medias: [MediaItem], observer: @escaping (_ deleter: MediaDeleter?) -> Void)
@@ -715,11 +743,11 @@ public protocol GSMediaStore: Peripheral {
     /// Creates a new media deleter to delete all medias.
     ///
     /// - Parameters:
-    ///   - observer: observer notified progress of the delete task. Referenced media deleter is `nil` if the
-    ///     delete task is interrupted.
+    ///   - observer: observer called when `AllMediasDeleter` changes, indicating progress of the
+    ///     delete task. Referenced media deleter is `nil` if the delete task was interrupted.
     ///   - deleter: deleter storing the delete progress info
-    /// - Returns: a reference on a AllMediaDeleter. Caller must keep this instance referenced until all media are
-    ///   deleted. Setting it to nil cancels the delete.
+    /// - Returns: a reference on a `AllMediaDeleter`. Caller must keep this instance referenced
+    ///   until all media are deleted. Setting it to `nil` cancels the delete.
     /// - Note: This function is for Objective-C only.
     @objc(newAllMediasDeleterWithObserver:)
     func newAllMediasDeleterRef(observer: @escaping (_ deleter: AllMediasDeleter?) -> Void) -> GSAllMediasDeleterRef

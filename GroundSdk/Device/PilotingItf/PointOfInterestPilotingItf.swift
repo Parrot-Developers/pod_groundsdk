@@ -51,6 +51,9 @@ public enum PointOfInterestMode: Int, CustomStringConvertible {
     /// Gimbal is locked on the Point Of Interest.
     case lockedGimbal
 
+    /// Gimbal is locked on the Point Of Interest once.
+    case lockedOnceGimbal
+
     /// Gimbal is freely controllable.
     case freeGimbal
 
@@ -58,6 +61,7 @@ public enum PointOfInterestMode: Int, CustomStringConvertible {
     public var description: String {
         switch self {
         case .lockedGimbal:     return "lockedGimbal"
+        case .lockedOnceGimbal: return "lockedOnceGimbal"
         case .freeGimbal:       return "freeGimbal"
         }
     }
@@ -104,10 +108,12 @@ public enum POIIssue: Int, CustomStringConvertible {
 /// normally. However, yaw value is not settable.
 ///
 /// There are two variants of piloted Point Of Interest:
-///   - In `.lockedGimbal` mode, the gimbal always looks at the Point Of Interest. Gimbal control command is ignored by
-///     the drone.
-///   - In `.freeGimbal` mode, the gimbal initially looks at the Point Of Interest, and is then freely controllable by
-///     the gimbal command.
+///   - In `.lockedGimbal` mode, the gimbal always looks at the Point Of Interest. Gimbal control
+///     command is ignored by the drone.
+///   - In `.lockedOnceGimbal` mode, the gimbal looks once at the Point Of Interest, and is then
+///     freely controllable by the gimbal command.
+///   - In `.freeGimbal` mode, the gimbal initially looks at the Point Of Interest, and is then
+///     freely controllable by the gimbal command.
 ///
 /// This piloting interface can be retrieved by:
 /// ```
@@ -187,10 +193,12 @@ public protocol PointOfInterestPilotingItf: PilotingItf, ActivablePilotingItf {
 /// normally. However, yaw value is not settable.
 ///
 /// There are two variants of piloted Point Of Interest:
-///   - In `.lockedGimbal` mode, the gimbal always looks at the Point Of Interest. Gimbal control command is ignored by
-///     the drone.
-///   - In `.freeGimbal` mode, the gimbal initially looks at the Point Of Interest, and is then freely controllable by
-///     the gimbal command.
+///   - In `.lockedGimbal` mode, the gimbal always looks at the Point Of Interest. Gimbal control
+///     command is ignored by the drone.
+///   - In `.lockedOnceGimbal` mode, the gimbal looks once at the Point Of Interest, and is then
+///     freely controllable by the gimbal command.
+///   - In `.freeGimbal` mode, the gimbal initially looks at the Point Of Interest, and is then
+///     freely controllable by the gimbal command.
 ///
 /// - Note: This class is for Objective-C only and must not be used in Swift.
 @objc

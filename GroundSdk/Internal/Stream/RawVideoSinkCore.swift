@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2022 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,24 +29,25 @@
 
 import Foundation
 
-/// YUV sink listener.
-@objc(GSYuvSinkListener)
-public protocol YuvSinkListener {
+/// Raw video sink backend
+public protocol RawVideoSinkBackend: SinkBackend {
 
-    /// Called when a frame is available.
+}
+
+/// Internal `RawVideoSink` implementation.
+public class RawVideoSinkCore: SinkCore, RawVideoSink {
+
+    /// Sink configuration.
+    private let config: RawVideoSinkConfig
+
+    /// Constructor
     ///
     /// - Parameters:
-    ///   - sink: YUV sink
-    ///   - frame: new frame available
-    func frameReady(sink: StreamSink, frame: SdkCoreFrame)
-
-    /// Called when the stream sink has started.
-    ///
-    /// - Parameter sink: YUV sink
-    func didStart(sink: StreamSink)
-
-    /// Called when the stream sink has stopped.
-    ///
-    /// - Parameter sink: YUV sink
-    func didStop(sink: StreamSink)
+    ///    - config: configuration
+    ///    - backend: sink backend
+    public init(config: RawVideoSinkConfig, backend: SinkBackend) {
+        self.config = config
+        super.init()
+        self.backend = backend
+    }
 }

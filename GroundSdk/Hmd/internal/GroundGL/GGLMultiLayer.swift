@@ -97,7 +97,7 @@ class GGLMultiLayer {
             // when we use a fbo, the texture will be allways the same. We set the texture once.
             case .framebuffer(let fbo):
                 quadDrawingLayer.updateTextureName(textId: fbo.fboTexture)
-            default :
+            default:
                 break
             }
         }

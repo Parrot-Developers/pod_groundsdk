@@ -72,6 +72,25 @@ public class MediaItemCore: MediaItem {
                    panoramaType: panoramaType, resources: resources, metadataTypes: metadataTypes)
         resources.forEach { ($0 as! MediaItemResourceCore).media = self }
     }
+
+    public func mediaWithoutResource(_ resourceId: String) -> MediaItemCore {
+        let remainingResources = resources.filter({ $0.uid != resourceId })
+        return MediaItemCore(uid: uid, name: name, type: type, runUid: runUid, customId: customId,
+                             customTitle: customTitle, creationDate: creationDate, bootDate: bootDate,
+                             flightDate: flightDate, expectedCount: expectedCount, photoMode: photoMode,
+                             panoramaType: panoramaType, streamUrl: streamUrl, resources: remainingResources,
+                             backendData: backendData, metadataTypes: metadataTypes)
+    }
+
+    public func mediaWithResource(_ resource: Resource) -> MediaItemCore {
+        var newResources = resources
+        newResources.append(resource)
+        return MediaItemCore(uid: uid, name: name, type: type, runUid: runUid, customId: customId,
+                             customTitle: customTitle, creationDate: creationDate, bootDate: bootDate,
+                             flightDate: flightDate, expectedCount: expectedCount, photoMode: photoMode,
+                             panoramaType: panoramaType, streamUrl: streamUrl, resources: newResources,
+                             backendData: backendData, metadataTypes: metadataTypes)
+    }
 }
 
 /// MediaItem.Resource implementation. Add `core` public constructor

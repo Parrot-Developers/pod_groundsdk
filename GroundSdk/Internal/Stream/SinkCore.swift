@@ -31,12 +31,6 @@ import Foundation
 
 /// Base sink configuration.
 public protocol SinkCoreConfig: StreamSinkConfig {
-
-    /// Open a new sink.
-    ///
-    /// - Parameter stream: sink's stream
-    /// - Returns: the new sink
-    func openSink(stream: StreamCore) -> SinkCore
 }
 
 /// Sink backend
@@ -46,13 +40,18 @@ public protocol SinkBackend {
 }
 
 /// Base stream sink.
-public class SinkCore: NSObject, StreamSink {
+public class SinkCore: NSObject {
 
     /// Internal renderer.
     var backend: SinkBackend!
 
     /// Closes the sink.
     public func close() {
+        backend.close()
+    }
+
+    /// Destructor
+    deinit {
         backend.close()
     }
 }

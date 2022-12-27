@@ -61,6 +61,9 @@ public class TakeoffAlarm: NSObject {
         /// Cellular modem firmware updating check
         case cellularModemFirmwareUpdate
 
+        /// Drone Remote Identification check.
+        case dri
+
         /// Drone inclination check
         case droneInclination
 
@@ -100,6 +103,7 @@ public class TakeoffAlarm: NSObject {
             case .batteryTooHot:                        return "batteryTooHot"
             case .batteryUsbPortConnection:             return "batteryUsbPortConnection"
             case .cellularModemFirmwareUpdate:          return "cellularModemFirmwareUpdate"
+            case .dri:                                  return "dri"
             case .droneInclination:                     return "droneInclination"
             case .gps:                                  return "gps"
             case .gyro:                                 return "gyro"
@@ -114,9 +118,10 @@ public class TakeoffAlarm: NSObject {
 
         /// Set containing all possible kinds of alarm.
         public static let allCases: Set<Kind> = [
-            .baro, .batteryGaugeUpdateRequired, .batteryIdentification, .batteryLevel, .batteryPoorConnection,
-            .batteryTooCold, .batteryTooHot, .batteryUsbPortConnection, .cellularModemFirmwareUpdate, .droneInclination,
-            .gps, .gyro, .magneto, .magnetoCalibration, .ultrasound, .updateOngoing, .vcam, .verticalTof]
+            .baro, .batteryGaugeUpdateRequired, .batteryIdentification, .batteryLevel,
+            .batteryPoorConnection, .batteryTooCold, .batteryTooHot, .batteryUsbPortConnection,
+            .cellularModemFirmwareUpdate, .dri, .droneInclination, .gps, .gyro, .magneto,
+            .magnetoCalibration, .ultrasound, .updateOngoing, .vcam, .verticalTof]
     }
 
     /// Alarm level.

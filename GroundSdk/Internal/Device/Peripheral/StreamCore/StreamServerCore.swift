@@ -41,38 +41,19 @@ public protocol StreamServerBackend: AnyObject {
     /// 'true' when streaming is enabled.
     var enabled: Bool { get set }
 
-    /// Retrieves live stream backend.
-    ///
-    /// - Parameters:
-    ///    - cameraType: camera type of the live stream to open
-    ///    - stream: stream owner of the backend
-    /// - Returns: a new live stream backend
-    func getStreamBackendLive(cameraType: CameraLiveSource, stream: StreamCore) -> StreamBackend
+    /// Creates a new MediaReplayCore instance to stream the given media source.
+    func newMediaReplay(source: MediaSourceCore) -> MediaReplayCore
 
-    /// Retrieves media stream backend.
-    ///
-    /// - Parameters:
-    ///    - url: url of the media stream to open
-    ///    - trackName: track name of the stream to open
-    ///    - stream: stream owner of the backend
-    /// - Returns: a new media stream backend
-    func getStreamBackendMedia(url: String, trackName: String?, stream: StreamCore) -> StreamBackend
-
-    /// Registers a stream.
-    ///
-    /// - Parameter stream: stream to register
-    func register(stream: StreamCore)
-
-    /// Unregisters a stream.
-    ///
-    /// - Parameter stream: stream to unregister
-    func unregister(stream: StreamCore)
+    /// Releases the given media replay stream.
+    func releaseMediaReplay(stream: MediaReplayCore)
 
     /// Retrieves a camera live stream.
     ///
+    /// There is only one live stream instance for each CameraLiveSource, which is shared among all open references.
+    ///
     /// - Parameter source: the camera live source of the live stream to retrieve
-    /// - Returns: the camera live stream researched or `nil` if there not already exists
-    func getCameraLive(source: CameraLiveSource) -> CameraLiveCore?
+    /// - Returns: the camera live stream researched
+    func getCameraLive(source: CameraLiveSource) -> CameraLiveCore
 }
 
 /// Internal stream server peripheral implementation
@@ -83,6 +64,9 @@ public class StreamServerCore: PeripheralCore, StreamServer {
 
     /// 'true' when streaming is enabled.
     private var _enabled = false
+
+    /// Issued stream references.
+    private let refs = [Ref<StreamCore>]()
 
     /// 'true' when streaming is enabled.
     public var enabled: Bool {
@@ -120,7 +104,7 @@ public class StreamServerCore: PeripheralCore, StreamServer {
     ///    - observer: observer notified each time this stream changes
     /// - Returns: reference to the requested live stream
     public func live(source: CameraLiveSource, observer: @escaping (CameraLive?) -> Void) -> Ref<CameraLive> {
-        return CameraLiveRefCore(observer: observer, stream: getCameraLive(source: source))
+        return CameraLiveRefCore(observer: observer, stream: backend.getCameraLive(source: source))
     }
 
     /// Retrieves replay stream and registers an observer notified each time it changes.
@@ -130,63 +114,10 @@ public class StreamServerCore: PeripheralCore, StreamServer {
     ///    - observer: observer notified each time this stream changes
     /// - Returns: reference to the requested replay stream
     public func replay(source: MediaReplaySource, observer: @escaping (MediaReplay?) -> Void) -> Ref<MediaReplay>? {
-        return MediaReplayRefCore(observer: observer,
-                                  stream: newMediaReplay(source: source as! MediaSourceCore))
-    }
-
-    /// Get shared camera live stream
-    ///
-    /// - Parameter resource: live source to be streamed
-    /// - Returns: shared camera live stream instance
-    func getCameraLive(source: CameraLiveSource) -> CameraLiveCore {
-        if let live = backend.getCameraLive(source: source) {
-            return live
-        } else {
-            return CameraLiveCore(source: source, server: self)
+        let stream = backend.newMediaReplay(source: source as! MediaSourceCore)
+        return MediaReplayRefCore(observer: observer, stream: stream) { [weak self] in
+            self?.backend.releaseMediaReplay(stream: stream)
         }
-    }
-
-    /// Create a new media replay stream
-    ///
-    /// - Parameter resource: media source to be streamed
-    /// - Returns: a new media replay stream instance
-    func newMediaReplay(source: MediaSourceCore) -> MediaReplayCore {
-        return MediaReplayCore(server: self, source: source)
-    }
-
-    /// Retrieves live stream backend.
-    ///
-    /// - Parameters:
-    ///    - cameraType: camera type of the live stream to open
-    ///    - stream: stream owner of the backend
-    /// - Returns: a new live stream backend
-    func getStreamBackendLive(cameraType: CameraLiveSource, streamCore: StreamCore) -> StreamBackend {
-        return backend.getStreamBackendLive(cameraType: cameraType, stream: streamCore)
-    }
-
-    /// Retrieves media stream backend.
-    ///
-    /// - Parameters:
-    ///    - url: url of the media stream to open
-    ///    - trackName: track name of the stream to open
-    ///    - stream: stream owner of the backend
-    /// - Returns: a new media stream backend
-    func getStreamBackendMedia(url: String, trackName: String?, streamCore: StreamCore) -> StreamBackend {
-        return backend.getStreamBackendMedia(url: url, trackName: trackName, stream: streamCore)
-    }
-
-    /// Register a stream.
-    ///
-    /// - Parameter stream: stream to register
-    func register(stream: StreamCore) {
-        backend.register(stream: stream)
-    }
-
-    /// Unregister a stream.
-    ///
-    /// - Parameter stream: stream to unregister
-    func unregister(stream: StreamCore) {
-        backend.unregister(stream: stream)
     }
 }
 

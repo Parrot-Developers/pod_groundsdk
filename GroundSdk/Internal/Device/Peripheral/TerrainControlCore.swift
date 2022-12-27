@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2022 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,21 +29,34 @@
 
 import Foundation
 
-/// Core class for MediaReplay.
-public class MediaReplayCore: ReplayCore, MediaReplay {
-
-    /// Played back media source.
-    public var source: MediaReplaySource
-
-    /// Constructor
+/// Terrain control backend part.
+public protocol TerrainControlBackend: AnyObject {
+    /// Sends terrain elevation above mean sea level at the location specified by the given coordinates.
     ///
     /// - Parameters:
-    ///    - source: media source to be played back
-    ///    - backend: video stream backend
-    public init(source: MediaSourceCore, backend: StreamCoreBackend) {
-        self.source = source
+    ///   - elevation: terrain elevation (AMSL), in meters
+    ///   - latitude: latitude of the location, in degrees
+    ///   - longitude: longitude of the location, in degrees
+    func sendAmsl(elevation: Double, latitude: Double, longitude: Double)
+}
 
-        super.init()
+/// Internal terrain control peripheral implementation.
+public class TerrainControlCore: PeripheralCore, TerrainControl {
+
+    /// Implementation backend.
+    private unowned let backend: TerrainControlBackend
+
+    /// Constructor.
+    ///
+    /// - Parameters:
+    ///    - store: store where this peripheral will be stored
+    ///    - backend: leds backend
+    public init(store: ComponentStoreCore, backend: TerrainControlBackend) {
         self.backend = backend
+        super.init(desc: Peripherals.terrainControl, store: store)
+    }
+
+    public func sendAmsl(elevation: Double, latitude: Double, longitude: Double) {
+        backend.sendAmsl(elevation: elevation, latitude: latitude, longitude: longitude)
     }
 }

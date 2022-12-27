@@ -29,6 +29,14 @@
 
 import Foundation
 
+/// Stream backend.
+public protocol ReplayCoreBackend: StreamCoreBackend {
+    /// Seeks to a time position.
+    ///
+    /// - Parameter position: position to seek, in seconds
+    func seek(position: Int)
+}
+
 /// Core class for Replay.
 public class ReplayCore: StreamCore, Replay {
 

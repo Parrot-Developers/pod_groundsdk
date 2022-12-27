@@ -48,7 +48,7 @@ public class Utilities: NSObject {
     /// Event logs utility.
     public static let eventLogger = EventLogUtilityCoreDesc()
     /// FileReplayBackend provider utility.
-    public static let fileReplayBackendProvider = FileReplayBackendProviderCoreDesc()
+    public static let fileReplayProvider = FileReplayProviderCoreDesc()
     /// Firmware downloader utility.
     public static let firmwareDownloader = FirmwareDownloaderCoreDesc()
     /// Firmwares stores utility.
@@ -65,6 +65,8 @@ public class Utilities: NSObject {
     public static let gutmaLogStorage = GutmaLogStorageCoreDesc()
     /// Internet connectivity monitoring utility.
     public static let internetConnectivity = InternetConnectivityCoreDesc()
+    /// Plan generator utility.
+    public static let planUtilityProvider = PlanUtilityCoreDesc()
     /// Remote controls store utility.
     public static let remoteControlStore = RemoteControlStoreCoreDesc()
     /// Reverse geocoder utility.
@@ -87,7 +89,7 @@ enum UtilityUid: Int {
     case droneStore
     case ephemeris
     case eventLogger
-    case fileReplayBackendProvider
+    case fileReplayProvider
     case firmwareDownloader
     case firmwareStore
     case flightCameraRecordStorage
@@ -96,6 +98,7 @@ enum UtilityUid: Int {
     case flightLogStorage
     case gutmaLogStorage
     case internetConnectivity
+    case planUtilityProvider
     case remoteControlStore
     case reverseGeocoder
     case systemBarometer

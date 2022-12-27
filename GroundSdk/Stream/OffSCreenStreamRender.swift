@@ -257,11 +257,7 @@ public class OffScreenStreamRender {
             return
         }
 
-        if let sink = self.sink {
-            sink.close()
-            self.sink = nil
-        }
-
+        sink = nil
         self.stream = stream
 
         if let stream = self.stream {

@@ -40,10 +40,10 @@ extension MavlinkStandard {
     /// Clients of this API cannot instantiate this class directly, and must use
     /// one of the subclasses defining a specific MAVLink command. If a subclass
     /// does not describe the command you want to use use `OtherMavlinkCommand`.
-    public class MavlinkCommand: Equatable {
+    public class MavlinkCommand: Equatable, Encodable {
 
         /// Parse related errors when creating or parsing `MavlinkCommand`s.
-        enum ParseError: Error, Equatable {
+        public enum ParseError: Error, Equatable {
             /// A generic parse error indicating an unspecific parse or creation failure.
             case generic
             /// An error indicating that a provided parameter to the `MavlinkCommand` was either not
@@ -76,7 +76,7 @@ extension MavlinkStandard {
             /// An error indicating the `MavlinkComamnd` version header is in an unexpected format.
             case invalidVersion
 
-            static func == (lhs: ParseError, rhs: ParseError) -> Bool {
+            public static func == (lhs: ParseError, rhs: ParseError) -> Bool {
                 switch (lhs, rhs) {
                 case (.generic, .generic),
                      (.invalidParameter, invalidParameter),
@@ -180,17 +180,22 @@ extension MavlinkStandard {
 
         /// The MAVLink type command type.
         internal var type: CommandType {
-            return CommandType(rawValue: rawType)!
+            return CommandType(rawValue: rawType) ?? .other
         }
 
         /// The MAVLink command type.
-        internal let rawType: Int
+        public let rawType: Int
 
         /// The coordinate frame; set to global coordinate frame or relative altitude over ground.
         public let frame: Frame
 
         /// The raw parameters of the command.
-        internal let parameters: [Double]
+        public let parameters: [Double]
+
+        /// Whether to autocontinue or not.
+        public var autocontinue: Int {
+            Self.autoContinue
+        }
 
         /// Constructor.
         ///
@@ -309,6 +314,21 @@ extension MavlinkStandard {
                 fileHandle.write(data)
             }
         }
+
+        private enum CodingKeys: String, CodingKey {
+            case frame = "AltitudeMode"
+            case autocontinue
+            case type = "command"
+            case parameters = "params"
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(self.rawType, forKey: .type)
+            try container.encode(self.frame.rawValue, forKey: .frame)
+            try container.encode(Self.autoContinue, forKey: .autocontinue)
+            try container.encode(self.parameters, forKey: .parameters)
+        }
     }
 }
 
@@ -354,7 +374,8 @@ extension MavlinkStandard.MavlinkCommand {
     ///   - parameters: the raw parameters of the command.
     /// - Throws: MavlinkStandard.MavlinkCommand.ParseError if the parameters are wrong.
     /// - Returns: A MAVLink command.
-    static func create(rawType: Int, frame: Frame, parameters: [Double]) throws -> MavlinkStandard.MavlinkCommand {
+    public static func create(rawType: Int, frame: Frame,
+                              parameters: [Double]) throws -> MavlinkStandard.MavlinkCommand {
         guard parameters.count == 7 else {
             throw MavlinkStandard.MavlinkCommand.ParseError
             .incorrectNumberOfParameters("Expected 7 parameters but instead got \(parameters.count).")

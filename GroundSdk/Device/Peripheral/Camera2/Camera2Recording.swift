@@ -40,10 +40,15 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
     case starting
 
     /// Recording is started.
-    /// - startTime: recording start time
+    /// - startTime: time when the capture did start, in the remote drone clock reference;
+    ///   DEPRECATED, use`startTimeOnSystemClock` or `duration()` instead
+    /// - startTimeOnSystemClock: time when the capture did start, in seconds in the local device's default clock
+    ///   reference; may be negative if the capture started before local device boot
+    /// - duration: closure allowing to retrieve capture duration so far
     /// - videoBitrate: video recording bitrate, in bits per second
     /// - mediaStorage: destination storage for produced media, `nil` if unknown
-    case started(startTime: Date, videoBitrate: UInt, mediaStorage: StorageType?)
+    case started(startTime: Date, startTimeOnSystemClock: Double, duration: () -> TimeInterval,
+                 videoBitrate: UInt, mediaStorage: StorageType?)
 
     /// Recording is stopping.
     /// - reason: reason why the recording is stopping
@@ -80,9 +85,10 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
         case (.starting, .starting):
             return true
 
-        case (let started(startTimeL, videoBitrateL, mediaStorageL),
-              let started(startTimeR, videoBitrateR, mediaStorageR)):
-            return startTimeL == startTimeR && mediaStorageL == mediaStorageR && videoBitrateL == videoBitrateR
+        case (let started(startTimeL, startTimeOnSystemClockL, _, videoBitrateL, mediaStorageL),
+              let started(startTimeR, startTimeOnSystemClockR, _, videoBitrateR, mediaStorageR)):
+            return startTimeL == startTimeR && startTimeOnSystemClockL == startTimeOnSystemClockR
+                && mediaStorageL == mediaStorageR && videoBitrateL == videoBitrateR
 
         case (let stopping(reasonL, savedMediaIdL), let stopping(reasonR, savedMediaIdR)):
             return reasonL == reasonR && savedMediaIdL == savedMediaIdR
@@ -99,8 +105,9 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
             return "stopped \(latestSavedMediaId ?? "none")"
         case .starting:
             return "starting"
-        case let .started(startTime, videoBitrate, mediaStorage):
-            return "started \(startTime) \(videoBitrate) \(String(describing: mediaStorage))"
+        case let .started(startTime, startTimeOnSystemClock, duration, videoBitrate, mediaStorage):
+            return "started \(startTime) \(startTimeOnSystemClock), \(duration()), \(videoBitrate) "
+                + String(describing: mediaStorage)
         case let .stopping(reason, savedMediaId):
             return "stopping \(reason), \(savedMediaId ?? "none")"
         }

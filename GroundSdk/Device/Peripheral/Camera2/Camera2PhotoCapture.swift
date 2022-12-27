@@ -40,10 +40,15 @@ public enum Camera2PhotoCaptureState: Equatable, CustomStringConvertible {
     case starting
 
     /// Photo capture is started.
-    /// - startTime: photo capture start time
+    /// - startTime: time when the capture did start, in the remote drone clock reference;
+    ///   DEPRECATED, use`startTimeOnSystemClock` or `duration()` instead
+    /// - startTimeOnSystemClock: time when the capture did start, in seconds in the local device's default clock
+    ///   reference; may be negative if the capture started before local device boot
+    /// - duration: closure allowing to retrieve capture duration so far
     /// - photoCount: number of photo taken in the session
     /// - mediaStorage: destination storage for produced media, `nil` if unknown
-    case started(startTime: Date, photoCount: Int, mediaStorage: StorageType?)
+    case started(startTime: Date, startTimeOnSystemClock: Double, duration: () -> TimeInterval, photoCount: Int,
+                 mediaStorage: StorageType?)
 
     /// Photo capture is stopping.
     /// - reason: reason why the photo capture is stopping
@@ -80,9 +85,10 @@ public enum Camera2PhotoCaptureState: Equatable, CustomStringConvertible {
         case (.starting, .starting):
             return true
 
-        case (let started(startTimeL, photoCountL, mediaStorageL),
-              let started(startTimeR, photoCountR, mediaStorageR)):
-            return startTimeL == startTimeR && photoCountL == photoCountR && mediaStorageL == mediaStorageR
+        case (let started(startTimeL, startTimeOnSystemClockL, _, photoCountL, mediaStorageL),
+              let started(startTimeR, startTimeOnSystemClockR, _, photoCountR, mediaStorageR)):
+            return startTimeL == startTimeR && startTimeOnSystemClockL == startTimeOnSystemClockR
+                && photoCountL == photoCountR && mediaStorageL == mediaStorageR
 
         case (let stopping(reasonL, savedMediaIdL), let stopping(reasonR, savedMediaIdR)):
             return reasonL == reasonR && savedMediaIdL == savedMediaIdR
@@ -98,8 +104,9 @@ public enum Camera2PhotoCaptureState: Equatable, CustomStringConvertible {
         case let .stopped(latestSavedMediaId):
             return "stopped \(latestSavedMediaId ?? "")"
         case .starting:               return "starting"
-        case let .started(startTime, photoCount, mediaStorage):
-            return "started \(startTime), \(photoCount), \(String(describing: mediaStorage))"
+        case let .started(startTime, startTimeOnSystemClock, duration, photoCount, mediaStorage):
+            return "started \(startTime), \(startTimeOnSystemClock), \(duration()), \(photoCount), "
+                + String(describing: mediaStorage)
         case let .stopping(reason, savedMediaId):
             return "stopping \(reason), \(savedMediaId ?? "none")"
         }

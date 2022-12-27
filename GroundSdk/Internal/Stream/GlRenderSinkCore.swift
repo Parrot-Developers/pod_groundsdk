@@ -96,14 +96,6 @@ public class GlRenderSinkCore: SinkCore, GlRenderSink {
         init(listener: GlRenderSinkListener) {
             self.listener = listener
         }
-
-        /// Opens a new sink.
-        ///
-        /// - Parameter stream: sink's stream
-        /// - Returns: the new sink
-        public func openSink(stream: StreamCore) -> SinkCore {
-            return GlRenderSinkCore(streamCore: stream, config: self)
-        }
     }
 
     /// Sink config.
@@ -198,13 +190,13 @@ public class GlRenderSinkCore: SinkCore, GlRenderSink {
     /// Constructor.
     ///
     /// - Parameters:
-    ///    - streamCore: sink's stream
     ///    - config: sink configuration
-    public init(streamCore: StreamCore, config: Config) {
+    ///    - backend: Gl render sink backend
+    public init(config: Config, backend: GlRenderSinkBackend) {
         self.config = config
         super.init()
-        renderSinkBackend = streamCore.getRenderSinkBackend(renderSink: self)
-        backend = renderSinkBackend
+        renderSinkBackend = backend
+        self.backend = backend
     }
 
     /// Start renderer.
@@ -234,7 +226,6 @@ public class GlRenderSinkCore: SinkCore, GlRenderSink {
     static public func config(listener: GlRenderSinkListener) -> StreamSinkConfig {
         return Config(listener: listener)
     }
-
 }
 
 // Backend callback

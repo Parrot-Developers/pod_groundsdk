@@ -35,17 +35,30 @@ public protocol CertificateUploaderBackend: AnyObject {
     ///
     /// When the upload ends, the drone will restart
     ///
-    /// - Parameter filepath: local path of the file to upload
-    func upload(certificate filepath: String)
+    /// - Parameter certificate: local path of the file to upload
+    func upload(certificate filepath: String) -> CancelableCore?
+
+    /// Fetches the signature of the current license certificate installed on the drone.
+    ///
+    /// - Parameters:
+    ///   - completion: the completion callback (called on the main thread)
+    ///   - signature: the retrieved signature
+    func fetchSignature(completion: @escaping (_ signature: String?) -> Void)
+
+    /// Fetches the information of the current license certificate installed on the drone.
+    ///
+    /// - Parameters:
+    ///   - completion: the completion callback (called on the main thread)
+    ///   - info: the retrieved information
+    func fetchInfo(completion: @escaping (_ info: CertificateInfo?) -> Void)
 }
 
 /// Internal certificate uploader peripheral implementation
 public class CertificateUploaderCore: PeripheralCore, CertificateUploader {
-    public func upload(certificate filepath: String) {
-        backend.upload(certificate: filepath)
-    }
 
-    /// implementation backend
+    private(set) public var state: CertificateUploadState?
+
+    /// Implementation backend.
     private unowned let backend: CertificateUploaderBackend
 
     /// Constructor
@@ -56,5 +69,33 @@ public class CertificateUploaderCore: PeripheralCore, CertificateUploader {
     public init(store: ComponentStoreCore, backend: CertificateUploaderBackend) {
         self.backend = backend
         super.init(desc: Peripherals.certificateUploader, store: store)
+    }
+
+    public func upload(certificate filepath: String) -> CancelableCore? {
+        return backend.upload(certificate: filepath)
+    }
+
+    public func fetchSignature(completion: @escaping (String?) -> Void) {
+        backend.fetchSignature(completion: completion)
+    }
+
+    public func fetchInfo(completion: @escaping (CertificateInfo?) -> Void) {
+        backend.fetchInfo(completion: completion)
+    }
+}
+
+/// Backend callback methods.
+extension CertificateUploaderCore {
+    /// Updates the upload state.
+    ///
+    /// - Parameter state: new upload state
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(state newValue: CertificateUploadState?) -> CertificateUploaderCore {
+        if state != newValue {
+            state = newValue
+            markChanged()
+        }
+        return self
     }
 }

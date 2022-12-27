@@ -32,9 +32,6 @@ import Foundation
 /// Core class for CameraLive.
 public class CameraLiveCore: StreamCore, CameraLive {
 
-    /// Stream server managing the stream.
-    private unowned let server: StreamServerCore
-
     /// Camera live source being played back.
     public let source: CameraLiveSource
 
@@ -45,13 +42,11 @@ public class CameraLiveCore: StreamCore, CameraLive {
     ///
     /// - Parameters:
     ///    - source: live source to stream
-    ///    - server: stream server
-    public init(source: CameraLiveSource, server: StreamServerCore) {
+    ///    - backend: streamCore backend
+    public init(source: CameraLiveSource, backend: StreamCoreBackend) {
         self.source = source
-        self.server = server
         super.init()
-        self.backend = server.getStreamBackendLive(cameraType: source, streamCore: self)
-        self.server.register(stream: self)
+        self.backend = backend
     }
 
     public func play() -> Bool {
@@ -66,19 +61,6 @@ public class CameraLiveCore: StreamCore, CameraLive {
 
     override public func stop() {
         super.stop()
-    }
-
-    public override func interrupt() {
-        backend.enabled = false
-    }
-
-    /// Resume live stream if interrupted.
-    public override func resume() {
-        backend.enabled = true
-    }
-
-    override func onRelease() {
-        server.unregister(stream: self)
     }
 
     override func onPlayStateChanged(playState: StreamPlayState) {

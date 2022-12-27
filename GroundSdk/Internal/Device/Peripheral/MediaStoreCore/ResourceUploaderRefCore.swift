@@ -30,10 +30,10 @@
 import Foundation
 
 /// ResourceUploader Reference implementation.
-class ResourceUploaderRefCore: Ref<ResourceUploader> {
+class ResourceUploaderRefCore: Ref<ResourceUploader>, MediaOperationRef {
 
     /// Active upload request.
-    private var request: CancelableTaskCore?
+    private(set) var request: CancelableCore?
 
     /// Constructor.
     ///
@@ -47,14 +47,13 @@ class ResourceUploaderRefCore: Ref<ResourceUploader> {
         self.request = mediaStore.backend
             .upload(resources: resources, target: target) { [weak self] resourceUploader in
                 // weak self in case backend call callback after cancelling request
-                self?.update(newValue: resourceUploader)
+                guard let self = self else { return }
+                self.update(newValue: resourceUploader)
             }
     }
 
     /// Destructor.
     deinit {
-        if let request = request {
-            request.cancel()
-        }
+        cancel()
     }
 }

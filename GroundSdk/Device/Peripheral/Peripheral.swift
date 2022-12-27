@@ -149,9 +149,11 @@ public class Peripherals: NSObject {
     /// Wifi scanner peripheral.
     public static let wifiScanner = WifiScannerDesc()
 
-    // Internal peripherals.
+    // Peripherals reserved for internal use.
     /// Latest flight log (FDR) downloader.
     internal static let latestLogDownloader = LatestLogDownloaderDesc()
+    /// Terrain control peripheral.
+    public static let terrainControl = TerrainControlDesc()
 }
 
 /// Peripheral uid.
@@ -203,6 +205,7 @@ enum PeripheralUid: Int {
     case streamServer
     case systemInfo
     case targetTracker
+    case terrainControl
     case thermalCamera
     case thermalControl
     case updater

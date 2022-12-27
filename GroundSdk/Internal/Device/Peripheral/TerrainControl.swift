@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2022 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,21 +29,26 @@
 
 import Foundation
 
-/// Core class for MediaReplay.
-public class MediaReplayCore: ReplayCore, MediaReplay {
-
-    /// Played back media source.
-    public var source: MediaReplaySource
-
-    /// Constructor
+/// Peripheral managing terrain data related commands.
+///
+/// This peripheral can be retrieved by:
+/// ```
+/// device.getPeripheral(Peripherals.terrainControl)
+/// ```
+public protocol TerrainControl: Peripheral {
+    /// Sends terrain elevation above mean sea level at the location specified by the given coordinates.
     ///
     /// - Parameters:
-    ///    - source: media source to be played back
-    ///    - backend: video stream backend
-    public init(source: MediaSourceCore, backend: StreamCoreBackend) {
-        self.source = source
+    ///   - elevation: terrain elevation (AMSL), in meters
+    ///   - latitude: latitude of the location, in degrees
+    ///   - longitude: longitude of the location, in degrees
+    func sendAmsl(elevation: Double, latitude: Double, longitude: Double)
+}
 
-        super.init()
-        self.backend = backend
-    }
+/// :nodoc:
+/// Terrain control peripheral descriptor.
+public class TerrainControlDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = TerrainControl
+    public let uid = PeripheralUid.terrainControl.rawValue
+    public let parent: ComponentDescriptor? = nil
 }
