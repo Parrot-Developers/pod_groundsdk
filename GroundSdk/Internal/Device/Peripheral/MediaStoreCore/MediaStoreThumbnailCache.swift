@@ -61,7 +61,9 @@ public class MediaStoreThumbnailCacheCore {
         /// uid of the requested thumbnail media
         fileprivate let mediaUid: String
         /// callback
-        fileprivate let loadedCallback: (UIImage?) -> Void
+        private let loadedCallback: (UIImage?) -> Void
+        /// indicates whether the request was canceled
+        fileprivate private(set) var canceled: Bool = false
 
         /// Constructor
         ///
@@ -76,25 +78,32 @@ public class MediaStoreThumbnailCacheCore {
             self.loadedCallback = loadedCallback
         }
 
-        /// Cancel the requests
+        /// Cancel the request
         func cancel() {
-            cache?.cancelRequest(self)
+            guard !canceled else { return }
+            canceled = cache?.cancelRequest(self) == true
+        }
+
+        /// Fullfils the request by providing the data to the callback.
+        /// - Parameter image: The image to provide to the callback
+        func fullfil(_ image: UIImage?) {
+            loadedCallback(image)
         }
     }
 
     /// Cache entry
     private enum CacheEntry {
         /// a cached image
-        case image(mediaUid: ThumbnailOwner.Uid, imageData: Data)
-        /// an active request, i.e a request with client waiting callback call
-        case activeRequest(owner: ThumbnailOwnerNode, requests: [ThumbnailRequest])
+        case image(uid: ThumbnailOwner.Uid, data: Data)
+        /// an active request, i.e. a request with client waiting callback call
+        case request(owner: ThumbnailOwnerNode, requests: [ThumbnailRequest])
 
         /// Unique identifier of the entry.
         /// This identifier is only unique for a given drone.
         public var uid: ThumbnailOwner.Uid {
             switch self {
-            case .image(let mediaUid, imageData: _): return mediaUid
-            case .activeRequest(owner: let ownerNode, requests: _): return ownerNode.content!.uid
+            case .image(let mediaUid, data: _): return mediaUid
+            case .request(owner: let ownerNode, requests: _): return ownerNode.content!.uid
             }
         }
     }
@@ -147,8 +156,9 @@ public class MediaStoreThumbnailCacheCore {
             switch entry {
             case .image:
                 cache[entry.uid] = nil
-            case .activeRequest:
+            case .request:
                 if currentDownloadRequest?.id == uid {
+                    ULog.d(.coreMediaTag, "invalidated active request for media '\(uid)'. Mark for retry")
                     retryCurrentDownloadRequest = true
                     currentDownloadRequest?.cancel()
                 }
@@ -195,13 +205,13 @@ private extension MediaStoreThumbnailCacheCore {
     private func newRequest(withOwner owner: ThumbnailOwner,
                             completion: @escaping (UIImage?) -> Void) -> ThumbnailRequest {
         // create a new node and queue download
-        ULog.d(.coreMediaTag, "getThumbnail, create new activeRequest \(owner.uid)")
         let request = ThumbnailRequest(cache: self, mediaUid: owner.uid, loadedCallback: completion)
         let ownerNode = ThumbnailOwnerNode(content: owner)
-        let node = CacheNode(content: .activeRequest(owner: ownerNode, requests: [request]))
-        self.cache[owner.uid] = node
+        let node = CacheNode(content: .request(owner: ownerNode, requests: [request]))
+        cache[owner.uid] = node
         // move to the top of the lru
         cacheLru.insert(node)
+        ULog.d(.coreMediaTag, "created new request for media '\(owner.uid)'")
         queueRequest(node: ownerNode)
         return request
     }
@@ -212,15 +222,16 @@ private extension MediaStoreThumbnailCacheCore {
         cacheLru.remove(node)
         cacheLru.insert(node)
         switch node.content! {
-        case .image(_, let thumbnailData):
+        case .image(_, let data):
             // existing image data, call the loaded callback now
-            completion(UIImage(data: thumbnailData))
-        case .activeRequest(let ownerNode, let requests):
-            ULog.d(.coreMediaTag, "getThumbnail, adding callback to activeRequest \(owner.uid)")
-            // active request add new client reference
+            completion(UIImage(data: data))
+        case .request(let ownerNode, let requests):
+            // existing request add new client reference
             let request = ThumbnailRequest(cache: self, mediaUid: ownerNode.content!.uid,
                                            loadedCallback: completion)
-            node.content = .activeRequest(owner: ownerNode, requests: requests + [request])
+            let newRequests = requests + [request]
+            node.content = .request(owner: ownerNode, requests: newRequests)
+            ULog.d(.coreMediaTag, "added callback to existing request (\(newRequests.count)) for media '\(owner.uid)'")
             return request
         }
         return nil
@@ -229,23 +240,26 @@ private extension MediaStoreThumbnailCacheCore {
     /// Cancel a thumbnail request
     ///
     /// - Parameter request: request to cancel
-    private func cancelRequest(_ request: ThumbnailRequest) {
+    /// - Returns `true` if it was removed from the cache, or `false` if there are still requests
+    ///   pending
+    private func cancelRequest(_ request: ThumbnailRequest) -> Bool {
         guard let node = cache[request.mediaUid],
-              case .activeRequest(let ownerNode, let requests) = node.content! else {
-            return
+              case .request(let ownerNode, let requests) = node.content! else {
+            return false
         }
         let remainingRequests = requests.filter { $0 !== request }
         let owner = ownerNode.content!
         if remainingRequests.isEmpty {
-            // if no remaining callback owners exist then transform the request to background one
+            // if no callback owners remain then remove the request
             removeRequest(ownerNode: ownerNode)
             cache[owner.uid] = nil
             cacheLru.remove(node)
-            ULog.d(.coreMediaTag, "cancel request \(request) for media '\(owner.uid)'")
+            return true
         } else {
-            // otherwise update the active request with the remaining request owners
-            node.content = .activeRequest(owner: ownerNode, requests: remainingRequests)
-            ULog.d(.coreMediaTag, "remove request \(request) for media '\(owner.uid)' ")
+            // otherwise update the existing request with the remaining request owners
+            node.content = .request(owner: ownerNode, requests: remainingRequests)
+            ULog.d(.coreMediaTag, "removed request for media '\(owner.uid)' ")
+            return false
         }
     }
 
@@ -254,7 +268,7 @@ private extension MediaStoreThumbnailCacheCore {
     /// - Parameter owner: owner to download the thumbnail for
     /// - Returns: node added to the downloadRequests queue
     private func queueRequest(node: ThumbnailOwnerNode) {
-        ULog.d(.coreMediaTag, "queue download thumbnail request for media '\(node.content!.uid)'")
+        ULog.d(.coreMediaTag, "queued download request for media '\(node.content!.uid)'")
         downloadRequests.enqueue(node)
         // kick off download state machine if not active
         processNextRequest()
@@ -267,10 +281,12 @@ private extension MediaStoreThumbnailCacheCore {
     /// - Parameter downloadNode: download request note to dequeue
     private func removeRequest(ownerNode: ThumbnailOwnerNode) {
         let owner = ownerNode.content!
-        ULog.d(.coreMediaTag, "remove download request for media '\(owner.uid)'")
+        let uid = owner.uid
         downloadRequests.remove(ownerNode)
+        ULog.d(.coreMediaTag, "removed request for media '\(uid)'")
         if let currentDownloadRequest = self.currentDownloadRequest,
-           currentDownloadRequest.id == owner.uid {
+           currentDownloadRequest.id == uid {
+            ULog.d(.coreMediaTag, "canceled active request for media '\(uid)'")
             currentDownloadRequest.cancel()
         }
     }
@@ -283,7 +299,7 @@ private extension MediaStoreThumbnailCacheCore {
         }
         let owner = downloadRequest.content!
         let uid = owner.uid
-        ULog.d(.coreMediaTag, "downloading thumbnail for media '\(uid)'")
+        ULog.d(.coreMediaTag, "starting download for media '\(uid)'")
         currentDownloadRequest = mediaStoreBackend
             .downloadThumbnail(for: owner) { [unowned self] thumbnailData in
                 // if should retry current download request, re insert the
@@ -292,6 +308,7 @@ private extension MediaStoreThumbnailCacheCore {
                     self.retryCurrentDownloadRequest = false
                     self.downloadRequests.insert(downloadRequest)
                     self.currentDownloadRequest = nil
+                    ULog.d(.coreMediaTag, "retrying canceled request for media '\(uid)'")
                     self.processNextRequest()
                     return
                 }
@@ -315,20 +332,30 @@ private extension MediaStoreThumbnailCacheCore {
     ///
     /// - Parameters:
     ///   - uid: the media uid that the corresponding thumbnail download request failed.
-    func handleFailedThumbnail(uid: String) {
-        ULog.e(.coreMediaTag, "failed to cache thumbnail \(uid)")
+    private func handleFailedThumbnail(uid: String) {
+        ULog.e(.coreMediaTag, "failed to cache media '\(uid)'")
         guard let node = cache[uid],
               let content = node.content else { return }
 
+        var activeRequests  = [ThumbnailRequest]()
         // notify the absence of a thumbnail to observers
-        if case .activeRequest(_, let requests) = content {
+        if case .request(_, let requests) = content {
+            activeRequests = requests.filter { !$0.canceled }
+            // call only canceled callbacks
             requests.forEach {
-                $0.loadedCallback(nil)
+                $0.fullfil(nil)
             }
         }
         // download failed or cancelled, clean lists
         cacheLru.remove(node)
         cache[uid] = nil
+        // insert again non cancelled requests
+        if !activeRequests.isEmpty,
+           case .request(let ownerNode, _) = content {
+            let updatedNode = CacheNode(content: .request(owner: ownerNode, requests: activeRequests))
+            cache[uid] = updatedNode
+            cacheLru.insert(updatedNode)
+        }
     }
 
     /// Insert a downloaded thumbnail into the cache
@@ -338,13 +365,13 @@ private extension MediaStoreThumbnailCacheCore {
     ///   - thumbnailData: thumbnail data
     func insertThumbnailInCache(uid: String, data: Data) {
         if let node = cache[uid], let content = node.content {
-            if case .activeRequest(_, let requests) = content {
+            if case .request(_, let requests) = content {
                 let image = UIImage(data: data)
-                requests.forEach { $0.loadedCallback(image) }
+                requests.forEach { $0.fullfil(image) }
             }
-            node.content = .image(mediaUid: uid, imageData: data)
+            node.content = .image(uid: uid, data: data)
             totalSize += data.count
-            ULog.i(.coreMediaTag, "cached thumbnail \(uid) totalCacheSize:\(totalSize)")
+            ULog.i(.coreMediaTag, "cached media '\(uid)' totalCacheSize:\(totalSize)")
         }
         if totalSize > maxSize {
             cleanLeastRecentlyUsedEntries()
@@ -352,14 +379,14 @@ private extension MediaStoreThumbnailCacheCore {
     }
 
     /// Remove old cache entries until the cache is lower that it's maximum size
-    func cleanLeastRecentlyUsedEntries() {
+    private func cleanLeastRecentlyUsedEntries() {
         cacheLru.reverseWalk { node in
             switch node.content! {
-            case .image(let mediaUid, let thumbnailData):
-                cache[mediaUid] = nil
-                totalSize -= thumbnailData.count
+            case .image(let uid, let data):
+                cache[uid] = nil
+                totalSize -= data.count
                 cacheLru.remove(node)
-                ULog.d(.coreMediaTag, "removed cached thumbnail for media '\(mediaUid)';"
+                ULog.d(.coreMediaTag, "removed cached media '\(uid)';"
                        + " new cacheSize: \(totalSize)")
             default:
                 break

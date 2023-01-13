@@ -83,6 +83,8 @@ public class MediaItemCore: MediaItem {
     }
 
     public func mediaWithResource(_ resource: Resource) -> MediaItemCore {
+        guard !resources.contains(resource) else { return self }
+
         var newResources = resources
         newResources.append(resource)
         return MediaItemCore(uid: uid, name: name, type: type, runUid: runUid, customId: customId,

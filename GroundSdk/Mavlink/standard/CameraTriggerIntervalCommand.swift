@@ -54,7 +54,7 @@ extension MavlinkStandard {
         ///
         /// - note: Ignored by Anafi.
             public var shutterIntegration: Int {
-                Int(parameters[0])
+                Int(parameters[1])
             }
 
         /// Constructor.

@@ -1406,6 +1406,37 @@ public struct Vmeta_TimedMetadata {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
+#if swift(>=5.5) && canImport(_Concurrency)
+extension Vmeta_TrackingClass: @unchecked Sendable {}
+extension Vmeta_TrackingState: @unchecked Sendable {}
+extension Vmeta_FlyingState: @unchecked Sendable {}
+extension Vmeta_PilotingMode: @unchecked Sendable {}
+extension Vmeta_Animation: @unchecked Sendable {}
+extension Vmeta_LinkType: @unchecked Sendable {}
+extension Vmeta_LinkStatus: @unchecked Sendable {}
+extension Vmeta_ThermalCalibrationState: @unchecked Sendable {}
+extension Vmeta_Quaternion: @unchecked Sendable {}
+extension Vmeta_Location: @unchecked Sendable {}
+extension Vmeta_Vector2: @unchecked Sendable {}
+extension Vmeta_Vector3: @unchecked Sendable {}
+extension Vmeta_NED: @unchecked Sendable {}
+extension Vmeta_BoundingBox: @unchecked Sendable {}
+extension Vmeta_ThermalSpot: @unchecked Sendable {}
+extension Vmeta_DroneMetadata: @unchecked Sendable {}
+extension Vmeta_CameraMetadata: @unchecked Sendable {}
+extension Vmeta_TrackingProposalMetadata: @unchecked Sendable {}
+extension Vmeta_TrackingMetadata: @unchecked Sendable {}
+extension Vmeta_AutomationMetadata: @unchecked Sendable {}
+extension Vmeta_WifiLinkMetadata: @unchecked Sendable {}
+extension Vmeta_StarfishLinkInfo: @unchecked Sendable {}
+extension Vmeta_StarfishLinkMetadata: @unchecked Sendable {}
+extension Vmeta_LinkMetadata: @unchecked Sendable {}
+extension Vmeta_LinkMetadata.OneOf_Protocol: @unchecked Sendable {}
+extension Vmeta_ThermalMetadata: @unchecked Sendable {}
+extension Vmeta_LFICMetadata: @unchecked Sendable {}
+extension Vmeta_TimedMetadata: @unchecked Sendable {}
+#endif  // swift(>=5.5) && canImport(_Concurrency)
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "vmeta"

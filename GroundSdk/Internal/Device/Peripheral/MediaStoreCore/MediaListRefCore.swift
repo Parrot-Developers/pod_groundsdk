@@ -104,7 +104,7 @@ private extension MediaListRefCore {
         default:
             // while browsing there can be changes, keep them so they can be replayed after
             // the browsing ends
-            if request != nil {
+            if request != nil || self.value == nil {
                 pendingChangeEvents.append(event)
             } else {
                 let newList = process(event: event, medias: self.medias)
@@ -127,7 +127,8 @@ private extension MediaListRefCore {
             newList = []
 
         case .createdMedia(let newMedia):
-            if storageType == nil || (storageType != nil && newMedia.resources.first?.storage == storageType) {
+            if storageType == nil || (storageType != nil && newMedia.resources.first?.storage == storageType),
+               !newList.contains(newMedia) {
                 newList.append(newMedia)
             }
 
