@@ -83,6 +83,12 @@ class MediaListRefCore: Ref<[MediaItem]>, MediaOperationRef {
         cancel()
         mediaStore.unregister(listener: mediaStoreListener)
     }
+
+    /// Cancels the request
+    func cancel() {
+        request?.cancel()
+        request = nil
+    }
 }
 
 private extension MediaListRefCore {

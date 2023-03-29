@@ -59,6 +59,12 @@ class MediaDeleterRefCore: Ref<MediaDeleter>, MediaOperationRef {
     deinit {
         cancel()
     }
+
+    /// Cancels the request
+    public func cancel() {
+        request?.cancel()
+        request = nil
+    }
 }
 
 class AllMediasDeleterRefCore: Ref<AllMediasDeleter>, MediaOperationRef {
@@ -86,5 +92,11 @@ class AllMediasDeleterRefCore: Ref<AllMediasDeleter>, MediaOperationRef {
     /// destructor
     deinit {
         cancel()
+    }
+
+    /// Cancels the request
+    func cancel() {
+        request?.cancel()
+        request = nil
     }
 }

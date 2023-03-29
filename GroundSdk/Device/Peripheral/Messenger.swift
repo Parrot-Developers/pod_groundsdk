@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -28,3 +28,29 @@
 //    SUCH DAMAGE.
 
 import Foundation
+
+/// Messenger peripheral interface.
+///
+/// This component allows to send SMS using the remote device cellular connection, when available.
+///
+/// This peripheral can be retrieved by:
+/// ```
+/// device.getPeripheral(Peripherals.messenger)
+/// ```
+public protocol Messenger: Peripheral {
+    /// Requests the remote device to send an SMS through the available cellular connection.
+    ///
+    /// - Parameters:
+    ///   - recipientAddress: address/phone number of the recipient of the SMS to be sent
+    ///   - content: text content of the SMS to be sent
+    /// - Returns: `true` if the request was successfully sent to the remote device, otherwise `false`
+    func sendSms(recipientAddress: String, content: String) -> Bool
+}
+
+/// :nodoc:
+/// Messenger description
+public class MessengerDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = Messenger
+    public let uid = PeripheralUid.messenger.rawValue
+    public let parent: ComponentDescriptor? = nil
+}

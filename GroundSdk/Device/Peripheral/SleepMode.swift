@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,47 +29,47 @@
 
 import Foundation
 
-/// MediaDownloader Reference implementation
-class MediaDownloaderRefCore: Ref<MediaDownloader>, MediaOperationRef {
+/// Sleep mode activation status.
+public enum SleepModeActivationStatus: String, CustomStringConvertible, CaseIterable {
+    /// Sleep mode has been successfully activated; expect imminent disconnection.
+    case success
+    /// Sleep mode could not be activated.
+    case failure
 
-    /// Media store instance
-    private let mediaStore: MediaStoreCore
-    /// number of media to download
-    private let total: Int
-    /// active delete request
-    private(set) var request: CancelableCore?
+    /// Debug description.
+    public var description: String { return rawValue }
+}
 
-    /// Constructor
+/// Sleep mode peripheral interface.
+///
+/// This component allows to configure and activate the drone's sleep mode/wake up feature.
+///
+/// This peripheral can be retrieved by:
+/// ```
+/// device.getPeripheral(Peripherals.sleepMode)
+/// ```
+public protocol SleepMode: Peripheral {
+    /// Setting for configuring the secure wake-up message.
     ///
-    /// - Parameters:
-    ///   - mediaStore: media store instance
-    ///   - mediaResources: media resources to download
-    ///   - type: download type
-    ///   - destination: download destination
-    ///   - observer: observer notified of download progress
-    init(mediaStore: MediaStoreCore, mediaResources: MediaResourceListCore, type: DownloadType,
-         destination: DownloadDestination, observer: @escaping Observer) {
-        self.mediaStore = mediaStore
-        self.total = 0
-        super.init(observer: observer)
-        self.request = mediaStore.backend
-            .download(mediaResources: mediaResources,
-                      type: type,
-                      destination: destination) { [weak self] mediaDownloader in
-                // weak self in case backend call callback after cancelling request
-                guard let self = self else { return }
-                self.update(newValue: mediaDownloader)
-        }
-    }
+    /// Configures the message to match to trigger wake-up from sleep mode by sending an SMS to the drone.
+    var wakeupMessage: StringSetting { get }
 
-    /// destructor
-    deinit {
-        cancel()
-    }
+    /// Sleep mode activation status.
+    ///
+    /// This property is **transient**: it will be set once when the activation succeeds or fails, and then
+    /// immediately back to `null`.
+    var activationStatus: SleepModeActivationStatus? { get }
 
-    /// Cancels the request
-    func cancel() {
-        request?.cancel()
-        request = nil
-    }
+    /// Activates sleep mode.
+    ///
+    /// - Returns: `true` if the activation request has been sent to the drone, otherwise `false`
+    func activate() -> Bool
+}
+
+/// :nodoc:
+/// SleepMode description
+public class SleepModeDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = SleepMode
+    public let uid = PeripheralUid.sleepMode.rawValue
+    public let parent: ComponentDescriptor? = nil
 }

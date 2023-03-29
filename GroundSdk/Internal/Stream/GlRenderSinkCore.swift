@@ -239,6 +239,10 @@ extension GlRenderSinkCore {
         config.listener?.onRenderingMustStop(renderer: self)
     }
 
+    public func onPreferredFpsChanged(_ fps: Float) {
+        config.listener?.onPreferredFpsChanged(renderer: self, fps: fps)
+    }
+
     public func onFrameReady() {
         config.listener?.onFrameReady(renderer: self)
     }

@@ -248,6 +248,9 @@ public protocol ReturnHomePilotingItf: PilotingItf, ActivablePilotingItf {
     /// This delay is computed by the drone to allow it to reach its home position before the battery is empty.
     var autoTriggerDelay: TimeInterval { get }
 
+    /// `true` if an ongoing return home is currently suspended for some reason; `false` otherwise.
+    var suspended: Bool { get }
+
     /// Activates this piloting interface.
     ///
     /// If successful, it deactivates the current piloting interface and activate this one.
@@ -327,6 +330,9 @@ public protocol GSReturnHomePilotingItf: PilotingItf, ActivablePilotingItf {
     /// meaningless otherwise.
     /// This delay is computed by the drone to allow it to reach its home position before the battery is empty.
     var autoTriggerDelay: TimeInterval { get }
+
+    /// `true` if an ongoing return home is currently suspended for some reason; `false` otherwise.
+    var suspended: Bool { get }
 
     /// Activates this piloting interface.
     ///

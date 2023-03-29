@@ -50,7 +50,8 @@ extension NSError {
                 urlError = .canceled
             case NSURLErrorTimedOut,
                  NSURLErrorNetworkConnectionLost,
-                 NSURLErrorNotConnectedToInternet:
+                 NSURLErrorNotConnectedToInternet,
+                 NSURLErrorCannotParseResponse:
                 urlError = .connectionError
             default:
                 urlError = .otherError

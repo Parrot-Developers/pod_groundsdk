@@ -45,10 +45,17 @@ class MediaThumbnailRefCore: Ref<UIImage>, MediaOperationRef {
     init(thumbnailCache: MediaStoreThumbnailCacheCore, owner: MediaStoreThumbnailCacheCore.ThumbnailOwner,
          observer: @escaping Observer) {
         super.init(observer: observer)
-        request = thumbnailCache.getThumbnail(for: owner) { [unowned self] image in
+        request = thumbnailCache.getThumbnail(for: owner) { [weak self] image in
+            guard let self = self else { return }
             self.update(newValue: image)
             self.request = nil
         }
+    }
+
+    /// Cancels the request
+    func cancel() {
+        request?.cancel()
+        request = nil
     }
 
     /// Destructor

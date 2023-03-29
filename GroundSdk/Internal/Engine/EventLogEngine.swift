@@ -38,7 +38,7 @@ class EventLogEngine: EngineBaseCore {
     private let eventLogLocalDirName = "eventLog"
 
     /// Internal logger
-    private var logger: SdkCoreEventLogger?
+    private var logRecorder: EventLogRecorder?
 
     /// Flight log storage utility
     private var flightLogStorage: FlightLogStorageCore!
@@ -80,8 +80,8 @@ class EventLogEngine: EngineBaseCore {
         ULog.d(.eventLogEngineTag, "Starting EventLogEngine.")
 
         sessionId = UUID().uuidString
-        let properties: Dictionary = [
-            "app.sessionid": sessionId,
+        let roProperties: Dictionary = [
+            "app.sessionid": sessionId ?? "0",
             "phone.os": UIDevice.current.systemName,
             "phone.os_version": UIDevice.current.systemVersion,
             "phone.manufacturer": "Apple",
@@ -90,6 +90,10 @@ class EventLogEngine: EngineBaseCore {
             "ro.parrot.build.version": AppInfoCore.appVersion,
             "ro.parrot.gsdk.product": AppInfoCore.sdkBundle,
             "ro.parrot.gsdk.version": AppInfoCore.sdkVersion
+        ]
+
+        let rwProperties: Dictionary = [
+            "app.drone.bootid": String(repeating: "0", count: 32)
         ]
 
         // EventLogEngine is only enabled if FlightLogEngine is enabled
@@ -102,19 +106,23 @@ class EventLogEngine: EngineBaseCore {
         }
 
         folderMonitor = FolderMonitor(url: workDir, handler: handleNewFile)
-        folderMonitor.startMonitoring()
+        // Monitoring a folder that has just been created may fail, so we add a timer to fix this
+        Timer.scheduledTimer(withTimeInterval: 0.001, repeats: false) { _ in
+            self.folderMonitor.startMonitoring()
+        }
 
         let userAccount = utilities.getUtility(Utilities.userAccount)!
         userAccountMonitor = userAccount.startMonitoring(accountDidChange: { (userAccountInfo) in
             if userAccountInfo?.privateMode == true {
                 ULog.d(.eventLogEngineTag, "Private mode enabled: stopping logger and deleting current event log.")
-                self.logger?.stop()
-                self.logger = nil
+                self.logRecorder = nil
                 self.deleteCurrentEventLog()
-            } else if self.logger == nil {
+            } else if self.logRecorder == nil {
                 ULog.d(.eventLogEngineTag, "Private mode disabled: starting logger.")
-                self.logger = SdkCoreEventLogger()
-                self.logger?.start(workDir.path, properties: properties as [AnyHashable: Any])
+                let logConfig = LogEventRecorderConfig(workDir)
+                self.logRecorder = ULog.redirectToLogEvent(config: logConfig,
+                                                           roProperties: roProperties as [String: String],
+                                                           rwProperties: rwProperties as [String: String])
                 self.index = 0
                 self.currentLogDate = Date()
             }
@@ -145,8 +153,7 @@ class EventLogEngine: EngineBaseCore {
         userAccountMonitor?.stop()
         userAccountMonitor = nil
         eventLoggerFacility.unpublish()
-        logger?.stop()
-        logger = nil
+        logRecorder = nil
         folderMonitor.stopMonitoring()
         let notificationCenter = NotificationCenter.default
         if #available(iOS 13.0, *) {
@@ -162,12 +169,13 @@ class EventLogEngine: EngineBaseCore {
     ///
     /// - Parameter bootId: new drone boot id
     func update(bootId: String) {
-        logger?.log("PROP:app.drone.bootid=\(bootId)")
+        logRecorder?.updateProperty(key: "app.drone.bootid", value: bootId)
     }
 
     /// Closes current event log session and starts a new one, creating a new log file.
     func newSession() {
-        logger?.newSession()
+        ULog.d(.eventLogEngineTag, "New event log session requested.")
+        logRecorder?.rotateLogFile()
         nextLogDate = Date()
     }
 
@@ -189,6 +197,8 @@ class EventLogEngine: EngineBaseCore {
         let fileName = "log-\(index)-\(sessionId?.prefix(5) ?? "")-\(currentDateStr).bin"
         let srcFile = file.resolvingSymlinksInPath()
         let dstFile = srcFile.deletingLastPathComponent().appendingPathComponent(fileName)
+
+        ULog.d(.eventLogEngineTag, "New file detected: \(srcFile) - renaming it to: \(fileName)")
 
         index += 1 // it follows internal logger index, which is incremented on each log rotation
         currentLogDate = nextLogDate
@@ -232,7 +242,6 @@ class EventLogEngine: EngineBaseCore {
 extension EventLogEngine: EventLoggerBackend {
     func log(_ message: String) {
         ULog.d(.eventLogEngineTag, message)
-        logger?.log(message)
     }
 }
 
@@ -279,12 +288,10 @@ private class FolderMonitor {
             if let self = self,
                 let files = try? FileManager.default.contentsOfDirectory(
                     at: self.url, includingPropertiesForKeys: nil, options: .skipsHiddenFiles) {
-                self.folderContent = files
-                if let newFile = files.first(where: { file in
-                    self.folderContent?.contains(file) ?? false
-                }) {
+                if let newFile = files.first(where: { !(self.folderContent?.contains($0) ?? false) }) {
                     self.onNewFile(newFile)
                 }
+                self.folderContent = files
             }
         }
 

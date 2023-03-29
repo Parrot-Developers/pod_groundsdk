@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,47 +29,34 @@
 
 import Foundation
 
-/// MediaDownloader Reference implementation
-class MediaDownloaderRefCore: Ref<MediaDownloader>, MediaOperationRef {
+/// Internal implementation of the HTTP server peripheral.
+public class HttpServerCore: PeripheralCore, HttpServer {
 
-    /// Media store instance
-    private let mediaStore: MediaStoreCore
-    /// number of media to download
-    private let total: Int
-    /// active delete request
-    private(set) var request: CancelableCore?
+    public private (set) var baseUrl: URL
 
     /// Constructor
     ///
-    /// - Parameters:
-    ///   - mediaStore: media store instance
-    ///   - mediaResources: media resources to download
-    ///   - type: download type
-    ///   - destination: download destination
-    ///   - observer: observer notified of download progress
-    init(mediaStore: MediaStoreCore, mediaResources: MediaResourceListCore, type: DownloadType,
-         destination: DownloadDestination, observer: @escaping Observer) {
-        self.mediaStore = mediaStore
-        self.total = 0
-        super.init(observer: observer)
-        self.request = mediaStore.backend
-            .download(mediaResources: mediaResources,
-                      type: type,
-                      destination: destination) { [weak self] mediaDownloader in
-                // weak self in case backend call callback after cancelling request
-                guard let self = self else { return }
-                self.update(newValue: mediaDownloader)
+    /// - Parameter store: store where this peripheral will be stored
+    public init(store: ComponentStoreCore) {
+        baseUrl = URL(string: "http://0.0.0.0:0")!
+        super.init(desc: Peripherals.httpServer, store: store)
+    }
+}
+
+/// Backend callback methods.
+extension HttpServerCore {
+
+    /// Updates base URL.
+    ///
+    /// - Parameter baseUrl: new base URL
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(baseUrl newValue: URL?) -> HttpServerCore {
+        if let newValue = newValue,
+           baseUrl != newValue {
+            baseUrl = newValue
+            markChanged()
         }
-    }
-
-    /// destructor
-    deinit {
-        cancel()
-    }
-
-    /// Cancels the request
-    func cancel() {
-        request?.cancel()
-        request = nil
+        return self
     }
 }

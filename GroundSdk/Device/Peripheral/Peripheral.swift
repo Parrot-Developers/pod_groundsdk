@@ -84,8 +84,12 @@ public class Peripherals: NSObject {
     public static let geofence = GeofenceDesc()
     /// Gimbal.
     public static let gimbal = GimbalDesc()
+    /// HTTP server.
+    public static let httpServer = HttpServerDesc()
     /// Internal user storage.
     public static let internalUserStorage = InternalUserStorageDesc()
+    /// Kill switch.
+    public static let killSwitch = KillSwitchDesc()
     /// Leds.
     public static let leds = LedsDesc()
     /// Log control.
@@ -102,6 +106,8 @@ public class Peripherals: NSObject {
     public static let mainCamera2 = MainCamera2Desc()
     /// Media store peripheral.
     public static let mediaStore = MediaStoreDesc()
+    /// Messenger peripheral.
+    public static let messenger = MessengerDesc()
     /// Microhard.
     public static let microhard = MicrohardDesc()
     /// Missions.
@@ -128,6 +134,8 @@ public class Peripherals: NSObject {
     public static let skyCtrl3Gamepad = SkyCtrl3GamepadDesc()
     /// SkyController4 gamepad peripheral.
     public static let skyCtrl4Gamepad = SkyCtrl4GamepadDesc()
+    /// Sleep mode peripheral.
+    public static let sleepMode = SleepModeDesc()
     /// Stereo vision sensor.
     public static let stereoVisionSensor = StereoVisionSensorDesc()
     /// Video stream peripheral.
@@ -178,7 +186,9 @@ enum PeripheralUid: Int {
     case frontStereoGimbal
     case geofence
     case gimbal
+    case httpServer
     case internalUserStorage
+    case killSwitch
     case latestLogDownloader
     case leds
     case logControl
@@ -188,6 +198,7 @@ enum PeripheralUid: Int {
     case mainCamera
     case mainCamera2
     case mediaStore
+    case messenger
     case microhard
     case missionManager
     case missionUpdater
@@ -201,6 +212,7 @@ enum PeripheralUid: Int {
     case secureElement
     case skyCtrl3Gamepad
     case skyCtrl4Gamepad
+    case sleepMode
     case stereoVisionSensor
     case streamServer
     case systemInfo

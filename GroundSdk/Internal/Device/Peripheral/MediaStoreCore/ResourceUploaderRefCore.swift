@@ -56,4 +56,10 @@ class ResourceUploaderRefCore: Ref<ResourceUploader>, MediaOperationRef {
     deinit {
         cancel()
     }
+
+    /// Cancels the request
+    public func cancel() {
+        request?.cancel()
+        request = nil
+    }
 }

@@ -82,6 +82,13 @@ public protocol GlRenderSinkListener: AnyObject {
     /// - Parameter renderer: the renderer
     func onFrameReady(renderer: GlRenderSink)
 
+    /// Called when the preferred display framerate should change.
+    ///
+    /// - Parameters:
+    ///    - renderer: the renderer
+    ///    - fps: the preferred count of frames per second
+    func onPreferredFpsChanged(renderer: GlRenderSink, fps: Float)
+
     /// Called when the content zone has changed
     ///
     /// - Parameter contentZone: new content zone

@@ -208,6 +208,9 @@ public class Alarm: NSObject {
         /// DRI is not functional.
         case driFailing
 
+        /// Video signal processing is not functional.
+        case videoPipeline
+
         /// Debug description.
         public var description: String {
             switch self {
@@ -254,6 +257,7 @@ public class Alarm: NSObject {
             case .automaticLandingBatteryTooHot:                 return "automaticLandingBatteryTooHot"
             case .automaticLandingBatteryTooCold:                return "automaticLandingBatteryTooCold"
             case .driFailing:                                    return "driFailing"
+            case .videoPipeline:                                 return "videoPipeline"
             }
         }
 
@@ -273,7 +277,7 @@ public class Alarm: NSObject {
             .obstacleAvoidanceBlindMotionDirection, .inclinationTooHigh, .horizontalGeofenceReached,
             .verticalGeofenceReached, .obstacleAvoidanceFreeze, .freeFallDetected,
             .stereoCameraDecalibrated, .automaticLandingPropellerIcingIssue, .automaticLandingBatteryTooHot,
-            .automaticLandingBatteryTooCold, .driFailing]
+            .automaticLandingBatteryTooCold, .driFailing, .videoPipeline]
     }
 
     /// Alarm level.

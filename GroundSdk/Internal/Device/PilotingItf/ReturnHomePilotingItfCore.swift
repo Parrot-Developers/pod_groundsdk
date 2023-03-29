@@ -259,6 +259,9 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
     /// Delay before the drone starts a return home when `homeReachability` is `.warning`.
     public private(set) var autoTriggerDelay: TimeInterval = 0
 
+    /// `true` if an ongoing return home is currently suspended for some reason; `false` otherwise.
+    public private(set) var suspended: Bool = false
+
     /// of the selected target are not met.
     /// May be nil if return home is not available, for example because the drone doesn't have a gps fix.
     public var currentTarget: ReturnHomeTarget {
@@ -586,6 +589,20 @@ extension ReturnHomePilotingItfCore {
                 markChanged()
             }
             return self
+    }
+
+    /// Changes the suspended state.
+    ///
+    /// - Parameter suspended: new suspended state
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(suspended newSuspendedState: Bool)
+        -> ReturnHomePilotingItfCore {
+        if suspended != newSuspendedState {
+            suspended = newSuspendedState
+            markChanged()
+        }
+        return self
     }
 
     /// Cancels all pending settings rollbacks.

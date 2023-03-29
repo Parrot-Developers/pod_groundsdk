@@ -40,14 +40,12 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
     case starting
 
     /// Recording is started.
-    /// - startTime: time when the capture did start, in the remote drone clock reference;
-    ///   DEPRECATED, use`startTimeOnSystemClock` or `duration()` instead
     /// - startTimeOnSystemClock: time when the capture did start, in seconds in the local device's default clock
     ///   reference; may be negative if the capture started before local device boot
     /// - duration: closure allowing to retrieve capture duration so far
     /// - videoBitrate: video recording bitrate, in bits per second
     /// - mediaStorage: destination storage for produced media, `nil` if unknown
-    case started(startTime: Date, startTimeOnSystemClock: Double, duration: () -> TimeInterval,
+    case started(startTimeOnSystemClock: Double, duration: () -> TimeInterval,
                  videoBitrate: UInt, mediaStorage: StorageType?)
 
     /// Recording is stopping.
@@ -85,9 +83,9 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
         case (.starting, .starting):
             return true
 
-        case (let started(startTimeL, startTimeOnSystemClockL, _, videoBitrateL, mediaStorageL),
-              let started(startTimeR, startTimeOnSystemClockR, _, videoBitrateR, mediaStorageR)):
-            return startTimeL == startTimeR && startTimeOnSystemClockL == startTimeOnSystemClockR
+        case (let started(startTimeOnSystemClockL, _, videoBitrateL, mediaStorageL),
+              let started(startTimeOnSystemClockR, _, videoBitrateR, mediaStorageR)):
+            return startTimeOnSystemClockL == startTimeOnSystemClockR
                 && mediaStorageL == mediaStorageR && videoBitrateL == videoBitrateR
 
         case (let stopping(reasonL, savedMediaIdL), let stopping(reasonR, savedMediaIdR)):
@@ -105,8 +103,8 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
             return "stopped \(latestSavedMediaId ?? "none")"
         case .starting:
             return "starting"
-        case let .started(startTime, startTimeOnSystemClock, duration, videoBitrate, mediaStorage):
-            return "started \(startTime) \(startTimeOnSystemClock), \(duration()), \(videoBitrate) "
+        case let .started(startTimeOnSystemClock, duration, videoBitrate, mediaStorage):
+            return "started \(startTimeOnSystemClock), \(duration()), \(videoBitrate) "
                 + String(describing: mediaStorage)
         case let .stopping(reason, savedMediaId):
             return "stopping \(reason), \(savedMediaId ?? "none")"

@@ -56,6 +56,8 @@ public class PilotingItfs: NSObject {
     public static let lookAt = LookAtPilotingItfs()
     /// Piloting interface of a copter for manual piloting.
     public static let manualCopter = ManualCopterPilotingItfs()
+    /// Piloting interface for point'n'fly piloting.
+    public static let pointAndFly = PointAndFlyPilotingItfs()
     /// Piloting interface for Point Of Interest piloting.
     public static let pointOfInterest = PointOfInterestPilotingItfs()
     /// Piloting interface for the return home feature.
@@ -70,6 +72,7 @@ enum PilotingItfUid: Int {
     case guided
     case lookAt
     case manualCopter
+    case pointAndFly
     case pointOfInterest
     case returnHome
 }

@@ -500,12 +500,6 @@ public extension MediaStore {
     }
 }
 
-extension MediaOperationRef {
-    public func cancel() {
-        request?.cancel()
-    }
-}
-
 /// Objective-C wrapper of Ref<[MediaItem]>. Required because swift generics can't be used from Objective-C.
 /// - Note: This class is for Objective-C only and must not be used in Swift.
 @objcMembers

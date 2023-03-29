@@ -126,7 +126,7 @@ public class FlightPlanPilotingItfCore: ActivablePilotingItfCore, FlightPlanPilo
     ///
     /// - Parameters:
     ///    - store: store where this interface will be stored
-    ///    - backend: ReturnHomePilotingItf backend
+    ///    - backend: FlightPlanPilotingItf backend
     public init(store: ComponentStoreCore, backend: FlightPlanPilotingItfBackend) {
         super.init(desc: PilotingItfs.flightPlan, store: store, backend: backend)
     }

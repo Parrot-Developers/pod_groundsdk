@@ -235,7 +235,7 @@ public struct MicrohardConnectionParameters: Equatable {
     }
 }
 
-/// Miicrohard peripheral.
+/// Microhard peripheral.
 ///
 /// This peripheral allows to pair drones supporting Microhard technology.
 ///
@@ -291,7 +291,7 @@ public protocol Microhard: Peripheral {
 }
 
 /// :nodoc:
-/// Micrcohard description
+/// Microhard description
 public class MicrohardDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = Microhard
     public let uid = PeripheralUid.microhard.rawValue
