@@ -44,6 +44,8 @@ public enum PointAndFlyGimbalControlMode: String, CustomStringConvertible, CaseI
 
 /// Reasons why point'n'fly piloting interface may be unavailable.
 public enum PointAndFlyIssue: String, CustomStringConvertible, CaseIterable {
+    /// Drone is not flying.
+    case droneNotFlying
     /// Drone is not calibrated.
     case droneNotCalibrated
     /// Drone gps is not fixed or has a poor accuracy.
