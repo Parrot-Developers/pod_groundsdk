@@ -52,6 +52,8 @@ public class Peripherals: NSObject {
     public static let beeper = BeeperDesc()
     /// Blended thermal camera peripheral.
     public static let blendedThermalCamera = BlendedThermalCameraDesc()
+    /// Blended thermal camera2 peripheral.
+    public static let blendedThermalCamera2 = BlendedThermalCamera2Desc()
     /// Cellular.
     public static let cellular = CellularDesc()
     /// Certificate Uploader.
@@ -156,6 +158,8 @@ public class Peripherals: NSObject {
     public static let wifiAccessPoint = WifiAccessPointDesc()
     /// Wifi scanner peripheral.
     public static let wifiScanner = WifiScannerDesc()
+    /// Wifi station peripheral.
+    public static let wifiStation = WifiStationDesc()
 
     // Peripherals reserved for internal use.
     /// Latest flight log (FDR) downloader.
@@ -170,6 +174,7 @@ enum PeripheralUid: Int {
     case batteryGaugeUpdater
     case beeper
     case blendedThermalCamera
+    case blendedThermalCamera2
     case cellular
     case certificateUploader
     case copilot
@@ -224,6 +229,7 @@ enum PeripheralUid: Int {
     case virtualGamepad
     case wifiAccessPoint
     case wifiScanner
+    case wifiStation
 }
 
 /// Objective-C wrapper of Ref<Peripheral>. Required because swift generics can't be used from Objective-C.

@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,8 +29,38 @@
 
 import Foundation
 
-/// Core implementation of the `EnvironmentSetting` protocol based on `EnumSettingCore` (compatibility layer).
-class EnvironmentSettingCore: EnumSettingCore<Environment>, EnvironmentSetting {
+/// Wifi indoor/outdoor environment modes.
+public enum Environment: Int, CustomStringConvertible, CaseIterable {
+    /// Wifi is configured for indoor use.
+    case indoor
+    /// Wifi is configured for outdoor use.
+    case outdoor
 
-    var mutable: Bool { return supportedValues.count > 1 }
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .indoor:   return "indoor"
+        case .outdoor:  return "outdoor"
+        }
+    }
+}
+
+/// Setting providing access to the Wifi environment setup.
+public protocol EnvironmentSetting: AnyObject {
+
+    /// Tells if the setting value has been changed and is waiting for change confirmation.
+    var updating: Bool { get }
+
+    /// Tells whether the setting can be altered by the application.
+    ///
+    /// Depending on the device, the current environment setup may not be changed.
+    /// For instance, on remote control devices, the environment is hard wired to the currently
+    /// or most recently connected drone, if any, and cannot be changed by the application.
+    var mutable: Bool { get }
+
+    /// Current environment mode of the access point.
+    ///
+    /// - Note: Altering this setting may change the set of available channels, and even result in a device
+    /// disconnection since the channel currently in use might not be allowed with the new environment setup.
+    var value: Environment { get set }
 }

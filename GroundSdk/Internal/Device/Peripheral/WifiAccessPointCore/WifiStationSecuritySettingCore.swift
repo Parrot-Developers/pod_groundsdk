@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,39 +29,32 @@
 
 import Foundation
 
-/// Core implementation of the SecurityModeSetting protocol.
-class SecurityModeSettingCore: SecurityModeSetting {
+/// Wifi station security setting implementation.
+class WifiStationSecuritySettingCore: WifiStationSecuritySetting {
 
     var updating: Bool { return timeout.isScheduled }
 
     private(set) var supportedModes: Set<SecurityMode> = []
 
-    private(set) var modes: Set<SecurityMode> = [.open]
-
-    var mode: SecurityMode {
-        if let mode = modes.first {
-            return mode
-        }
-        return .open
-    }
+    private(set) var mode: SecurityMode = .open
 
     /// Timeout object.
     ///
     /// Visibility is internal for testing purposes.
     let timeout = SettingTimeout()
 
-    /// Delegate called when the setting value is changed by setting `modes` property.
+    /// Delegate called when the setting value is changed by setting `mode` property.
     private unowned let didChangeDelegate: SettingChangeDelegate
 
     /// Closure to call to change the value.
-    private let backend: (Set<SecurityMode>, String?) -> Bool
+    private let backend: (SecurityMode, String?) -> Bool
 
     /// Constructor.
     ///
     /// - Parameters:
     ///   - didChangeDelegate: delegate called when the setting value is changed by setting `value` property
     ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (Set<SecurityMode>, String?) -> Bool) {
+    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (SecurityMode, String?) -> Bool) {
         self.didChangeDelegate = didChangeDelegate
         self.backend = backend
     }
@@ -71,11 +64,11 @@ class SecurityModeSettingCore: SecurityModeSetting {
             return
         }
         if mode != .open {
-            if backend([.open], nil) {
-                let oldModes = modes
-                modes = [.open]
+            if backend(.open, nil) {
+                let oldMode = mode
+                mode = .open
                 timeout.schedule { [weak self] in
-                    if let `self` = self, self.update(modes: oldModes) {
+                    if let `self` = self, self.update(mode: oldMode) {
                         self.didChangeDelegate.userDidChangeSetting()
                     }
                 }
@@ -84,50 +77,43 @@ class SecurityModeSettingCore: SecurityModeSetting {
         }
     }
 
-    func secureWithWpa2(password: String) -> Bool {
-        return secure(with: [.wpa2Secured], password: password)
-    }
-
-    func secure(with modes: Set<SecurityMode>, password: String) -> Bool {
-        let effectiveModes = modes.filter { $0 != .open && supportedModes.contains($0) }
-        guard !effectiveModes.isEmpty,
-              WifiPasswordUtil.isValid(password) else {
-            return false
+    func secure(with mode: SecurityMode, password: String) {
+        guard mode != .open,
+              supportedModes.contains(mode) else {
+            return
         }
 
-        if backend(effectiveModes, password) {
-            let oldModes = self.modes
-            self.modes = effectiveModes
+        if backend(mode, password) {
+            let oldMode = self.mode
+            self.mode = mode
             timeout.schedule { [weak self] in
-                if let `self` = self, self.update(modes: oldModes) {
+                if let `self` = self, self.update(mode: oldMode) {
                     self.didChangeDelegate.userDidChangeSetting()
                 }
             }
             didChangeDelegate.userDidChangeSetting()
-            return true
         }
-        return false
     }
 
     /// Updates supported modes.
     ///
-    /// - Parameter newValue: new supported modes
+    /// - Parameter supportedModes: new supported modes
     /// - Returns: `true` if supported modes have changed, `false` otherwise
-    func update(supportedModes newValue: Set<SecurityMode>) -> Bool {
-        if supportedModes != newValue {
-            supportedModes = newValue
+    func update(supportedModes newSupportedModes: Set<SecurityMode>) -> Bool {
+        if supportedModes != newSupportedModes {
+            supportedModes = newSupportedModes
             return true
         }
         return false
     }
 
-    /// Updates active modes.
+    /// Updates current mode.
     ///
-    /// - Parameter newValue: new active modes
+    /// - Parameter mode: the new security mode
     /// - Returns: `true` if the setting has been changed, `false` otherwise
-    func update(modes newValue: Set<SecurityMode>) -> Bool {
-        if updating || modes != newValue {
-            modes = newValue
+    func update(mode newValue: SecurityMode) -> Bool {
+        if updating || mode != newValue {
+            mode = newValue
             timeout.cancel()
             return true
         }

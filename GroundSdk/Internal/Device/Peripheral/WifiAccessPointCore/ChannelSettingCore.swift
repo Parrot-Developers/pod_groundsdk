@@ -219,10 +219,3 @@ class ChannelSettingCore: ChannelSetting {
         }
     }
 }
-
-/// Extension of ChannelSettingCore to conform to the ObjC GSChannelSetting protocol
-extension ChannelSettingCore: GSChannelSetting {
-    public var availableChannelsAsInt: Set<Int> {
-        return Set(availableChannels.map { $0.rawValue })
-    }
-}

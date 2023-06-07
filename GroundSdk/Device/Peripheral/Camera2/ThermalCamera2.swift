@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -26,11 +26,31 @@
 //    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 //    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 //    SUCH DAMAGE.
+//
 
 import Foundation
 
-/// Core implementation of the `EnvironmentSetting` protocol based on `EnumSettingCore` (compatibility layer).
-class EnvironmentSettingCore: EnumSettingCore<Environment>, EnvironmentSetting {
+/// Blended Thermal Camera2 peripheral.
+///
+/// Provides access to the thermal camera2 in order to take pictures and to record videos.
+/// Also provides access to various camera2 settings, such as:
+/// - Exposure,
+/// - EV compensation,
+/// - White balance,
+/// - Recording mode, resolution and framerate selection,
+/// - Photo mode, format and file format selection.
+///
+/// This peripheral can be retrieved by:
+/// ```
+/// drone.getPeripheral(Peripherals.thermalCamera2)
+/// ```
+public protocol BlendedThermalCamera2: Camera2, Peripheral {
+}
 
-    var mutable: Bool { return supportedValues.count > 1 }
+/// :nodoc:
+/// Blended thermal camera 2 description.
+public class BlendedThermalCamera2Desc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = BlendedThermalCamera2
+    public let uid = PeripheralUid.blendedThermalCamera2.rawValue
+    public let parent: ComponentDescriptor? = nil
 }

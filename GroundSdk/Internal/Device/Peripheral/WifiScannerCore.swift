@@ -15,7 +15,7 @@
 //      permission.
 //
 //    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+//    "AS IS" AND A(NY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 //    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 //    FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
 //    PARROT COMPANY BE LIABLE FOR ANY DIRECT, INDIRECT,
@@ -29,27 +29,27 @@
 
 import Foundation
 
-/// Wifi scanner backend
+/// Wifi scanner backend.
 public protocol WifiScannerBackend: AnyObject {
-    /// Starts scanning channels occupation rate.
+
+    /// Starts scanning visible wifi networks.
     func startScan()
 
-    /// Stops ongoing channels occupation rate scan.
+    /// Stops ongoing scanning, if any.
     func stopScan()
 }
 
-/// Internal implementation of the Wifi scanner
+/// Internal implementation of the wifi scanner.
 public class WifiScannerCore: PeripheralCore, WifiScanner {
-    /// Whether or not the peripheral is currently scanning Wifi networks environment.
-    private (set) public var scanning = false
 
-    /// Map of occupation rate (amount of scanned networks), by wifi channel.
-    private var scannedChannels: [WifiChannel: Int] = [:]
+    public private(set) var scanning = false
 
-    /// Implementation backend
+    public private(set) var scanResults: [ScanResult] = []
+
+    /// Implementation backend.
     private unowned let backend: WifiScannerBackend
 
-    /// Constructor
+    /// Constructor.
     ///
     /// - Parameters:
     ///   - store: store where this peripheral will be stored
@@ -57,6 +57,11 @@ public class WifiScannerCore: PeripheralCore, WifiScanner {
     public init(store: ComponentStoreCore, backend: WifiScannerBackend) {
         self.backend = backend
         super.init(desc: Peripherals.wifiScanner, store: store)
+    }
+
+    override func reset() {
+        scanning = false
+        scanResults.removeAll()
     }
 
     public func startScan() {
@@ -72,34 +77,35 @@ public class WifiScannerCore: PeripheralCore, WifiScanner {
     }
 
     public func getOccupationRate(forChannel channel: WifiChannel) -> Int {
-        return scannedChannels[channel] ?? 0
+        return scanResults.filter({ $0.channel == channel }).count
     }
 }
 
 /// Backend callback methods
 extension WifiScannerCore {
-    /// Changes channels occupation rate.
-    ///
-    /// - Parameter scannedChannels: new map of occupation rate (amount of wifi networks) by channel
-    /// - Returns: self to allow call chaining
-    /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(scannedChannels newValue: [WifiChannel: Int]) -> WifiScannerCore {
-        if scannedChannels != newValue {
-            markChanged()
-            scannedChannels = newValue
-        }
-        return self
-    }
 
-    /// Changes the scanning flag.
+    /// Updates scanning value.
     ///
-    /// - Parameter scanning: new scanning flag value
+    /// - Parameter newValue: new scanning value
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(scanning newValue: Bool) -> WifiScannerCore {
         if scanning != newValue {
-            markChanged()
             scanning = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates scan results.
+    ///
+    /// - Parameter newValue: new scan results
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(scanResults newValue: [ScanResult]) -> WifiScannerCore {
+        if scanResults != newValue {
+            scanResults = newValue
+            markChanged()
         }
         return self
     }

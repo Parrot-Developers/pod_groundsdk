@@ -51,6 +51,8 @@ public enum MediaStoreChangeEvent {
     ///   - newState: the new indexing state
     case indexingStateChanged(oldState: MediaStoreIndexingState,
                               newState: MediaStoreIndexingState)
+    /// The websocket disconnected
+    case webSocketDisconnected
 }
 
 /// MediaResourceList concrete implementation

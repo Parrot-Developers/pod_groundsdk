@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,8 +29,43 @@
 
 import Foundation
 
-/// Core implementation of the `EnvironmentSetting` protocol based on `EnumSettingCore` (compatibility layer).
-class EnvironmentSettingCore: EnumSettingCore<Environment>, EnvironmentSetting {
+/// Wifi station peripheral interface for drones.
+///
+/// This component allows to configure various parameters of the device's Wifi station mode, such as:
+/// - Environment (indoor/outdoor) setup,
+/// - Country,
+/// - SSID,
+/// - Security.
+///
+/// This peripheral can be retrieved by:
+/// ```
+/// drone.getPeripheral(Peripherals.wifiStation)
+/// ```
+public protocol WifiStation: Peripheral {
 
-    var mutable: Bool { return supportedValues.count > 1 }
+    /// Wifi station activation setting.
+    var active: BoolSetting { get }
+
+    /// Wifi station indoor/outdoor environment setting.
+    var environment: EnumSetting<Environment> { get }
+
+    /// Wifi station country setting.
+    var country: EnumSetting<Country> { get }
+
+    /// Wifi station Service Set IDentifier (SSID) setting.
+    var ssid: StringSetting { get }
+
+    /// Wifi station SSID broadcast (hidden network) setting.
+    var ssidBroadcast: BoolSetting { get }
+
+    /// Wifi station security setting.
+    var security: WifiStationSecuritySetting { get }
+}
+
+/// :nodoc:
+/// Wifi station description
+public class WifiStationDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = WifiStation
+    public let uid = PeripheralUid.wifiStation.rawValue
+    public let parent: ComponentDescriptor? = nil
 }

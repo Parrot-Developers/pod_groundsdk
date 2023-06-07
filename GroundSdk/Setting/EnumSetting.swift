@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,8 +29,26 @@
 
 import Foundation
 
-/// Core implementation of the `EnvironmentSetting` protocol based on `EnumSettingCore` (compatibility layer).
-class EnvironmentSettingCore: EnumSettingCore<Environment>, EnvironmentSetting {
+/// Represents an enum setting.
+public class EnumSetting<EnumType: Hashable> {
+    /// Tells if the setting value has been changed and is waiting for change confirmation.
+    public var updating: Bool {
+        fatalError("`updating` property implemented in subclass")
+    }
 
-    var mutable: Bool { return supportedValues.count > 1 }
+    /// Set of values supported by this setting.
+    public var supportedValues: Set<EnumType> {
+        fatalError("`supportedValues` property implemented in subclass")
+    }
+
+    /// Current setting value.
+    public var value: EnumType {
+        get {
+            fatalError("`value` property implemented in subclass")
+        }
+        // swiftlint:disable unused_setter_value
+        set {
+            fatalError("`value` property implemented in subclass")
+        }
+    }
 }

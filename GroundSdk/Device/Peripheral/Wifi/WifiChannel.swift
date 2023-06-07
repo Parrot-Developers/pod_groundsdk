@@ -30,7 +30,6 @@
 import Foundation
 
 /// Frequency band into which a Wifi channel operates.
-@objc(GSBand)
 public enum Band: Int, CustomStringConvertible {
     /// 2.4 Ghz band.
     case band_2_4_Ghz
@@ -51,7 +50,6 @@ public enum Band: Int, CustomStringConvertible {
 }
 
 /// Wifi channel.
-@objc(GSWifiChannel)
 public enum WifiChannel: Int, CustomStringConvertible {
     /// Wifi channel 1 on band 2.4Ghz
     case band_2_4_channel1
@@ -342,32 +340,5 @@ public enum WifiChannel: Int, CustomStringConvertible {
     /// Debug description.
     public var description: String {
         return "\(getBand().description)-\(getChannelId())"
-    }
-}
-
-/// Helper class to retrieve the band and channel identifier from a wifi channel.
-/// - Note: This class should only be used on Objective-C.
-///         In Swift, use `WifiChannel.getChannelId()` and `WifiChannel.getBand()`
-@objcMembers
-public class GSWifiChannelInfo: NSObject {
-    /// Retrieves the frequency band where this channel operates.
-    ///
-    /// - Parameter wifiChannel: the wifi channel from which to get the band
-    /// - Returns: the channel frequency band
-    public static func getBand(fromWifiChannel wifiChannel: WifiChannel) -> Band {
-        return wifiChannel.getBand()
-    }
-
-    /// Retrieves the channel identifier.
-    ///
-    /// - Parameter wifiChannel: the wifi channel from which to get the channel identifier
-    /// - Returns: the channel identifier
-    public static func getChannelId(fromWifiChannel wifiChannel: WifiChannel) -> Int {
-        return wifiChannel.getChannelId()
-    }
-
-    // private init for helper class
-    private override init() {
-
     }
 }

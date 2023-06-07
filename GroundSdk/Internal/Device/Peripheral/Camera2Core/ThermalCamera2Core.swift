@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -26,11 +26,22 @@
 //    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 //    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 //    SUCH DAMAGE.
-
+//
 import Foundation
 
-/// Core implementation of the `EnvironmentSetting` protocol based on `EnumSettingCore` (compatibility layer).
-class EnvironmentSettingCore: EnumSettingCore<Environment>, EnvironmentSetting {
+/// Blended thermal camera2 peripheral implementation.
+public class BlendedThermalCamera2Core: Camera2Core, BlendedThermalCamera2 {
 
-    var mutable: Bool { return supportedValues.count > 1 }
+    /// Constructor.
+    ///
+    /// - Parameters:
+    ///   - store: store where this peripheral will be stored
+    ///   - backend: Camera2 backend
+    ///   - initialConfig: initial camera configuration
+    ///   - capabilities: camera capabilities
+    public init(store: ComponentStoreCore, backend: Camera2Backend,
+                initialConfig: Camera2ConfigCore.Config, capabilities: Camera2ConfigCore.Capabilities) {
+        super.init(Peripherals.blendedThermalCamera2, store: store, backend: backend,
+                   initialConfig: initialConfig, capabilities: capabilities)
+    }
 }

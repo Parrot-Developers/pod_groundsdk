@@ -29,40 +29,59 @@
 
 import Foundation
 
+/// Wifi network environment scan result.
+///
+/// Represents one network which was visible during a scan operation (see `WifiScanner`).
+public struct ScanResult: Equatable {
+
+    /// Scanned network SSID.
+    public let ssid: String
+
+    /// Scanned network channel. `nil` if unknown or unavailable.
+    public let channel: WifiChannel?
+
+    public init(ssid: String, channel: WifiChannel?) {
+        self.ssid = ssid
+        self.channel = channel
+    }
+}
+
 /// WifiScanner peripheral interface.
 ///
-/// Allows scanning the device's Wifi environment to obtain information about the current occupation of WIFI channels.
-/// This peripheral can be retrieved by:
+/// Allows scanning the device's wifi environment to obtain information about the current occupation of wifi channels.
 ///
+/// This peripheral can be retrieved by:
 /// ```
 /// drone.getPeripheral(Peripherals.wifiScanner)
 /// ```
-@objc(GSWifiScanner)
 public protocol WifiScanner: Peripheral {
 
-    /// Whether the peripheral is currently scanning Wifi networks environment.
+    /// Whether the peripheral is currently scanning wifi networks environment.
     var scanning: Bool { get }
 
-    /// Requests the WIFI environment scanning process to start.
+    /// Latest scan results. Empty if no results were obtained yet or when scanning is not ongoing.
+    var scanResults: [ScanResult] { get }
+
+    /// Requests the wifi environment scanning process to start.
     ///
-    /// While scanning, the peripheral will regularly report Wifi channels occupation.
-    /// These results can be obtained using `getOccupationRate(forChannel:)`
+    /// While scanning, the peripheral will regularly report wifi channels occupation.
+    /// These results can be obtained using `scanResults`.
     ///
     /// This has no effect if `scanning` is already ongoing.
     func startScan()
 
     /// Requests an ongoing scan operation to stop.
     ///
-    /// When scanning stops, internal scan results are cleared and the `getOccupationRate(forChannel:)` will report 0
-    /// for any channel.
+    /// When scanning stops, `scanResults` are cleared immediately.
     ///
     /// This has no effect if this peripheral is not currently `scanning`.
     func stopScan()
 
-    /// Retrieves the amount of Wifi networks that are currently using a given WIFI channel.
+    /// Retrieves the amount of wifi networks that are currently using a given wifi channel.
     ///
-    /// - Parameter channel: the Wifi channel to query occupation information of
+    /// - Parameter channel: the wifi channel to query occupation information of
     /// - Returns: the channel occupation rate
+    @available(*, deprecated, message: "Use `scanResults` instead")
     func getOccupationRate(forChannel channel: WifiChannel) -> Int
 }
 

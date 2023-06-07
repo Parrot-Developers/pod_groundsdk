@@ -107,6 +107,9 @@ private extension MediaListRefCore {
             if old != .indexed, new == .indexed {
                 browse(storageType: storageType)
             }
+        case .webSocketDisconnected:
+            // browse media store when web socket disconnected or error occured
+            browse(storageType: storageType)
         default:
             // while browsing there can be changes, keep them so they can be replayed after
             // the browsing ends

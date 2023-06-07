@@ -437,8 +437,6 @@ extension HttpSessionCore: URLSessionDelegate, URLSessionDataDelegate, URLSessio
                     result = .httpError(401)
                 case NSURLErrorNoPermissionsToReadFile:
                     result = .httpError(403)
-                case NSURLErrorUserAuthenticationRequired:
-                    result = .httpError(407)
                 case NSURLErrorFileDoesNotExist:
                     // `NSURLErrorFileDoesNotExist` is used as a default error code for an http error.
                     // We use the HTTP error code 418 to express this unknown default error.

@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,8 +29,29 @@
 
 import Foundation
 
-/// Core implementation of the `EnvironmentSetting` protocol based on `EnumSettingCore` (compatibility layer).
-class EnvironmentSettingCore: EnumSettingCore<Environment>, EnvironmentSetting {
+/// Setting providing access to the Wifi station security setup.
+public protocol WifiStationSecuritySetting: AnyObject {
 
-    var mutable: Bool { return supportedValues.count > 1 }
+    /// Tells if the setting value has been changed and is waiting for change confirmation.
+    var updating: Bool { get }
+
+    /// Supported security modes.
+    var supportedModes: Set<SecurityMode> { get }
+
+    /// Current wifi station security mode.
+    var mode: SecurityMode { get }
+
+    /// Sets the security mode to `.open`.
+    ///
+    /// - Note: this function does nothing if the `.open` mode is not supported (see `supportedModes`).
+    func open()
+
+    /// Sets the security mode, using the given password to authenticate.
+    ///
+    /// - Note: this function does nothing if the mode is `.open` or is not supported (see `supportedModes`).
+    ///
+    /// - Parameters:
+    ///   - mode: security mode to set
+    ///   - password: access point password
+    func secure(with mode: SecurityMode, password: String)
 }

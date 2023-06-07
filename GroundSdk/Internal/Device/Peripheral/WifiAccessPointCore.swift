@@ -32,6 +32,12 @@ import Foundation
 /// Wifi access point backend
 public protocol WifiAccessPointBackend: AnyObject {
 
+    /// Sets the access point activation status
+    ///
+    /// - Parameter active: `true` to activate the access point, `false` to deactivate it
+    /// - Returns: `true` if the command has been sent, `false` otherwise
+    func set(active: Bool) -> Bool
+
     /// Sets the access point environment
     ///
     /// - Parameter environment: new environment
@@ -42,21 +48,27 @@ public protocol WifiAccessPointBackend: AnyObject {
     ///
     /// - Parameter country: new country
     /// - Returns: true if the value could successfully be set or sent to the device, false otherwise
-    func set(country: String) -> Bool
+    func set(country: Country) -> Bool
 
-    /// Sets the access point ssid
+    /// Sets the access point SSID
     ///
-    /// - Parameter ssid: new ssid
+    /// - Parameter ssid: new SSID
     /// - Returns: true if the value could successfully be set or sent to the device, false otherwise
     func set(ssid: String) -> Bool
+
+    /// Sets the access point SSID broadcast value
+    ///
+    /// - Parameter ssidBroadcast: `true` to enable SSID broadcast, `false` to disable it
+    /// - Returns: true if the value could successfully be set or sent to the device, false otherwise
+    func set(ssidBroadcast: Bool) -> Bool
 
     /// Sets the access point security
     ///
     /// - Parameters:
-    ///   - security: new security mode
+    ///   - security: new security modes
     ///   - password: password used to secure the access point, nil for `.open` security mode
     /// - Returns: true if the value could successfully be set or sent to the device, false otherwise
-    func set(security: SecurityMode, password: String?) -> Bool
+    func set(security: Set<SecurityMode>, password: String?) -> Bool
 
     /// Sets the access point channel
     ///
@@ -74,18 +86,39 @@ public protocol WifiAccessPointBackend: AnyObject {
 /// Internal implementation of the Wifi access point
 public class WifiAccessPointCore: PeripheralCore, WifiAccessPoint {
 
+    public var active: BoolSetting {
+        return activeSetting
+    }
+
     public var environment: EnvironmentSetting {
         return environmentSetting
     }
 
-    public var isoCountryCode: StringSetting {
+    public var country: EnumSetting<Country> {
         return countrySetting
+    }
+
+    public var isoCountryCode: StringSetting {
+        return isoCountryCodeSetting
     }
 
     public private(set) var defaultCountryUsed = false
 
+    public var availableCountries: Set<String> {
+        // add the current country
+        var availableCountries = Set(countrySetting.supportedValues.map { $0.rawValue })
+        if isoCountryCode.value != "" {
+            availableCountries.insert(isoCountryCode.value)
+        }
+        return availableCountries
+    }
+
     public var ssid: StringSetting {
         return ssidSetting
+    }
+
+    public var ssidBroadcast: BoolSetting {
+        return ssidBroadcastSetting
     }
 
     public var security: SecurityModeSetting {
@@ -96,32 +129,29 @@ public class WifiAccessPointCore: PeripheralCore, WifiAccessPoint {
         return channelSetting
     }
 
+    /// Core implementation of the active setting
+    private var activeSetting: BoolSettingCore!
+
     /// Core implementation of the environment setting
     private var environmentSetting: EnvironmentSettingCore!
 
-    /// Core implementation of the country setting
-    private var countrySetting: StringSettingCore!
+    /// Core implementation of the country setting.
+    private var countrySetting: EnumSettingCore<Country>!
+
+    /// Core implementation of the country code setting
+    private var isoCountryCodeSetting: StringSettingCore!
 
     /// Core implementation of the ssid setting
     private var ssidSetting: StringSettingCore!
+
+    /// Core implementation of the ssid broadcast setting
+    private var ssidBroadcastSetting: BoolSettingCore!
 
     /// Core implementation of the channel setting
     private var channelSetting: ChannelSettingCore!
 
     /// Core implementation of the security setting
     private var securitySetting: SecurityModeSettingCore!
-
-    public var availableCountries: Set<String> {
-        // add the current country
-        var availableCountries = _availableCountries
-        if isoCountryCode.value != "" {
-            availableCountries.insert(isoCountryCode.value)
-        }
-        return availableCountries
-    }
-
-    /// Available countries
-    private var _availableCountries: Set<String> = []
 
     /// Implementation backend
     private unowned let backend: WifiAccessPointBackend
@@ -130,18 +160,33 @@ public class WifiAccessPointCore: PeripheralCore, WifiAccessPoint {
     ///
     /// - Parameters:
     ///   - store: store where this peripheral will be stored
-    ///   - backend: wifi scanner backend
+    ///   - backend: wifi access point backend
     public init(store: ComponentStoreCore, backend: WifiAccessPointBackend) {
         self.backend = backend
         super.init(desc: Peripherals.wifiAccessPoint, store: store)
-        environmentSetting = EnvironmentSettingCore(didChangeDelegate: self) { [unowned self] environment in
+        activeSetting = BoolSettingCore(didChangeDelegate: self) { [unowned self] active in
+            return self.backend.set(active: active)
+        }
+        environmentSetting = EnvironmentSettingCore(defaultValue: .outdoor, supportedValues: Set(Environment.allCases),
+                                                    didChangeDelegate: self) { [unowned self] environment in
             return self.backend.set(environment: environment)
         }
-        countrySetting = StringSettingCore(didChangeDelegate: self) { [unowned self] country in
-            return self._availableCountries.contains(country) && backend.set(country: country)
+        countrySetting = EnumSettingCore(defaultValue: .andorra, didChangeDelegate: self) { [unowned self] country in
+            return self.backend.set(country: country)
+        }
+        isoCountryCodeSetting = StringSettingCore(didChangeDelegate: self) { [unowned self] countryCode in
+            guard let country = Country(rawValue: countryCode),
+                  self.country.supportedValues.contains(country) else {
+                return false
+            }
+
+            return self.backend.set(country: country)
         }
         ssidSetting = StringSettingCore(didChangeDelegate: self) { [unowned self] ssid in
             return self.backend.set(ssid: ssid)
+        }
+        ssidBroadcastSetting = BoolSettingCore(didChangeDelegate: self) { [unowned self] ssidBroadcast in
+            return self.backend.set(ssidBroadcast: ssidBroadcast)
         }
         channelSetting = ChannelSettingCore(didChangeDelegate: self) { [unowned self] settingValue in
             switch settingValue {
@@ -151,28 +196,35 @@ public class WifiAccessPointCore: PeripheralCore, WifiAccessPoint {
                 return self.backend.autoSelectChannel(onBand: band)
             }
         }
-        securitySetting = SecurityModeSettingCore(didChangeDelegate: self) { [unowned self] settingValue in
-            switch settingValue {
-            case .open:
-                return self.backend.set(security: .open, password: nil)
-            case .wpa2(let password):
-                return self.backend.set(security: .wpa2Secured, password: password)
-            }
-       }
+        securitySetting = SecurityModeSettingCore(didChangeDelegate: self) { [unowned self] modes, password in
+            return self.backend.set(security: modes, password: password)
+        }
     }
 }
 
 /// Backend callback methods
 extension WifiAccessPointCore {
-    /// Changes available countries.
+
+    /// Changes activation status.
     ///
-    /// - Parameter newValue: new set of available countries
+    /// - Parameter newValue: new activation status
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(availableCountries newValue: Set<String>) -> WifiAccessPointCore {
-        if _availableCountries != newValue {
+    @discardableResult public func update(active newValue: Bool) -> WifiAccessPointCore {
+        if activeSetting.update(value: newValue) {
             markChanged()
-            _availableCountries = newValue
+        }
+        return self
+    }
+
+    /// Changes supported countries.
+    ///
+    /// - Parameter newValue: new set of supported countries
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(supportedCountries newValue: Set<Country>) -> WifiAccessPointCore {
+        if countrySetting.update(supportedValues: newValue) {
+            markChanged()
         }
         return self
     }
@@ -182,8 +234,9 @@ extension WifiAccessPointCore {
     /// - Parameter newValue: new country
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(isoCountryCode newValue: String) -> WifiAccessPointCore {
-        if countrySetting.update(value: newValue) {
+    @discardableResult public func update(country newValue: Country) -> WifiAccessPointCore {
+        var updated = countrySetting.update(value: newValue)
+        if isoCountryCodeSetting.update(value: newValue.rawValue) || updated {
             markChanged()
         }
         return self
@@ -191,7 +244,7 @@ extension WifiAccessPointCore {
 
     /// Changes defaultCountryUsed.
     ///
-    /// - Parameter defaultCountryUsed: new defaultCountryUsed value
+    /// - Parameter newValue: new defaultCountryUsed value
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(defaultCountryUsed newValue: Bool) -> WifiAccessPointCore {
@@ -202,13 +255,25 @@ extension WifiAccessPointCore {
         return self
     }
 
-    /// Changes current ssid.
+    /// Changes current SSID.
     ///
-    /// - Parameter newValue: new ssid
+    /// - Parameter newValue: new SSID
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(ssid newValue: String) -> WifiAccessPointCore {
         if ssidSetting.update(value: newValue) {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes SSID broadcast value.
+    ///
+    /// - Parameter newValue: new SSID broadcast value
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(ssidBroadcast newValue: Bool) -> WifiAccessPointCore {
+        if ssidBroadcastSetting.update(value: newValue) {
             markChanged()
         }
         return self
@@ -226,13 +291,13 @@ extension WifiAccessPointCore {
         return self
     }
 
-    /// Changes current environment mutability.
+    /// Changes supported environments.
     ///
-    /// - Parameter newValue: new environment mutability
+    /// - Parameter newValue: new set of supported environments
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(environmentMutability newValue: Bool) -> WifiAccessPointCore {
-        if environmentSetting.update(mutable: newValue) {
+    @discardableResult public func update(supportedEnvironments newValue: Set<Environment>) -> WifiAccessPointCore {
+        if environmentSetting.update(supportedValues: newValue) {
             markChanged()
         }
         return self
@@ -288,11 +353,11 @@ extension WifiAccessPointCore {
 
     /// Changes current security.
     ///
-    /// - Parameter newValue: new security mode
+    /// - Parameter newValue: new security modes
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(security newValue: SecurityMode) -> WifiAccessPointCore {
-        if securitySetting.update(mode: newValue) {
+    @discardableResult public func update(security newValue: Set<SecurityMode>) -> WifiAccessPointCore {
+        if securitySetting.update(modes: newValue) {
             markChanged()
         }
         return self
@@ -300,11 +365,12 @@ extension WifiAccessPointCore {
 
     /// Changes supported security modes
     ///
-    /// - Parameter supportedModes: new supported security modes
+    /// - Parameter newValue: new supported security modes
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(supportedModes newSupportedMode: Set<SecurityMode>) -> WifiAccessPointCore {
-        if securitySetting.update(supportedModes: newSupportedMode) {
+    @discardableResult public func update(supportedSecurityModes newValue: Set<SecurityMode>)
+    -> WifiAccessPointCore {
+        if securitySetting.update(supportedModes: newValue) {
             markChanged()
         }
         return self
@@ -315,27 +381,14 @@ extension WifiAccessPointCore {
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func cancelSettingsRollback() -> WifiAccessPointCore {
+        activeSetting.cancelRollback { markChanged() }
         environmentSetting.cancelRollback { markChanged() }
         countrySetting.cancelRollback { markChanged() }
+        isoCountryCodeSetting.cancelRollback { markChanged() }
         ssidSetting.cancelRollback { markChanged() }
+        ssidBroadcastSetting.cancelRollback { markChanged() }
         channelSetting.cancelRollback { markChanged() }
         securitySetting.cancelRollback { markChanged() }
         return self
-    }
-}
-
-/// Extension of WifiAccessPointCore that conforms to ObjC protocol GSWifiAccessPoint
-extension WifiAccessPointCore: GSWifiAccessPoint {
-
-    public var gsAvailableCountries: Set<String> {
-        return Set(availableCountries.map { $0 })
-    }
-
-    public var gsChannel: GSChannelSetting {
-        return channelSetting
-    }
-
-    public var gsSecurity: GSSecurityModeSetting {
-        return securitySetting
     }
 }

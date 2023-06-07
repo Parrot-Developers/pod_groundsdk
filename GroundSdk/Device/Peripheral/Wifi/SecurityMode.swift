@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Parrot Drones SAS
+// Copyright (C) 2023 Parrot Drones SAS
 //
 //    Redistribution and use in source and binary forms, with or without
 //    modification, are permitted provided that the following conditions
@@ -29,8 +29,27 @@
 
 import Foundation
 
-/// Core implementation of the `EnvironmentSetting` protocol based on `EnumSettingCore` (compatibility layer).
-class EnvironmentSettingCore: EnumSettingCore<Environment>, EnvironmentSetting {
+///  Wifi security mode.
+public enum SecurityMode: Int, CustomStringConvertible, CaseIterable {
+    /// Connection is allowed without any security check.
+    case open
+    /// Connection is secured using WEP authentication and requires a password.
+    case wepSecured
+    /// Connection is secured using WPA authentication and requires a password.
+    case wpaSecured
+    /// Connection is secured using WPA2 authentication and requires a password.
+    case wpa2Secured
+    /// Connection is secured using WPA3 authentication and requires a password.
+    case wpa3Secured
 
-    var mutable: Bool { return supportedValues.count > 1 }
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .open:         return "open"
+        case .wepSecured:   return "wep"
+        case .wpaSecured:   return "wpaSecured"
+        case .wpa2Secured:  return "wpa2Secured"
+        case .wpa3Secured:  return "wpa3Secured"
+        }
+    }
 }
