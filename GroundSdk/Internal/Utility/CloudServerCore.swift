@@ -133,6 +133,7 @@ public class CloudServerCore: UtilityCore {
     ///   - api: api to use
     ///   - data: data to send
     ///   - method: the method to use to send the data
+    ///   - trustAllCertificates: `true` to trust all certificates, `false` otherwise
     ///   - requestCustomization: closure that will be called after that the `URLRequest` has been created. This request
     ///                           can be customized by the caller through this closure.
     ///   - completion: completion callback
@@ -144,6 +145,7 @@ public class CloudServerCore: UtilityCore {
         api: String,
         data: Data?,
         method: HttpSessionCore.SendMethod = .put,
+        trustAllCertificates: Bool = false,
         requestCustomization: (inout URLRequest) -> Void = { _ in },
         completion: @escaping (_ result: HttpSessionCore.Result, _ data: Data?) -> Void) -> CancelableCore {
 
@@ -151,7 +153,8 @@ public class CloudServerCore: UtilityCore {
         requestCustomization(&request)
         request.httpBody = data
 
-        return httpSession.sendData(request: request, method: method, completion: completion)
+        return httpSession.sendData(request: request, method: method, trustAllCertificates: trustAllCertificates,
+                                        completion: completion)
     }
 
     /// Send a file

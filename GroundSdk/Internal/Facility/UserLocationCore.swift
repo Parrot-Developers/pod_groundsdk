@@ -33,11 +33,11 @@ import CoreLocation
 /// Core implementation of the UserLocation facility
 class UserLocationCore: FacilityCore, UserLocation {
 
-    private (set) public var location: CLLocation?
+    private(set) public var location: CLLocation?
 
-    private (set) public var stopped = false
+    private(set) public var stopped = false
 
-    private (set) public var authorized = false
+    private(set) public var authorized = false
 
     override var description: String {
         return "UserLocation: \(String(describing: location)), " +

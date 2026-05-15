@@ -64,8 +64,12 @@ public enum Camera2PhotoMode: String, Camera2ConfigEnum {
 
 /// Photo resolution.
 public enum Camera2PhotoResolution: String, Camera2ConfigEnum {
+    /// 50 mega pixels.
+    case res50MegaPixels
     /// 48 mega pixels.
     case res48MegaPixels
+    /// 21 mega pixels.
+    case res21MegaPixels
     /// 12 mega pixels.
     case res12MegaPixels
 
@@ -170,36 +174,38 @@ public enum Camera2RecordingResolution: String, Camera2ConfigEnum {
     case resUhd4k
     /// 1920x1080 pixels (Full HD).
     case res1080p
+    /// 1280x720 pixels (HD).
+    case res720p
 
     /// Debug description.
     public var description: String { rawValue }
 }
 
 /// Camera recording frame rates.
-public enum Camera2RecordingFramerate: String, Camera2ConfigEnum {
+public enum Camera2RecordingFramerate: Float, Camera2ConfigEnum {
     /// 8.6 fps
-    case fps9
+    case fps9 = 8.6
     /// 23.97 fps.
-    case fps24
+    case fps24 = 23.97
     /// 25 fps.
-    case fps25
+    case fps25 = 25
     /// 29.97 fps.
-    case fps30
+    case fps30 = 29.97
     /// 48 fps.
-    case fps48
+    case fps48 = 48
     /// 50 fps.
-    case fps50
+    case fps50 = 50
     /// 59.94 fps.
-    case fps60
+    case fps60 = 59.94
     /// 95.88 fps.
-    case fps96
+    case fps96 = 95.88
     /// 100 fps.
-    case fps100
+    case fps100 = 100
     /// 120 fps.
-    case fps120
+    case fps120 = 120
 
     /// Debug description.
-    public var description: String { rawValue }
+    public var description: String { String(describing: rawValue) }
 }
 
 /// Audio recording modes.
@@ -701,14 +707,55 @@ public enum Camera2AutoExposureMeteringMode: String, Camera2ConfigEnum {
 
 /// Storage policy for media files.
 public enum Camera2StoragePolicy: String, Camera2ConfigEnum {
-    /// Storage where media files are stored is automatically chosen by the drone.
-    case automatic
-
     /// Store media files in internal drone storage.
     case `internal`
 
     /// Store media files in removable storage.
     case removable
+
+    /// Storage where media files are stored is automatically chosen by the drone with priority for internal storage.
+    case internalPriority
+
+    /// Storage where media files are stored is automatically chosen by the drone with priority for removable storage.
+    case removablePriority
+
+    /// Debug description.
+    public var description: String { rawValue }
+}
+
+/// Camera spectrum.
+public enum Camera2Spectrum: String, Camera2ConfigEnum {
+    /// Visible.
+    case visible
+
+    /// Thermal.
+    case thermal
+
+    /// Debug description.
+    public var description: String { rawValue }
+}
+
+/// Camera low light mode selection
+public enum Camera2LowLightModeSelection: String, Camera2ConfigEnum {
+
+    /// Low light mode is manually set to one of the `Camera2LowLightMode` values.
+    case manual
+
+    /// Low light mode is automatically selected by the drone, but the initial value can be set manually.
+    case automatic
+
+    /// Debug description.
+    public var description: String { rawValue }
+}
+
+/// Camera low light mode.
+public enum Camera2LowLightMode: String, Camera2ConfigEnum {
+
+    /// Low light mode is disabled.
+    case disabled
+
+    /// Low light mode is enabled.
+    case enabled
 
     /// Debug description.
     public var description: String { rawValue }

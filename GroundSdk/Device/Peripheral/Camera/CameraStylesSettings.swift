@@ -30,7 +30,6 @@
 import Foundation
 
 /// Camera image styles.
-@objc(GSCameraStyle)
 public enum CameraStyle: Int, CustomStringConvertible {
     /// Natural look style.
     case standard
@@ -57,7 +56,7 @@ public enum CameraStyle: Int, CustomStringConvertible {
 }
 
 /// Style customizable parameters.
-@objc(GSCameraStyleParameter)
+@objc
 public protocol CameraStyleParameter {
     /// Whether the parameter can be modified.
     var mutable: Bool { get }
@@ -94,33 +93,4 @@ public protocol CameraStyleSettings: AnyObject {
 
     /// Current style sharpness.
     var sharpness: CameraStyleParameter { get }
-}
-
-// MARK: - objc compatibility
-
-/// Camera style settings.
-///
-///  Allows to set the active image style and to customize its parameters.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSCameraStyleSettings {
-    /// Tells if a setting value has been changed and is waiting for change confirmation
-    var updating: Bool { get }
-
-    /// Current active style.
-    var activeStyle: CameraStyle { get set }
-
-    /// Current style saturation.
-    var saturation: CameraStyleParameter { get }
-
-    /// Current style contrast.
-    var contrast: CameraStyleParameter { get }
-
-    /// Current style sharpness.
-    var sharpness: CameraStyleParameter { get }
-
-    /// Checks if a style is supported.
-    ///
-    /// - Parameter style: style to check
-    /// - Returns: `true` if the style is supported
-    func isStyleSupported(_ style: CameraStyle) -> Bool
 }

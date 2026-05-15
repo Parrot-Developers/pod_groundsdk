@@ -30,8 +30,6 @@
 import Foundation
 
 /// Photo panorama animation configuration.
-@objcMembers
-@objc(GSSphericalPhotoPanoramaAnimationConfig)
 public class SphericalPhotoPanoramaAnimationConfig: NSObject, AnimationConfig {
     public let type = AnimationType.sphericalPhotoPanorama
 }
@@ -43,6 +41,5 @@ public class SphericalPhotoPanoramaAnimationConfig: NSObject, AnimationConfig {
 /// resumes.
 /// The resulting set of photos can then be retrieved as a single 'panorama' media that may be
 /// post-processed to make panoramic images.
-@objc(GSSphericalPhotoPanoramaAnimation)
 public protocol SphericalPhotoPanoramaAnimation: Animation {
 }

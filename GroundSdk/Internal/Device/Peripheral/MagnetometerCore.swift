@@ -44,7 +44,7 @@ public class MagnetometerCore: PeripheralCore, Magnetometer {
     /// Whether the magnetometer is calibrated or not.
     private(set) public var calibrationState: MagnetometerCalibrationState = .required
 
-    /// implementation backend
+    /// Implementation backend
     private unowned let backend: MagnetometerBackend
 
     /// Constructor

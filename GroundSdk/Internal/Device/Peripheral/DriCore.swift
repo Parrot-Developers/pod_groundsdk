@@ -33,9 +33,9 @@ import Foundation
 public protocol DriBackend: AnyObject {
     /// Sets mode.
     ///
-    /// - Parameter mode: the new mode. `true` to activate DRI mode
+    /// - Parameter enabled: the new enabled value. `true` to activate DRI mode
     /// - Returns: true if the command has been sent, false if not connected and the value has been changed immediately
-    func set(mode: Bool) -> Bool
+    func set(enabled: Bool) -> Bool
 
     /// Sets type configuration.
     ///
@@ -135,11 +135,14 @@ public class DriCore: PeripheralCore, Dri {
         return _droneId
     }
 
-    /// DRI mode setting.
-    public var mode: BoolSetting? { _mode }
+    /// External module..
+    private(set) public var externalModule: ExternalModule?
 
-    /// Internal storage for mode setting.
-    private var _mode: BoolSettingCore?
+    /// DRI enabled setting.
+    public var enabled: BoolSetting { _enabled }
+
+    /// Internal storage for enabled setting.
+    private var _enabled: BoolSettingCore!
 
     /// DRI type setting.
     public var type: DriTypeSetting { _type }
@@ -163,6 +166,9 @@ public class DriCore: PeripheralCore, Dri {
         super.init(desc: Peripherals.dri, store: store)
         _type = DriTypeSettingCore(didChangeDelegate: self) { [unowned self] newType in
             self.backend.set(type: newType)
+        }
+        _enabled = BoolSettingCore(didChangeDelegate: self) { [unowned self] newValue in
+            return self.backend.set(enabled: newValue)
         }
     }
 }
@@ -191,17 +197,11 @@ extension DriCore {
 
     /// Set the switch state.
     ///
-    /// - Parameter mode: tells the dri switch state
+    /// - Parameter enabled: tells the dri switch state
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(mode newValue: Bool) -> DriCore {
-        if _mode == nil {
-            _mode = BoolSettingCore(didChangeDelegate: self) { [unowned self] newValue in
-                return self.backend.set(mode: newValue)
-            }
-            markChanged()
-        }
-        if _mode!.update(value: newValue) {
+    @discardableResult public func update(enabled newValue: Bool) -> DriCore {
+        if _enabled.update(value: newValue) {
             markChanged()
         }
         return self
@@ -250,12 +250,23 @@ extension DriCore {
         return self
     }
 
+    /// Updates the external module.
+    ///
+    /// - Parameter externalModule: new external module
+    @discardableResult public func update(externalModule newValue: ExternalModule?) -> DriCore {
+        if externalModule != newValue {
+            externalModule = newValue
+            markChanged()
+        }
+        return self
+    }
+
     /// Cancels all pending settings rollbacks.
     ///
     /// - Returns: self to allow call chaining
     /// - note: changes are not notified until notifyUpdated() is called
     @discardableResult public func cancelSettingsRollback() -> DriCore {
-        _mode?.cancelRollback { markChanged() }
+        _enabled.cancelRollback { markChanged() }
         return self
     }
 }

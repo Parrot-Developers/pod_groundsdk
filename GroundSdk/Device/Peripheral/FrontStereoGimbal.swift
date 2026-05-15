@@ -41,18 +41,8 @@ import Foundation
 /// ```
 public protocol FrontStereoGimbal: CalibratableGimbal { }
 
-/// Objective-C version of FrontStereoGimbal.
-///
-/// The FrontStereoGimbal is the peripheral "holding" and orientating the camera.
-/// It can be a real mechanical gimbal, or a software one.
-///
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objc
-public protocol GSFrontStereoGimbal: GSCalibratableGimbal { }
-
 /// :nodoc:
 /// FrontStereoGimbal description
-@objc(GSFrontStereoGimbalDesc)
 public class FrontStereoGimbalDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = FrontStereoGimbal
     public let uid = PeripheralUid.frontStereoGimbal.rawValue

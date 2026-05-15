@@ -58,38 +58,6 @@ public protocol Radio: Instrument {
     var is4GInterfering: Bool { get }
 }
 
-// MARK: Objective-C API
-/// Instrument that informs about the radio.
-///
-/// This instrument can be retrieved by:
-/// ```
-/// id<GSRadio> radio = (id<GSRadio>)[drone getInstrument:GSInstruments.radio];
-/// ```
-/// - Note: This protocol is for Objective-C only. Swift must use the protocol `Radio`.
-@objc
-public protocol GSRadio {
-    /// Received signal strength indication (RSSI), expressed in dBm.
-    /// Usually between -30 (good signal) and -80 (very bad signal level), 0 if undefined
-    var rssi: Int { get }
-
-    /// The quality varies from 0 to 4.
-    /// (0) means that a disconnection is highly probable, (4) means that the link signal quality is very good.
-    ///
-    /// (-1) if the linkSignalQuality in undefined.
-    @objc(linkSignalQuality)
-    var gsLinkSignalQuality: Int { get }
-
-    /// Whether the radio link is perturbed by external elements.
-    /// `true` if the link signal quality is low although the link quality might be good.
-    /// This indicates that the radio link is perturbed by external elements.
-    var isLinkPerturbed: Bool { get }
-
-    /// Whether the smartphone's 4G is interfering.
-    /// 'true' if a 4G interference is currently detected.
-    /// In that case, it is advised to disable smartphone's 4G.
-    var is4GInterfering: Bool { get }
-}
-
 /// :nodoc:
 /// Instrument descriptor
 public class RadioDesc: NSObject, InstrumentClassDesc {

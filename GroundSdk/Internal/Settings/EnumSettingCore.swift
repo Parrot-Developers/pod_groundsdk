@@ -30,7 +30,7 @@
 import Foundation
 
 /// Enum setting implementation.
-class EnumSettingCore<EnumType: Hashable>: EnumSetting<EnumType>, CustomStringConvertible {
+public class EnumSettingCore<EnumType: Hashable>: EnumSetting<EnumType>, CustomStringConvertible {
 
     /// Delegate called when the setting value is changed by setting `value` property.
     private unowned let didChangeDelegate: SettingChangeDelegate
@@ -40,17 +40,20 @@ class EnumSettingCore<EnumType: Hashable>: EnumSetting<EnumType>, CustomStringCo
     /// Visibility is internal for testing purposes.
     let timeout = SettingTimeout()
 
-    /// Tells if the setting value has been changed and is waiting for change confirmation.
-    override var updating: Bool { return timeout.isScheduled }
+    /// Timeout for update rollback.
+    let timeoutDuration: DispatchTimeInterval
 
-    override var supportedValues: Set<EnumType> {
+    /// Tells if the setting value has been changed and is waiting for change confirmation.
+    public override var updating: Bool { return timeout.isScheduled }
+
+    public override var supportedValues: Set<EnumType> {
         _supportedValues
     }
 
     /// Internal supported values.
     private var _supportedValues: Set<EnumType> = []
 
-    override var value: EnumType {
+    public override var value: EnumType {
         get {
             return _value
         }
@@ -64,7 +67,7 @@ class EnumSettingCore<EnumType: Hashable>: EnumSetting<EnumType>, CustomStringCo
                 let oldValue = _value
                 // value sent to the backend, update setting value and mark it updating
                 _value = newValue
-                timeout.schedule { [weak self] in
+                timeout.schedule(timeout: timeoutDuration) { [weak self] in
                     if let `self` = self, self.update(value: oldValue) {
                         self.didChangeDelegate.userDidChangeSetting()
                     }
@@ -87,12 +90,14 @@ class EnumSettingCore<EnumType: Hashable>: EnumSetting<EnumType>, CustomStringCo
     ///   - defaultValue: default setting value
     ///   - supportedValues: default supported values
     ///   - didChangeDelegate: delegate called when the setting value is changed by setting `value` property
+    ///   - timeout: timeout for update rollback
     ///   - backend: closure to call to change the setting value
-    init(defaultValue: EnumType, supportedValues: Set<EnumType> = [], didChangeDelegate: SettingChangeDelegate,
-         backend: @escaping (EnumType) -> Bool) {
+    public init(defaultValue: EnumType, supportedValues: Set<EnumType> = [], didChangeDelegate: SettingChangeDelegate,
+         timeout: DispatchTimeInterval = SettingTimeout.defaultTimeout, backend: @escaping (EnumType) -> Bool) {
         self._value = defaultValue
         self._supportedValues = supportedValues
         self.didChangeDelegate = didChangeDelegate
+        self.timeoutDuration = timeout
         self.backend = backend
     }
 
@@ -100,7 +105,7 @@ class EnumSettingCore<EnumType: Hashable>: EnumSetting<EnumType>, CustomStringCo
     ///
     /// - Parameter supportedValues: new supported values
     /// - Returns: true if supported values changed, false otherwise
-    func update(supportedValues newSupportedValues: Set<EnumType>) -> Bool {
+    public func update(supportedValues newSupportedValues: Set<EnumType>) -> Bool {
         if _supportedValues != newSupportedValues {
             _supportedValues = newSupportedValues
             return true
@@ -112,8 +117,18 @@ class EnumSettingCore<EnumType: Hashable>: EnumSetting<EnumType>, CustomStringCo
     ///
     /// - Parameter value: new value
     /// - Returns: `true` if the setting has been changed, `false` otherwise
-    func update(value newValue: EnumType) -> Bool {
-        if updating || _value != newValue {
+    public func update(value: EnumType) -> Bool {
+        var newValue: EnumType?
+
+        if _supportedValues.contains(value) || _supportedValues.isEmpty {
+            newValue = value
+
+        } else {
+            ULog.w(.coreTag, "Trying to update to unavailable value \(value), fallback to first available value.")
+            newValue = _supportedValues.first
+        }
+
+        if let newValue, updating || _value != newValue {
             _value = newValue
             timeout.cancel()
             return true
@@ -132,7 +147,7 @@ class EnumSettingCore<EnumType: Hashable>: EnumSetting<EnumType>, CustomStringCo
     }
 
     // CustomStringConvertible concordance.
-    var description: String {
+    public var description: String {
         return "\(_value) \(_supportedValues) [\(updating)]"
     }
 }

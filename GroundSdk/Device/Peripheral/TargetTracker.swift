@@ -30,8 +30,6 @@
 import Foundation
 
 /// Class to store the target detection results.
-@objcMembers
-@objc(GSTargetDetectionInfo)
 public class TargetDetectionInfo: NSObject {
 
     /// Horizontal north-drone-target angle in radian.
@@ -96,7 +94,6 @@ public protocol TargetFramingSetting: AnyObject {
 }
 
 /// Information on the analyzed trajectory of the target.
-@objc (GSTargetTrajectory)
 public protocol TargetTrajectory {
     /// Target latitude (in degrees).
     var latitude: Double { get }
@@ -198,64 +195,8 @@ public protocol GSTargetFramingSetting {
     func setValue(horizontal: Double, vertical: Double)
 }
 
-/// Objective-C version of TargetTracker.
-///
-/// The targetTracker is the peripheral used by features such as Look-At or Follow-Me. It allows to
-/// activate/ deactivate the different detection modes of the target:
-///  - control whether user device/controller barometer and location are actively monitored and
-/// sent to the connected drone, in order to allow the latter to track the user and/or controller,
-/// - forward external target detection information to the drone, in order to allow the latter to track a given target
-/// - configure the tracked target desired position (framing) in the video stream.
-///
-/// Look-At and Follow-Me interfaces will be will be activatable according to the target's detection quality level.
-///
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objc
-public protocol GSTargetTracker: Peripheral {
-    /// Position of the desired target framing in the video.
-    @objc(framing)
-    var gsFraming: GSTargetFramingSetting { get }
-
-    /// Whether the controller is used as target.
-    ///
-    /// see `enableControllerTracking()` and `disableControllerTracking()`
-    var targetIsController: Bool { get }
-
-    /// Information on the analyzed trajectory of the target, may be nil
-    var targetTrajectory: TargetTrajectory? { get }
-
-    /// Forwards the result of the target analysis.
-    ///
-    /// - Parameter info: ImageDetectionInfo object
-    func sendTargetDetectionInfo(_ info: TargetDetectionInfo)
-
-    /// Enables tracking of the controller (user device or remote-control) as the current target.
-    ///
-    /// Calling this method enables forwarding of controller barometer and location information to the connected drone,
-    /// so that it may track the user (or controller).
-    ///
-    /// This method should be called prior to activating the piloting interface that tracks the user such as
-    /// `LookAtPilotingItf` or `FollowPilotingItf`.
-    ///
-    /// - Note: This function will force the use of Device Location Services. In order not to use these services
-    /// uselessly, it is strongly recommended to stop the tracking when target detection is no longer necessary
-    /// (see `disableControllerTracking`).
-    func enableControllerTracking()
-
-    /// Disables tracking of the controller (user device or remote-control) as the current target.
-    ///
-    /// Calling this method disables forwarding of controller barometer and location information to the connected drone
-    /// (see `enableControllerTracking`).
-    ///
-    /// This method should be called once controller barometer and location info are not required to pilot the drone
-    /// (eg when interfaces like LookAt or Follow are no longer used), because monitoring the barometer and device
-    /// location increases battery consumption.
-    func disableControllerTracking()
-}
-
 /// :nodoc:
 /// TargetTracker description
-@objc(GSTargetTrackerDesc)
 public class TargetTrackerDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = TargetTracker
     public let uid = PeripheralUid.targetTracker.rawValue

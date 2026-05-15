@@ -31,7 +31,6 @@ import Foundation
 import CoreLocation
 
 /// Reasons why a return home may be unavailable.
-@objc(GSReturnHomeIssue)
 public enum ReturnHomeIssue: Int, CustomStringConvertible {
 
     /// Drone is not flying.
@@ -54,7 +53,6 @@ public enum ReturnHomeIssue: Int, CustomStringConvertible {
 /// Home reachability.
 ///
 /// Describes whether the return point can be reached by the drone or not.
-@objc(GSHomeReachability)
 public enum HomeReachability: Int, CustomStringConvertible {
     /// Home reachability is unknown.
     case unknown
@@ -82,7 +80,7 @@ public enum HomeReachability: Int, CustomStringConvertible {
 }
 
 /// Return home destination target.
-@objc(GSReturnHomeTarget)
+@objc
 public enum ReturnHomeTarget: Int, CustomStringConvertible {
     /// No home type. This might be because the drone does not have a gps fix
     case none
@@ -112,8 +110,8 @@ public enum ReturnHomeTarget: Int, CustomStringConvertible {
                                                          .trackedTargetPosition]
 }
 
-/// Return Home ending behavior
-@objc(GSReturnHomeEndingBehavior)
+/// Return Home ending behaviors.
+@objc
 public enum ReturnHomeEndingBehavior: Int, CustomStringConvertible, CaseIterable {
     /// Ending behavior for return home is landing.
     case landing
@@ -130,7 +128,6 @@ public enum ReturnHomeEndingBehavior: Int, CustomStringConvertible, CaseIterable
 }
 
 /// Reason why return home has been started or stopped.
-@objc(GSReturnHomeReason)
 public enum ReturnHomeReason: Int, CustomStringConvertible, CaseIterable {
     /// Return home is not active.
     case none
@@ -150,6 +147,10 @@ public enum ReturnHomeReason: Int, CustomStringConvertible, CaseIterable {
     case blocked
     /// Return home after a flightplan
     case flightplan
+    ///  Drone motor's down
+    case motorDown
+    /// Drone battery temperature is too high.
+    case batteryTooHot
 
     /// Debug description.
     public var description: String {
@@ -163,28 +164,54 @@ public enum ReturnHomeReason: Int, CustomStringConvertible, CaseIterable {
         case .finished:                 return "finished"
         case .blocked:                  return "blocked"
         case .flightplan:               return "flightplan"
+        case .motorDown:                return "motorDown"
+        case .batteryTooHot:            return "batteryTooHot"
         }
     }
 }
 
-/// Preferred return home target. Drone will select this target if all conditions for it are met.
-@objc(GSReturnHomePreferredTarget)
-public protocol ReturnHomePreferredTarget {
-    /// Tells if the setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Preferred return home target. Drone will choose the selected target if all condition to use it are met.
-    var target: ReturnHomeTarget { get set }
-}
-
 /// Return home ending behavior. Drone will end its Return Home by this behavior.
-@objc(GSReturnHomeEnding)
+@objc
 public protocol ReturnHomeEnding {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
     var updating: Bool { get }
 
     /// Return home ending behavior. Drone will end its Return Home using this behavior.
     var behavior: ReturnHomeEndingBehavior { get set }
+}
+
+/// Return home location.
+public struct ReturnHomeLocation: Equatable {
+
+    /// The latitude
+    public var latitude: Double
+
+    /// The longitude
+    public var longitude: Double
+
+    /// The altitude
+    public var altitude: Double
+
+    /// Constructor
+    ///
+    /// - Parameters:
+    ///    - latitude: the latitude
+    ///    - longitude: the longitude
+    ///    - altitude: the altitude
+    public init(latitude: Double, longitude: Double, altitude: Double) {
+        self.latitude = latitude
+        self.longitude = longitude
+        self.altitude = altitude
+    }
+}
+
+/// Setting to change the custom return home location.
+public protocol ReturnHomeCustomLocation: AnyObject {
+    /// Tells if the setting value has been changed and is waiting for change confirmation.
+    var updating: Bool { get }
+
+    /// Current custom return home location value.
+    var value: ReturnHomeLocation? { get set }
 }
 
 /// Piloting interface used to make the drone return to home.
@@ -205,23 +232,26 @@ public protocol ReturnHomePilotingItf: PilotingItf, ActivablePilotingItf {
     var autoTriggerMode: BoolSetting? { get }
 
     /// Reason why the return home is active or not.
+    ///
+    /// In particular, returns `.none` or `.finished` if the interface is not currently active.
     var reason: ReturnHomeReason { get }
 
     /// Current home location, `nil` if unknown.
-    var homeLocation: CLLocation? { get }
+    var homeLocation: ReturnHomeLocation? { get }
 
     /// Current return home target. May be different from the one selected by preferredTarget if the requirement
     /// of the selected target are not met.
-    var currentTarget: ReturnHomeTarget { get }
+    /// `nil` if unknown.
+    var currentTarget: ReturnHomeTarget? { get }
 
     /// If current target is `TakeOffPosition`, indicates if the first GPS fix was made before or after takeoff.
     /// If the first fix was made after take off, the drone will return at this first fix position that
     /// may be different from the takeoff position
     var gpsWasFixedOnTakeOff: Bool { get }
 
-    /// Return home target settings, to select if the drone should return to its take-off position or to the
+    /// Return home preferred target settings, to select if the drone should return to its take-off position or to the
     /// current pilot position.
-    var preferredTarget: ReturnHomePreferredTarget { get }
+    var preferredTarget: EnumSetting<ReturnHomeTarget> { get }
 
     /// Return home ending behavior settings, to select if the drone will end its return home by
     /// landing or hovering.
@@ -239,6 +269,9 @@ public protocol ReturnHomePilotingItf: PilotingItf, ActivablePilotingItf {
 
     /// Delay before starting return home when the controller connection is lost, in seconds.
     var autoStartOnDisconnectDelay: IntSetting { get }
+
+    /// Return home custom location settings.
+    var customLocation: ReturnHomeCustomLocation? { get }
 
     /// Estimation of the possibility for the drone to reach its return point.
     var homeReachability: HomeReachability { get }
@@ -261,106 +294,10 @@ public protocol ReturnHomePilotingItf: PilotingItf, ActivablePilotingItf {
     /// Cancels any current auto trigger.
     /// If `homeReachability` is `.warning`, this cancels the planned return home.
     func cancelAutoTrigger()
-
-    /// Set a custom location to the drone.
-    /// This location will be used by the drone for the rth
-    ///
-    /// If this method is called while the preferredTarget is not set to `customPosition`,
-    /// it will do nothing
-    ///
-    /// - Parameters:
-    ///   - latitude: latitude of the location (in degrees) to reach
-    ///   - longitude: longitude of the location (in degrees) to reach
-    ///   - altitude: altitude above ground level (in meters) to reach
-    func setCustomLocation(latitude: Double, longitude: Double, altitude: Double)
-}
-
-@objc
-public protocol GSReturnHomePilotingItf: PilotingItf, ActivablePilotingItf {
-    /// Tells whether a given reason is partly responsible of the unavailable state of this piloting interface.
-    ///
-    /// - Parameter reason: the reason to query
-    /// - Returns: `true` if the piloting interface is partly unavailable because of the given reason.
-    func hasUnavailabilityReason(_ reason: ReturnHomeIssue) -> Bool
-
-    /// Return Home mode for auto trigger.
-    /// This setting permit to enable or diable auto triggered return home
-    var autoTriggerMode: BoolSetting? { get }
-
-    /// Reason why the return home is active or not.
-    var reason: ReturnHomeReason { get }
-
-    /// Current home location, `nil` if unknown.
-    var homeLocation: CLLocation? { get }
-
-    /// Current return home target. May be different from the one selected by preferredTarget if the requirement
-    /// of the selected target are not met.
-    var currentTarget: ReturnHomeTarget { get }
-
-    /// If current target is `TakeOffPosition`, indicates if the first GPS fix was made before or after takeoff.
-    /// If the first fix was made after take off, the drone will return at this first fix position that
-    /// may be different from the takeoff position
-    var gpsWasFixedOnTakeOff: Bool { get }
-
-    /// Return home target settings, to select if the drone should return to its take-off position or to the
-    /// current pilot position.
-    var preferredTarget: ReturnHomePreferredTarget { get }
-
-    /// Return home ending behavior settings, to select if the drone will end its return home by
-    /// landing or hovering.
-    var endingBehavior: ReturnHomeEnding { get }
-
-    /// Minimum return home altitude in meters, relative to the take off point. If the drone is below this altitude
-    /// when starting its return home, it will first reach the minimum altitude. If it is higher than this minimum
-    /// altitude, it will operate its return home at its actual.
-    /// `nil` if not supported by the drone.
-    var minAltitude: DoubleSetting? { get }
-
-    /// Return home ending hovering altitude in meters, relative to the take off point.
-    /// `nil` if not supported by the drone.
-    var endingHoveringAltitude: DoubleSetting? { get }
-
-    /// Delay before starting return home when the controller connection is lost, in seconds.
-    var autoStartOnDisconnectDelay: IntSetting { get }
-
-    /// Estimation of the possibility for the drone to reach its return point.
-    var homeReachability: HomeReachability { get }
-
-    /// Delay in seconds before the drone starts an automatic return home when `homeReachability` is `.warning`,
-    /// meaningless otherwise.
-    /// This delay is computed by the drone to allow it to reach its home position before the battery is empty.
-    var autoTriggerDelay: TimeInterval { get }
-
-    /// `true` if an ongoing return home is currently suspended for some reason; `false` otherwise.
-    var suspended: Bool { get }
-
-    /// Activates this piloting interface.
-    ///
-    /// If successful, it deactivates the current piloting interface and activate this one.
-    ///
-    /// - Returns: `true` on success, `false` if the piloting interface can't be activated
-    func activate() -> Bool
-
-    /// Cancels any current auto trigger.
-    /// If `homeReachability` is `.warning`, this cancels the planned return home.
-    func cancelAutoTrigger()
-
-    /// Set a custom location to the drone.
-    /// This location will be used by the drone for the rth
-    ///
-    /// If this method is called while the preferredTarget is not set to `customPosition`,
-    /// it will do nothing
-    ///
-    /// - Parameters:
-    ///   - latitude: latitude of the location (in degrees) to reach
-    ///   - longitude: longitude of the location (in degrees) to reach
-    ///   - altitude: altitude above ground level (in meters) to reach
-    func setCustomLocation(latitude: Double, longitude: Double, altitude: Double)
 }
 
 /// :nodoc:
 /// Return home piloting interface description
-@objc(GSReturnHomePilotingItfs)
 public class ReturnHomePilotingItfs: NSObject, PilotingItfClassDesc {
     public typealias ApiProtocol = ReturnHomePilotingItf
     public let uid = PilotingItfUid.returnHome.rawValue

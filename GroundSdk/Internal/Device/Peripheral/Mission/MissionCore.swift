@@ -66,6 +66,12 @@ public class MissionCore: Mission, Equatable, Hashable {
     /// Tells if the setting value has been changed and is waiting for change confirmation
     public var updating: Bool = false
 
+    /// Digest of the mission
+    public var digest: String?
+
+    /// Assets of the mission
+    public var assets: [String]?
+
     /// Constructor
     ///
     /// - Parameters:
@@ -76,10 +82,13 @@ public class MissionCore: Mission, Equatable, Hashable {
     ///   - version: version of the mission.
     ///   - recipientId: id to use to exchange messages with the mission
     ///   - targetModelId: name of the mission.
-    ///   - minTargetVersion: Minimum version of target supported.
-    ///   - maxTargetVersion: Maximum version of target supported.
+    ///   - minTargetVersion: minimum version of target supported.
+    ///   - maxTargetVersion: maximum version of target supported.
+    ///   - digest: digest of the mission
+    ///   - assets: assets of the mission
     required public init(uid: String, description: String, name: String, version: String, recipientId: UInt?,
-        targetModelId: Drone.Model?, minTargetVersion: FirmwareVersion?, maxTargetVersion: FirmwareVersion?) {
+                        targetModelId: Drone.Model?, minTargetVersion: FirmwareVersion?,
+                         maxTargetVersion: FirmwareVersion?, digest: String? = nil, assets: [String]? = nil) {
         self.uid = uid
         self.description = description
         self.name = name
@@ -88,6 +97,8 @@ public class MissionCore: Mission, Equatable, Hashable {
         self.version = version
         self.recipientId = recipientId
         self.targetModelId = targetModelId
+        self.digest = digest
+        self.assets = assets
     }
 
     // Equatable Concordance
@@ -97,6 +108,7 @@ public class MissionCore: Mission, Equatable, Hashable {
             && lhs.version == rhs.version
             && lhs.state == rhs.state && lhs.unavailabilityReason == rhs.unavailabilityReason
             && lhs.recipientId == rhs.recipientId && lhs.targetModelId == rhs.targetModelId
+            && lhs.digest == rhs.digest
     }
 
     public func hash(into hasher: inout Hasher) {

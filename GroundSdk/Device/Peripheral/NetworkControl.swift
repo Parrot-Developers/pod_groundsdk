@@ -44,24 +44,14 @@ public enum NetworkControlRoutingPolicy: String, CustomStringConvertible, CaseIt
     public var description: String { rawValue }
 }
 
-/// Setting to control network routing.
-public protocol NetworkControlRoutingSetting: AnyObject {
-    /// Tells if the setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Supported routing policies.
-    var supportedPolicies: Set<NetworkControlRoutingPolicy> { get }
-
-    /// Routing policy.
-    var policy: NetworkControlRoutingPolicy { get set }
-}
-
 /// Network link type.
 public enum NetworkControlLinkType: String, CustomStringConvertible, CaseIterable {
     /// Wi-Fi interface.
     case wlan
     /// Cellular interface.
     case cellular
+    /// Direct link interface
+    case direct
 
     /// Debug description.
     public var description: String { rawValue }
@@ -102,6 +92,12 @@ public enum NetworkControlLinkError: String, CustomStringConvertible, CaseIterab
     case timeout
     /// Failed to invite drone.
     case invite
+    /// Failed to setup control link.
+    case setup
+    /// Peer offline.
+    case peerOffline
+    /// Peer not subscribed.
+    case peerMismatch
 
     /// Debug description.
     public var description: String { rawValue }
@@ -139,18 +135,6 @@ public enum NetworkDirectConnectionMode: String, CustomStringConvertible, CaseIt
     public var description: String { rawValue }
 }
 
-/// Direct connection setting.
-public protocol NetworkDirectConnectionSetting: AnyObject {
-    /// Tells if the setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Supported direct connection modes.
-    var supportedModes: Set<NetworkDirectConnectionMode> { get }
-
-    /// Direct connection mode.
-    var mode: NetworkDirectConnectionMode { get set }
-}
-
 /// Network peripheral interface.
 ///
 /// This peripheral can be retrieved by:
@@ -159,7 +143,7 @@ public protocol NetworkDirectConnectionSetting: AnyObject {
 /// ```
 public protocol NetworkControl: Peripheral {
     /// Network routing policy setting.
-    var routingPolicy: NetworkControlRoutingSetting { get }
+    var routingPolicy: EnumSetting<NetworkControlRoutingPolicy> { get }
 
     /// Links details.
     var links: [NetworkControlLinkInfo] { get }
@@ -176,7 +160,7 @@ public protocol NetworkControl: Peripheral {
     var maxCellularBitrate: IntSetting { get }
 
     /// Direct connection mode setting.
-    var directConnection: NetworkDirectConnectionSetting { get }
+    var directConnection: EnumSetting<NetworkDirectConnectionMode> { get }
 }
 
 /// :nodoc:

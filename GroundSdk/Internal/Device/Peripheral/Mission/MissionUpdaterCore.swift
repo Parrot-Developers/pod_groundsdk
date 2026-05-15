@@ -71,6 +71,10 @@ public class MissionUpdaterCore: PeripheralCore, MissionUpdater {
 
     private(set) public var currentProgress: Int?
 
+    private(set) public var assetDownloadState: MissionAssetDownloadCompletionStatus = .none
+
+    private(set) public var isDownloadingAsset: Bool = false
+
     /// Constructor
     ///
     /// - Parameters:
@@ -153,4 +157,30 @@ extension MissionUpdaterCore {
         return self
     }
 
+    /// Updates the currently downloading flag.
+    ///
+    /// - Parameter isDownloadingAsset: the new downloading asset flag
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(isDownloadingAsset newValue: Bool) -> MissionUpdaterCore {
+        if isDownloadingAsset != newValue {
+            isDownloadingAsset = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates download asset completion status.
+    ///
+    /// - Parameter assetDownloadStatus: new asset download status
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(assetDownloadStatus newValue: MissionAssetDownloadCompletionStatus)
+    -> MissionUpdaterCore {
+        if assetDownloadState != newValue {
+            assetDownloadState = newValue
+            markChanged()
+        }
+        return self
+    }
 }

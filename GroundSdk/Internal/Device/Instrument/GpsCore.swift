@@ -34,7 +34,7 @@ import CoreLocation
 public class GpsCore: InstrumentCore, Gps {
 
     /// Fix status, true if gps of the drone has fixed
-    private (set) public var fixed = false
+    private(set) public var fixed: Bool?
 
     /// Location latitude (in degrees)
     /// 500 if not known
@@ -60,7 +60,7 @@ public class GpsCore: InstrumentCore, Gps {
     private var verticalAccuracy: Double = -1
 
     /// Number of satellite used to get the location
-    private(set) public var satelliteCount = 0
+    private(set) public var satelliteCount: Int?
 
     /// last known GPS location if available, nil otherwise
     public var lastKnownLocation: CLLocation? {
@@ -75,7 +75,7 @@ public class GpsCore: InstrumentCore, Gps {
 
     /// Debug description
     public override var description: String {
-        return "GpsCore: fixed = \(fixed), position( \(String(describing: latitude)), " +
+        return "GpsCore: fixed = \(String(describing: fixed)), position( \(String(describing: latitude)), " +
             "\(String(describing: longitude)), \(String(describing: altitude))) " +
             "( +/-(\(horizontalAccuracy), \(verticalAccuracy) "
     }
@@ -96,7 +96,7 @@ extension GpsCore {
     /// - Parameter fixed: Whether drone's gps has fixed or not
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(fixed newValue: Bool) -> GpsCore {
+    @discardableResult public func update(fixed newValue: Bool?) -> GpsCore {
         if fixed != newValue {
             markChanged()
             fixed = newValue
@@ -115,7 +115,7 @@ extension GpsCore {
     ///
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(
-        latitude lat: Double, longitude lng: Double, altitude alt: Double, date: Date) -> GpsCore {
+        latitude lat: Double, longitude lng: Double, altitude alt: Double?, date: Date) -> GpsCore {
 
         if latitude != lat || longitude != lng || altitude != alt {
             markChanged()
@@ -158,7 +158,7 @@ extension GpsCore {
     /// - Parameter satelliteCount: the satellite count to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(satelliteCount newValue: Int) -> GpsCore {
+    @discardableResult public func update(satelliteCount newValue: Int?) -> GpsCore {
         if satelliteCount != newValue {
             markChanged()
             satelliteCount = newValue

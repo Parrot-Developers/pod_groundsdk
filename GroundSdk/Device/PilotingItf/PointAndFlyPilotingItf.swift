@@ -217,6 +217,9 @@ public class FlyDirective: PointAndFlyDirective {
     /// Drone heading.
     public let heading: PointAndFlyHeading
 
+    /// Enabled radio links for the fly action.
+    public let enabledLinks: RadioConfiguration
+
     /// Constructor.
     ///
     /// - Parameters:
@@ -228,12 +231,15 @@ public class FlyDirective: PointAndFlyDirective {
     ///   - verticalSpeed: maximum vertical speed
     ///   - yawRotationSpeed: maximum yaw rotation speed
     ///   - heading: drone heading
+    ///   - enabledLinks: Enabled radio links
     public init(latitude: Double, longitude: Double, altitude: Double, gimbalControlMode: PointAndFlyGimbalControlMode,
-                horizontalSpeed: Double, verticalSpeed: Double, yawRotationSpeed: Double, heading: PointAndFlyHeading) {
+                horizontalSpeed: Double, verticalSpeed: Double, yawRotationSpeed: Double, heading: PointAndFlyHeading,
+                enabledLinks: RadioConfiguration) {
         self.horizontalSpeed = horizontalSpeed
         self.verticalSpeed = verticalSpeed
         self.yawRotationSpeed = yawRotationSpeed
         self.heading = heading
+        self.enabledLinks = enabledLinks
         super.init(latitude: latitude, longitude: longitude, altitude: altitude, gimbalControlMode: gimbalControlMode)
     }
 
@@ -247,11 +253,13 @@ public class FlyDirective: PointAndFlyDirective {
         && verticalSpeed == other.verticalSpeed
         && yawRotationSpeed == other.yawRotationSpeed
         && heading == other.heading
+        && enabledLinks == other.enabledLinks
     }
 
     public override var description: String {
         return super.description
-        + "-hSpeed(\(horizontalSpeed))-vSpeed(\(verticalSpeed))-rSpeed(\(yawRotationSpeed))-heading(\(heading))"
+        + "-hSpeed(\(horizontalSpeed))-vSpeed(\(verticalSpeed))-rSpeed(\(yawRotationSpeed))-heading(\(heading)"
+        + "-enabledLinks(\(enabledLinks))"
     }
 }
 
@@ -267,17 +275,26 @@ public protocol PointAndFlyPilotingItf: PilotingItf, ActivablePilotingItf {
     /// Set of reasons why this piloting interface is unavailable.
     ///
     /// Empty when state is `.idle` or `.active`.
+    ///
+    /// Note: this information is not available in backup link.
     var unavailabilityReasons: Set<PointAndFlyIssue> { get }
 
     /// Current point'n'fly directive if any one is executing, `nil` otherwise.
     ///
     /// It can be either a `PointDirective` or a `FlyDirective`.
+    ///
+    /// Note: this information might not be correct in backup link.
     var currentDirective: PointAndFlyDirective? { get }
 
     /// *Point* or *fly* execution status.
     ///
     /// This property is *transient*: it will change back to `nil` immediately after the status is notified.
+    ///
+    /// Note: this information is not available in backup link.
     var executionStatus: PointAndFlyExecutionStatus? { get }
+
+    /// Available radio links supported by the drone.
+    var availableRadioLinks: Set<RadioConfiguration> { get }
 
     /// Executes the given *point* or *fly* directive.
     ///

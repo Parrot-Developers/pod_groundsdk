@@ -65,6 +65,15 @@ public class Camera2Components {
 
     /// Zoom component.
     public static let zoom = Camera2ZoomDesc()
+
+    /// Effective framerate component.
+    public static let effectiveFramerate = Camera2EffectiveFramerateDesc()
+
+    /// User location from image coordinates component.
+    public static let userLfic = Camera2UserLficDesc()
+
+    /// Alignment component
+    public static let alignment = Camera2AlignmentDesc()
 }
 
 /// Camera components unique identifier.
@@ -77,6 +86,9 @@ enum Camera2ComponentUid: Int {
     case recording
     case whiteBalanceLock
     case zoom
+    case effectiveFramerate
+    case userLfic
+    case alignment
 }
 
 /// Camera2 protocol.
@@ -89,6 +101,9 @@ enum Camera2ComponentUid: Int {
 /// - Zoom,
 /// - Recording mode, resolution and framerate selection,
 /// - Photo mode, format and file format selection.
+/// - Effective framerate
+/// - User location from image coordinates
+/// - Camera alignment
 public protocol Camera2 {
 
     /// Whether the camera is active.

@@ -39,8 +39,6 @@ import Foundation
 ///   parameter.
 /// - **mode**: animation execution mode. If `with(mode:)` is not customized, then the drone will apply its
 ///   own default value for this parameter: `.once`.
-@objcMembers
-@objc(GSDronieAnimationConfig)
 public class DronieAnimationConfig: NSObject, AnimationConfig {
 
     public let type = AnimationType.dronie
@@ -88,28 +86,11 @@ public class DronieAnimationConfig: NSObject, AnimationConfig {
     }
 }
 
-/// Extension that brings Obj-C support.
-extension DronieAnimationConfig {
-    /// `true` when `with(mode:)` has been called once.
-    /// ObjC-only api. In Swift, use `mode`.
-    public var modeIsCustom: Bool {
-        return mode != nil
-    }
-
-    /// Custom mode.
-    /// Value is meaningless if `modeIsCustom` is `false`.
-    /// ObjC-only api. In Swift, use `mode`.
-    public var customMode: AnimationMode {
-        return mode ?? .once
-    }
-}
-
 /// Dronie animation.
 ///
 /// This animation instructs the drone to fly away from the target on a given distance with a predefined (and not
 /// configurable) angle.
 /// The target in question depends on the currently active `ActivablePilotingItf`.
-@objc(GSDronieAnimation)
 public protocol DronieAnimation: Animation {
 
     /// Current animation speed, in meters per second.

@@ -456,10 +456,10 @@ public class CellularCore: PeripheralCore, Cellular {
     public private(set)  var isPinCodeInvalid = false
 
     /// Remaining PIN code tries.
-    private (set) public var pinRemainingTries = 0
+    private(set) public var pinRemainingTries = 0
 
     /// Reset state
-    public private (set) var resetState = CellularResetState.none
+    public private(set) var resetState = CellularResetState.none
 
     /// Implementation backend.
     private unowned let backend: CellularBackend

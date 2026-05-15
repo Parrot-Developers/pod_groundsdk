@@ -30,7 +30,6 @@
 import Foundation
 
 /// Camera exposure mode.
-@objc(GSCameraExposureMode)
 public enum CameraExposureMode: Int, CustomStringConvertible, CaseIterable {
     /// Automatic exposure mode balanced.
     ///
@@ -83,7 +82,6 @@ public enum CameraExposureMode: Int, CustomStringConvertible, CaseIterable {
 }
 
 /// Camera auto exposure metering mode.
-@objc(GSCameraAutoExposureMeteringMode)
 public enum CameraAutoExposureMeteringMode: Int, CustomStringConvertible, CaseIterable {
     /// Standard auto exposure metering mode.
     case standard
@@ -101,7 +99,6 @@ public enum CameraAutoExposureMeteringMode: Int, CustomStringConvertible, CaseIt
 }
 
 /// Camera shutter speed values
-@objc(GSCameraShutterSpeed)
 public enum CameraShutterSpeed: Int, CustomStringConvertible, Comparable, CaseIterable {
     /// 1/10000 s
     case oneOver10000
@@ -234,58 +231,40 @@ public enum CameraShutterSpeed: Int, CustomStringConvertible, Comparable, CaseIt
 }
 
 /// Camera Iso Sensitivity.
-@objc(GSCameraIso)
 public enum CameraIso: Int, CustomStringConvertible, Comparable, CaseIterable {
     /// 50 iso
-    @objc(GSCameraIso50)
     case iso50
     /// 64 iso
-    @objc(GSCameraIso64)
     case iso64
     /// 80 iso
-    @objc(GSCameraIso80)
     case iso80
     /// 100 iso
-    @objc(GSCameraIso100)
     case iso100
     /// 125 iso
-    @objc(GSCameraIso125)
     case iso125
     /// 160 iso
-    @objc(GSCameraIso160)
     case iso160
     /// 200 iso
-    @objc(GSCameraIso200)
     case iso200
     /// 250 iso
-    @objc(GSCameraIso250)
     case iso250
     /// 320 iso
-    @objc(GSCameraIso320)
     case iso320
     /// 400 iso
-    @objc(GSCameraIso400)
     case iso400
     /// 500 iso
-    @objc(GSCameraIso500)
     case iso500
     /// 640 iso
-    @objc(GSCameraIso640)
     case iso640
     /// 800 iso
-    @objc(GSCameraIso800)
     case iso800
     /// 1200 iso
-    @objc(GSCameraIso1200)
     case iso1200
     /// 1600 iso
-    @objc(GSCameraIso1600)
     case iso1600
     /// 2500 iso
-    @objc(GSCameraIso2500)
     case iso2500
     /// 3200 iso
-    @objc(GSCameraIso3200)
     case iso3200
 
 #if swift(<5.4)
@@ -400,67 +379,4 @@ public protocol CameraExposureSettings: AnyObject {
     func set(mode: CameraExposureMode, manualShutterSpeed: CameraShutterSpeed?,
              manualIsoSensitivity: CameraIso?, maximumIsoSensitivity: CameraIso?,
              autoExposureMeteringMode: CameraAutoExposureMeteringMode?)
-}
-
-// MARK: - objc compatibility
-
-/// Settings to configure camera exposure mode and parameters.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSCameraExposureSettings {
-    /// Tells if a setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Exposure mode.
-    var mode: CameraExposureMode { get set }
-
-    /// Shutter speed when exposure mode is `manualShutterSpeed` or `manual` mode.
-    var manualShutterSpeed: CameraShutterSpeed { get set }
-
-    /// Iso sensitivity when exposure mode is `manualIsoSensitivity` or `manual` mode.
-    var manualIsoSensitivity: CameraIso { get set }
-
-    /// Maximum Iso sensitivity when exposure mode is `automatic`.
-    var maximumIsoSensitivity: CameraIso { get set }
-
-    /// Current auto exposure metering mode..
-    var autoExposureMeteringMode: CameraAutoExposureMeteringMode { get set }
-
-    /// Checks if a mode is supported.
-    ///
-    /// - Parameter mode: mode to check
-    /// - Returns: `true` if the mode is supported
-    func isModeSupported(_ mode: CameraExposureMode) -> Bool
-
-    /// Checks if a manual shutter speed value is supported.
-    ///
-    /// - Parameter shutterSpeed: shutter speed to test
-    /// - Returns: `true` if the shutter speed is supported
-    func isManualShutterSpeedSupported(_ shutterSpeed: CameraShutterSpeed) -> Bool
-
-    /// Checks if a manual iso sensitivity value is supported.
-    ///
-    /// - Parameter iso: iso sensitivity to check
-    /// - Returns: `true` if the iso sensitivity is supported
-    func isManualIsoSensitivitySupported(_ iso: CameraIso) -> Bool
-
-    /// Checks if a maximum iso sensitivity value is supported.
-    ///
-    /// - Parameter iso: maximum iso sensitivity to check
-    /// - Returns: `true` if the maximum iso sensitivity is supported
-    func isMaximumIsoSensitivitySupported(_ iso: CameraIso) -> Bool
-
-    /// Changes exposure mode, manualShutterSpeed, manualIsoSensitivity and maximumIsoSensitivity.
-    ///
-    /// - Parameters:
-    ///   - mode: requested exposure mode
-    ///   - manualShutterSpeed: requested manual shutter speed if mode is `manualShutterSpeed` or `manual`, or -1 to
-    ///     keep the current value.
-    ///   - manualIsoSensitivity: requested iso sensitivity if exposure mode is `manualIsoSensitivity` or `manual`, or
-    ///     -1 to keep the current value
-    ///   - maximumIsoSensitivity: requested maximum iso sensitivity when exposure mode is `automatic`, or -1 to keep
-    ///     the current value
-    ///   - autoExposureMeteringMode: requested auto exposure metering mode
-    @objc(setMode:manualShutterSpeed:manualIsoSensitivity:maximumIsoSensitivity:autoExposureMeteringMode:)
-    func set(mode: CameraExposureMode, manualShutterSpeed: Int, manualIsoSensitivity: Int,
-             maximumIsoSensitivity: Int, autoExposureMeteringMode: Int)
 }

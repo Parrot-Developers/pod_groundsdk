@@ -33,9 +33,9 @@ import Foundation
 public class MagnetometerWith1StepCalibrationCore: MagnetometerCore, MagnetometerWith1StepCalibration {
 
     /// State of the calibration process.
-    private (set) public var calibrationProcessState: Magnetometer1StepCalibrationProcessState?
+    private(set) public var calibrationProcessState: Magnetometer1StepCalibrationProcessState?
 
-    /// implementation backend
+    /// Implementation backend
     private unowned let backend: MagnetometerBackend
 
     public override init(store: ComponentStoreCore, backend: MagnetometerBackend) {

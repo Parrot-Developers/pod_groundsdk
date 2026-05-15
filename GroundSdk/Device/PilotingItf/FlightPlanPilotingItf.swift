@@ -30,10 +30,8 @@
 import Foundation
 
 /// Reason why this piloting interface is currently unavailable.
-@objc(GSFlightPlanUnavailabilityReason)
 public enum FlightPlanUnavailabilityReason: Int, CustomStringConvertible {
-    /// Not enough battery.
-    case insufficientBattery
+
     /// Drone GPS accuracy is too weak.
     case droneGpsInfoInaccurate
     /// Drone needs to be calibrated.
@@ -49,26 +47,33 @@ public enum FlightPlanUnavailabilityReason: Int, CustomStringConvertible {
     case cameraUnavailable
     /// First waypoint is too far to be reached.
     case firstWaypointTooFar
-    /// Drone is in an invalid state
+    /// Not enough battery.
+    case insufficientBattery
+    /// Drone is in an invalid state.
     case droneInvalidState
+    /// Drone battery temperature is too high.
+    case droneBatteryTooHot
+    /// Flight plan file uploading.
+    case uploadingFlightPlanFile
 
     /// Debug description.
     public var description: String {
         switch self {
-        case .insufficientBattery:      return "insufficientBattery"
         case .droneGpsInfoInaccurate:   return "droneGpsInfoInaccurate"
         case .droneNotCalibrated:       return "droneNotCalibrated"
         case .missingFlightPlanFile:    return "missingFlightPlanFile"
         case .cannotTakeOff:            return "cannotTakeOff"
         case .cameraUnavailable:        return "cameraUnavailable"
-        case .droneInvalidState:        return "droneInvalidState"
         case .firstWaypointTooFar:      return "firstWaypointTooFar"
+        case .insufficientBattery:      return "insufficientBattery"
+        case .droneInvalidState:        return "droneInvalidState"
+        case .droneBatteryTooHot:       return "droneBatteryTooHot"
+        case .uploadingFlightPlanFile:  return "uploadingFlightPlanFile"
         }
     }
 }
 
 /// Defines how a mavlink flight plan file is interpreted by the drone.
-@objc(GSFlightPlanInterpreter)
 public enum FlightPlanInterpreter: Int, CustomStringConvertible {
     /// Interpret file according to Parrot legacy non-standard rules.
     case legacy
@@ -85,7 +90,6 @@ public enum FlightPlanInterpreter: Int, CustomStringConvertible {
 }
 
 /// Activation error.
-@objc(GSFlightPlanActivationError)
 public enum FlightPlanActivationError: Int, CustomStringConvertible {
     /// No activation error.
     case none
@@ -105,7 +109,6 @@ public enum FlightPlanActivationError: Int, CustomStringConvertible {
 }
 
 /// Flight Plan file upload state.
-@objc(GSFlightPlanFileUploadState)
 public enum FlightPlanFileUploadState: Int, CustomStringConvertible {
     /// No flight plan file has been uploaded yet.
     case none
@@ -430,107 +433,8 @@ public protocol FlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
     func prepareForFlightPlanActivation()
 }
 
-/// Flight Plan piloting interface for drones.
-///
-/// Allows to make the drone execute predefined flight plans.
-/// This piloting interface remains `.unavailable` until all `FlightPlanUnavailabilityReason` have
-/// been cleared:
-///  - A Flight Plan file (i.e. a mavlink file) has been uploaded to the drone (see
-///    `uploadFlightPlan(filepath:))`
-///  - The drone GPS location has been acquired
-///  - The drone is properly calibrated
-///  - The drone is in a state that allows it to take off
-///
-/// Then, when all those conditions hold, the interface becomes `.idle` and can be activated to
-/// begin or resume Flight Plan execution, which can be paused by deactivating this piloting
-/// interface.
-///
-/// This piloting interface can be retrieved by:
-///
-/// ```
-/// id<GSFlightPlanPilotingItf> fplan = (id<GSFlightPlanPilotingItf>)[drone getPilotingItf:GSPilotingItfs.flightPlan];
-/// ```
-/// - Note: This protocol is for Objective-C only. Swift must use the protocol `FlightPlanPilotingItf`.
-@objc
-public protocol GSFlightPlanPilotingItf: PilotingItf, ActivablePilotingItf {
-    /// Latest flight plan file upload state.
-    var latestUploadState: FlightPlanFileUploadState { get }
-
-    /// Index of the latest mission item completed.
-    ///
-    /// Negative value when not available.
-    @objc(latestMissionItemExecuted)
-    var gsLatestMissionItemExecuted: UInt { get }
-
-    /// Error raised during the latest activation.
-    ///
-    /// It is put back to `.none` as soon as `activate(restart:)` is called.
-    var latestActivationError: FlightPlanActivationError { get }
-
-    /// Whether the current flight plan on the drone is the latest one that has been uploaded from
-    /// the application.
-    var flightPlanFileIsKnown: Bool { get }
-
-    /// Whether the flight plan is currently paused.
-    ///
-    /// If `true`, the restart parameter of `activate(restart:)` can be set to `false` to resume the
-    /// flight plan instead of playing it from the beginning. If `isPaused` is false, this parameter
-    /// will be ignored and the flight plan will be played from its beginning.
-    ///
-    /// When this piloting interface is deactivated, any currently playing flight plan will be
-    /// paused.
-    var isPaused: Bool { get }
-
-    /// Uploads a Flight Plan file to the drone.
-    /// When the upload ends, if all other necessary conditions hold (GPS location acquired, drone
-    /// properly calibrated), then the interface becomes idle and the Flight Plan is ready to be
-    /// executed.
-    ///
-    /// - Parameter filepath: local path of the file to upload
-    func uploadFlightPlan(filepath: String)
-
-    /// Activates this piloting interface and starts executing the uploaded flight plan.
-    ///
-    /// The interface should be `.idle` for this method to have effect.
-    /// The flight plan is resumed if the `restart` parameter is false and `isPaused` is `true`.
-    /// Otherwise, the flight plan is restarted from its beginning.
-    ///
-    /// If successful, it deactivates the current piloting interface and activate this one.
-    ///
-    /// - Parameter restart: `true` to force restarting the flight plan.
-    ///                      If `isPaused` is false, this parameter will be ignored.
-    /// - Returns: `true` on success, `false` if the piloting interface can't be activated
-    /// - Note: `activate(restart:)` will call `activate(restart: type:)`, default value of type is
-    ///  `flightPlan`
-    func activate(restart: Bool) -> Bool
-
-    /// Activates this piloting interface and starts executing the uploaded flight plan.
-    ///
-    /// The interface should be `.idle` for this method to have effect.
-    /// The flight plan is resumed if the `restart` parameter is false and `isPaused` is `true`.
-    /// Otherwise, the flight plan is restarted from its beginning.
-    ///
-    /// If successful, it deactivates the current piloting interface and activate this one.
-    ///
-    /// - Parameters:
-    ///    - restart: `true` to force restarting the flight plan.
-    ///               If `isPaused` is `false`, this parameter will be ignored.
-    ///    - interpreter: instructs how the flight plan must be interpreted by the drone.
-    /// - Returns: `true` on success, `false` if the piloting interface can't be activated
-    func activate(restart: Bool, interpreter: FlightPlanInterpreter) -> Bool
-
-    /// Tells whether a given reason is partly responsible of the unavailable state of this piloting
-    /// interface.
-    ///
-    /// - Parameter reason: the reason to query
-    /// - Returns: `true` if the piloting interface is partly unavailable because of the given
-    ///   reason.
-    func hasUnavailabilityReason(_ reason: FlightPlanUnavailabilityReason) -> Bool
-}
-
 /// :nodoc:
 /// FlightPlan piloting interface description
-@objc(GSFlightPlanPilotingItfs)
 public class FlightPlanPilotingItfs: NSObject, PilotingItfClassDesc {
     public typealias ApiProtocol = FlightPlanPilotingItf
     public let uid = PilotingItfUid.flightPlan.rawValue

@@ -83,7 +83,7 @@ extension MavlinkStandard {
         /// - Parameters:
         ///   - speedType: speed type
         ///   - speed: speed, in meters/second
-        ///   - relative: boolean indicate wether the speed change is absolute or relative
+        ///   - relative: boolean indicate whether the speed change is absolute or relative
         ///   - frame: the reference frame of the coordinates
         public init(speedType: SpeedType,
                     speed: Double,
@@ -122,3 +122,5 @@ extension MavlinkStandard {
         }
     }
 }
+
+// swiftlint:enable nesting

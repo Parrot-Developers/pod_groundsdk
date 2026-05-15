@@ -45,86 +45,6 @@ public protocol GeofenceBackend: AnyObject {
     func set(maxDistance value: Double) -> Bool
 }
 
-/// Geofence Mode parameter
-class GeofenceModeSettingCore: GeofenceModeSetting, CustomStringConvertible {
-
-    /// Delegate called when the setting value is changed by setting `value` property
-    private unowned let didChangeDelegate: SettingChangeDelegate
-
-    /// Timeout object.
-    ///
-    /// Visibility is internal for testing purposes
-    let timeout = SettingTimeout()
-
-    /// Tells if the setting value has been changed and is waiting for change confirmation
-    var updating: Bool { return timeout.isScheduled }
-
-    var value: GeofenceMode {
-        get {
-            return _value
-        }
-
-        set {
-            if _value != newValue {
-                if backend(newValue) {
-                    let oldValue = _value
-                    // value sent to the backend, update setting value and mark it updating
-                    _value = newValue
-                    timeout.schedule { [weak self] in
-                        if let `self` = self, self.update(value: oldValue) {
-                            self.didChangeDelegate.userDidChangeSetting()
-                        }
-                    }
-                    didChangeDelegate.userDidChangeSetting()
-                }
-            }
-        }
-    }
-
-    /// Current geofence mode value
-    private var _value: GeofenceMode = .altitude
-    /// Closure to call to change the value. Return true if the new value has been sent and setting must become updating
-    private let backend: (GeofenceMode) -> Bool
-
-    /// Constructor
-    ///
-    /// - Parameters:
-    ///   - didChangeDelegate: delegate called when the setting value is changed by setting `value` property
-    ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (GeofenceMode) -> Bool) {
-        self.didChangeDelegate = didChangeDelegate
-        self.backend = backend
-    }
-
-    /// Called by the backend, change the setting data
-    ///
-    /// - Parameter value: new environment
-    /// - Returns: true if the setting has been changed, false otherwise
-    func update(value newValue: GeofenceMode) -> Bool {
-        if updating || _value != newValue {
-            _value = newValue
-            timeout.cancel()
-            return true
-        }
-        return false
-    }
-
-    /// Cancels any pending rollback.
-    ///
-    /// - Parameter completionClosure: block that will be called if a rollback was pending
-    func cancelRollback(completionClosure: () -> Void) {
-        if timeout.isScheduled {
-            timeout.cancel()
-            completionClosure()
-        }
-    }
-
-    // CustomStringConvertible concordance
-    var description: String {
-        return "GeofenceModeSetting: \(_value)  updating: [\(updating)]"
-    }
-}
-
 /// Internal Geofence peripheral implementation
 public class GeofenceCore: PeripheralCore, Geofence {
 
@@ -140,13 +60,16 @@ public class GeofenceCore: PeripheralCore, Geofence {
     /// maxDistance setting internal implementation
     private var _maxDistance: DoubleSettingCore!
 
-    public var mode: GeofenceModeSetting {
+    public var mode: EnumSetting<GeofenceMode> {
         return _mode
     }
+
     /// Mode setting internal implementation
-    private var _mode: GeofenceModeSettingCore!
+    private var _mode: EnumSettingCore<GeofenceMode>!
 
     public private(set) var center: CLLocation?
+
+    public private(set) var isAvailable: Bool?
 
     /// Implementation backend
     private unowned let backend: GeofenceBackend
@@ -164,7 +87,8 @@ public class GeofenceCore: PeripheralCore, Geofence {
     public init(store: ComponentStoreCore, backend: GeofenceBackend) {
         self.backend = backend
         super.init(desc: Peripherals.geofence, store: store)
-        _mode = GeofenceModeSettingCore(didChangeDelegate: self) { [unowned self] mode in
+        _mode = EnumSettingCore(defaultValue: .altitude, supportedValues: Set(GeofenceMode.allCases),
+                                didChangeDelegate: self) { [unowned self] mode in
             return self.backend.set(mode: mode)
         }
         _maxAltitude = DoubleSettingCore(didChangeDelegate: self) { [unowned self] newValue in
@@ -173,7 +97,6 @@ public class GeofenceCore: PeripheralCore, Geofence {
         _maxDistance = DoubleSettingCore(didChangeDelegate: self) { [unowned self] newValue in
             return self.backend.set(maxDistance: newValue)
         }
-
     }
 }
 
@@ -226,6 +149,19 @@ extension GeofenceCore {
     @discardableResult public func update(center newValue: CLLocation?) -> GeofenceCore {
         if newValue != center {
             center = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Update geofence availability
+    ///
+    /// - Parameter value: new availability value
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(isAvailable newValue: Bool?) -> GeofenceCore {
+        if newValue != isAvailable {
+            isAvailable = newValue
             markChanged()
         }
         return self

@@ -74,6 +74,11 @@ public class FlightCameraRecordFile: CustomStringConvertible {
     /// JSON file path
     public var jsonFile: URL
 
+    /// Check if original file's png
+    public var isPng: Bool {
+        originalFile.pathExtension.lowercased() == "png"
+    }
+
     /// Constructor.
     ///
     /// - Parameters:
@@ -436,6 +441,18 @@ class FlightCameraRecordEngine: EngineBaseCore {
            FileManager.default.fileExists(atPath: fcr.jsonFile.path) {
             ULog.d(.parrotCloudFcrTag, "Blur and json file already created -> upload directly")
             completion(.success)
+        } else if fcr.isPng {
+            self.queue.async {
+              self.createJson(originalFile: fcr.originalFile, descriptor: FcrAnonymizationDescriptor())
+              DispatchQueue.main.async {
+                if FileManager.default.fileExists(atPath: fcr.jsonFile.path) {
+                    fcr.blurFile = fcr.originalFile
+                    completion(.success)
+                } else {
+                    completion(.failure)
+                }
+              }
+            }
         } else {
             let fcrUrl = fcr.originalFile
             let processingFcr = fcrUrl.deletingPathExtension().appendingPathExtension(processingExtension)

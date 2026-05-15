@@ -30,7 +30,6 @@
 import Foundation
 
 /// Flying indicator state.
-@objc(GSFlyingIndicatorsState)
 public enum FlyingIndicatorsState: Int, CustomStringConvertible {
     /// Drone can be in initialization state or it can be waiting for a command or a user action to takeoff.
     /// See `landedState` for more details.
@@ -55,10 +54,7 @@ public enum FlyingIndicatorsState: Int, CustomStringConvertible {
 }
 
 /// Landed state when the main state is `landed`.
-@objc(GSFlyingIndicatorsLandedState)
 public enum FlyingIndicatorsLandedState: Int, CustomStringConvertible {
-    /// Flying indicator state is not `landed`.
-    case none
     /// Drone is initializing and not ready to takeoff, for instance because it's waiting for some peripheral
     /// calibration. Drone motors are not running.
     case initializing
@@ -76,7 +72,6 @@ public enum FlyingIndicatorsLandedState: Int, CustomStringConvertible {
     /// Debug description.
     public var description: String {
         switch self {
-        case .none:                 return "none"
         case .initializing:         return "initializing"
         case .idle:                 return "idle"
         case .motorRamping:         return "motorRamping"
@@ -86,10 +81,7 @@ public enum FlyingIndicatorsLandedState: Int, CustomStringConvertible {
 }
 
 /// Flying state when the main state is `flying`.
-@objc(GSFlyingIndicatorsFlyingState)
 public enum FlyingIndicatorsFlyingState: Int, CustomStringConvertible {
-    /// Flying indicator state is not `flying`.
-    case none
     /// Drone is taking off.
     case takingOff
     /// Drone is landing.
@@ -102,7 +94,6 @@ public enum FlyingIndicatorsFlyingState: Int, CustomStringConvertible {
     /// Debug description.
     public var description: String {
         switch self {
-        case .none:         return "none"
         case .takingOff:    return "takingOff"
         case .landing:      return "landing"
         case .waiting:      return "waiting"
@@ -111,31 +102,50 @@ public enum FlyingIndicatorsFlyingState: Int, CustomStringConvertible {
     }
 }
 
+/// Drone vehicle mode.
+public enum VehicleMode: CaseIterable {
+    /// Plane mode
+    case plane
+
+    /// Quad mode
+    case copter
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .plane:         return "plane"
+        case .copter:        return "copter"
+        }
+    }
+}
+
+
 /// Flying indicators instrument. This instrument indicate the current flying state.
 ///
 /// This instrument can be retrieved by:
 /// ```
 /// drone.getInstrument(Instruments.flyingIndicators)
 /// ```
-@objc(GSFlyingIndicators)
 public protocol FlyingIndicators: Instrument {
-    /// Current state.
-    var state: FlyingIndicatorsState { get }
+    /// Current state. `nil` if not available.
+    var state: FlyingIndicatorsState? { get }
 
-    /// Landed detail state, when state is `.landed`.
-    var landedState: FlyingIndicatorsLandedState { get }
+    /// Landed detail state, when state is `.landed`. `nil` if not applicable or not available.
+    var landedState: FlyingIndicatorsLandedState? { get }
 
-    /// Flying detail state, when state is `.flying`.
-    var flyingState: FlyingIndicatorsFlyingState { get }
+    /// Flying detail state, when state is `.flying`. `nil` if not applicable or not available.
+    var flyingState: FlyingIndicatorsFlyingState? { get }
 
-    /// Whether the drone is currently hand landing.
-    var isHandLanding: Bool { get }
+    /// Whether the drone is currently hand landing. `nil` if not available.
+    var isHandLanding: Bool? { get }
+
+    /// Vehicle mode
+    var vehicleMode: VehicleMode { get }
 }
 
 /// :nodoc:
 /// Instrument descriptor
-@objc(GSFlyingIndicatorsDesc)
-public class FlyingIndicatorsDesc: NSObject, InstrumentClassDesc {
+public class FlyingIndicatorsDesc: InstrumentClassDesc {
     public typealias ApiProtocol = FlyingIndicators
     public let uid = InstrumentUid.flyingIndicators.rawValue
     public let parent: ComponentDescriptor? = nil

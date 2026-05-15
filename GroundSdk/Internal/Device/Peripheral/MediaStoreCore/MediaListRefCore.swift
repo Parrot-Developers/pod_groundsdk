@@ -107,6 +107,10 @@ private extension MediaListRefCore {
             if old != .indexed, new == .indexed {
                 browse(storageType: storageType)
             }
+        case .storageRemoved(storage: let storage):
+            // filter medias when storage's removed
+            let keptType: StorageType = (storage == .internal) ? .removable : .internal
+            filterMedias(storageType: keptType)
         case .webSocketDisconnected:
             // browse media store when web socket disconnected or error occured
             browse(storageType: storageType)
@@ -141,14 +145,20 @@ private extension MediaListRefCore {
                 newList.append(newMedia)
             }
 
-        case .removedMedia(mediaId: let removedMediaId):
-            newList.removeAll(where: { $0.uid == removedMediaId })
-
         case .createdResource(let newResource, mediaId: let mediaId):
             if storageType == nil || (storageType != nil && newResource.storage == storageType),
                let concernedMediaIndex = newList.firstIndex(where: { $0.uid == mediaId }) {
                 newList[concernedMediaIndex] = newList[concernedMediaIndex].mediaWithResource(newResource)
             }
+
+        case .updatedMedia(let newMedia):
+            if storageType == nil || (storageType != nil && newMedia.resources.first?.storage == storageType),
+               let index = newList.firstIndex(where: { $0.uid == newMedia.uid }) {
+                newList[index] = newMedia.mediaWithResources(from: newList[index])
+            }
+
+        case .removedMedia(mediaId: let removedMediaId):
+            newList.removeAll(where: { $0.uid == removedMediaId })
 
         case .removedResource(resourceId: let removedResourceId):
             if let concernedMediaIndex = newList.firstIndex(where: { (media: MediaItemCore) in
@@ -186,5 +196,12 @@ private extension MediaListRefCore {
             // update the ref with the new list
             self.update(newValue: medias)
         })
+    }
+
+    func filterMedias(storageType: StorageType) {
+        let newList = medias.filter {
+            $0.resources.first?.storage == storageType
+        }
+        self.update(newValue: newList)
     }
 }

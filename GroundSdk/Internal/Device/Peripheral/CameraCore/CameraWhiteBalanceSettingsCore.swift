@@ -206,18 +206,3 @@ class CameraWhiteBalanceSettingsCore: CameraWhiteBalanceSettings, CustomDebugStr
         return "\(_mode) \(supportedModes) \(_customTemperature) \(supporteCustomTemperature) \(updating)]"
     }
 }
-
-/// ObjC support
-extension CameraWhiteBalanceSettingsCore: GSCameraWhiteBalanceSettings {
-    func isModeSupported(_ mode: CameraWhiteBalanceMode) -> Bool {
-        return supportedModes.contains(mode)
-    }
-
-    func isCustomTemperatureSupported(_ temperature: CameraWhiteBalanceTemperature) -> Bool {
-        return supporteCustomTemperature.contains(temperature)
-    }
-
-    func setCustomMode(temperature: CameraWhiteBalanceTemperature) {
-        set(mode: .custom, customTemperature: temperature)
-    }
-}

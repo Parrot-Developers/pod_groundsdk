@@ -39,8 +39,6 @@ import Foundation
 ///   parameter.
 /// - **mode**: animation execution mode. If `with(mode:)` is not customized, then the drone will apply its
 ///   own default value for this parameter: `.once`.
-@objcMembers
-@objc(GSHorizontalRevealAnimationConfig)
 public class HorizontalRevealAnimationConfig: NSObject, AnimationConfig {
 
     public let type = AnimationType.horizontalReveal
@@ -88,26 +86,9 @@ public class HorizontalRevealAnimationConfig: NSObject, AnimationConfig {
     }
 }
 
-/// Extension that brings Obj-C support.
-extension HorizontalRevealAnimationConfig {
-    /// `true` when `with(mode:)` has been called once.
-    /// ObjC-only api. In Swift, use `mode`.
-    public var modeIsCustom: Bool {
-        return mode != nil
-    }
-
-    /// Custom mode.
-    /// Value is meaningless if `modeIsCustom` is `false`.
-    /// ObjC-only api. In Swift, use `mode`.
-    public var customMode: AnimationMode {
-        return mode ?? .once
-    }
-}
-
 /// Horizontal reveal animation.
 ///
 /// This animation instructs the drone to start looking down, then to move forward while slowly looking at the horizon.
-@objc(GSHorizontalRevealAnimation)
 public protocol HorizontalRevealAnimation: Animation {
 
     /// Current animation speed, in meters per second.

@@ -30,7 +30,6 @@
 import Foundation
 
 /// Camera live stream playback state.
-@objc(GSCameraLivePlayState)
 public enum CameraLivePlayState: Int, CustomStringConvertible {
     /// Stream is 'State.stopped'.
     case none
@@ -58,6 +57,25 @@ public enum CameraLivePlayState: Int, CustomStringConvertible {
     }
 }
 
+/// Requested camera
+public struct RequestedCamera: Equatable {
+    /// The requested source.
+    public var source: CameraLiveSource
+
+    /// The requester.
+    public var requester: String
+
+    /// Constructor
+    ///
+    /// - Parameters:
+    ///   - source: the requested source
+    ///   - requester: the requester
+    public init(source: CameraLiveSource, requester: String) {
+        self.source = source
+        self.requester = requester
+    }
+}
+
 /// Camera live stream interface.
 /// Provides control over the drone camera live stream, allowing to pause, resume or stop playback.
 /// There is only one instance of this interface that is shared amongst all clients that have an open
@@ -68,11 +86,23 @@ public enum CameraLivePlayState: Int, CustomStringConvertible {
 /// Once the interruption stops, or streaming gets enabled, it is resumed in the state it was before suspension.
 /// Also, this implies that this stream can be started even while streaming is globally disabled. In such case,
 /// it will move to the 'suspended' state until either it is stopped by client request, or streaming gets enabled.
-@objc(GSCameraLive)
 public protocol CameraLive: Stream {
 
     /// Current playback state.
     var playState: CameraLivePlayState { get }
+
+    /// Set of sources currently available for CameraLive.
+    ///
+    /// This set of sources is initially empty and is populated once stream is created.
+    var sources: Set<CameraLiveSource> { get }
+
+    /// The currently selected source for CameraLive, or `nil` if not available.
+    var selectedSource: CameraLiveSource? { get }
+
+    /// The camera requested by the drone.
+    ///
+    /// This property is *transient*: it will change back to `nil` immediately after it is notified.
+    var requestedCamera: RequestedCamera? { get }
 
     /// Requests playback to start.
     ///
@@ -90,10 +120,25 @@ public protocol CameraLive: Stream {
 
     /// Stop the stream.
     func stop()
+
+    /// Asks for an update of the set of sources for CameraLive.
+    func refreshSources()
+
+    /// Selects a new source to stream.
+    ///
+    /// - Parameter source: live source to stream
+    func selectSource(source: CameraLiveSource)
+
+    /// Notifies the drone that the requested camera has been accepted by sending it back.
+    ///
+    /// This method should be called following the [requested camera][requestedCamera] demand from the drone
+    /// after selecting the new camera source if necessary.
+    ///
+    /// - Parameter requestedCamera: the requested camera
+    func notifyCamera(requestedCamera: RequestedCamera)
 }
 
 /// Camera Live sources.
-@objc(GSCameraLiveSource)
 public enum CameraLiveSource: Int, CustomStringConvertible {
     /// Unspecified camera video stream.
     case unspecified
@@ -101,10 +146,10 @@ public enum CameraLiveSource: Int, CustomStringConvertible {
     /// Front camera video stream.
     case frontCamera
 
-    /// Stereo camera left video stream.
+    /// Swiveling stereo camera left video stream.
     case frontStereoCameraLeft
 
-    /// Stereo camera right video stream.
+    /// Swiveling stereo camera right video stream.
     case frontStereoCameraRight
 
     /// Vertical camera video stream.
@@ -112,6 +157,21 @@ public enum CameraLiveSource: Int, CustomStringConvertible {
 
     /// Disparity video stream.
     case disparity
+
+    /// Horizontal (front) stereo camera left video stream.
+    case horizontalStereoCameraLeft
+
+    /// Horizontal (front) stereo camera right video stream.
+    case horizontalStereoCameraRight
+
+    /// Down stereo camera left video stream.
+    case downStereoCameraLeft
+
+    /// Down stereo camera right video stream.
+    case downStereoCameraRight
+
+    /// External camera video stream.
+    case externalCamera
 
     /// Debug description.
     public var description: String {
@@ -128,6 +188,16 @@ public enum CameraLiveSource: Int, CustomStringConvertible {
             return "verticalCamera"
         case .disparity:
             return "disparity"
+        case .horizontalStereoCameraLeft:
+            return "horizontalStereoCameraLeft"
+        case .horizontalStereoCameraRight:
+            return "horizontalStereoCameraRight"
+        case .downStereoCameraLeft:
+            return "downStereoCameraLeft"
+        case .downStereoCameraRight:
+            return "downStereoCameraRight"
+        case .externalCamera:
+            return "externalCamera"
         }
     }
 }

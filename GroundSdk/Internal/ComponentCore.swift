@@ -49,7 +49,7 @@ public class ComponentCore: NSObject, Component {
     private var changed = false
 
     /// Informs if this component has been published
-    private(set) var published = false
+    public private(set) var published = false
 
     /// Constructor
     ///
@@ -70,13 +70,13 @@ public class ComponentCore: NSObject, Component {
         super.init()
     }
 
-    func markChanged() {
+    public func markChanged() {
         changed = true
     }
 }
 
 extension ComponentCore: SettingChangeDelegate {
-    func userDidChangeSetting() {
+    public func userDidChangeSetting() {
         markChanged()
         notifyUpdated()
     }
@@ -86,7 +86,9 @@ extension ComponentCore: SettingChangeDelegate {
 extension ComponentCore {
     /// Publish the component by adding it to its store
     final public func publish() {
-        if !published {
+        if published {
+            notifyUpdated()
+        } else {
             published = true
             store.add(self)
             changed = false
@@ -102,12 +104,18 @@ extension ComponentCore {
         reset()
     }
 
-    /// Notify changes made by previously called setters
+    /// Notifies component observers if changes were made by previously called setters.
+    /// This does nothing if no changes were made since the last time observers were notified.
     @objc public func notifyUpdated() {
         if changed {
-            changed = false
-            store.notifyUpdated(self)
+            forceNotifyUpdated()
         }
+    }
+
+    /// Notifies component observers, even when no changes were made by previously called setters.
+    public func forceNotifyUpdated() {
+        changed = false
+        store.notifyUpdated(self)
     }
 
     /// Reset component state. Called when the component is unpublished.

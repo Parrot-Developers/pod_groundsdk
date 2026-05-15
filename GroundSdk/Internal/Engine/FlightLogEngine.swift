@@ -67,6 +67,7 @@ class FlightLogEngine: FlightLogEngineBase {
 
         super.init(enginesController: enginesController, engineDirName: flightLogsLocalDirName)
         publishUtility(FlightLogStorageCoreImpl(engine: self))
+
     }
 
     public override func startEngine() {

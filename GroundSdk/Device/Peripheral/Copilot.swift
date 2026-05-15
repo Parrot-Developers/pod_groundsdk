@@ -30,7 +30,6 @@
 import Foundation
 
 /// Copilot source description.
-@objc(GSCopilotSource)
 public enum CopilotSource: Int {
 
     /// Use the SkyController joysticks.
@@ -79,27 +78,8 @@ public protocol CopilotSetting: AnyObject {
     var source: CopilotSource { get set }
 }
 
-/// Peripheral managing copilot
-/// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSCopilot {
-    /// Copilot setting
-    @objc(setting)
-    var gsSetting: GSCopilotSetting { get }
-}
-
-/// Setting to change the piloting source
-/// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSCopilotSetting {
-    /// Tells if a setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Current source setting.
-    var source: CopilotSource { get set }
-}
-
 /// :nodoc:
 /// CoPilot description
-@objc(GSCoPilotDesc)
 public class CopilotDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = Copilot
     public let uid = PeripheralUid.copilot.rawValue

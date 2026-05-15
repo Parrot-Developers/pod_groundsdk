@@ -30,7 +30,6 @@
 import Foundation
 
 /// Completion status of a crash report download.
-@objc(GSCrashReportDownloadCompletionStatus)
 public enum CrashReportDownloadCompletionStatus: Int, CustomStringConvertible {
     /// Download is not complete yet. Crash report download may still be ongoing or not even started yet.
     case none
@@ -57,8 +56,6 @@ public enum CrashReportDownloadCompletionStatus: Int, CustomStringConvertible {
 /// State of the crash report downloader.
 /// Informs about any ongoing crash reports download progress, as well as the completion status of the crash reports
 /// download.
-@objcMembers
-@objc(GSCrashReportDownloaderState)
 public class CrashReportDownloaderState: NSObject {
     /// Current completion status of the crash report downloader.
     ///
@@ -85,7 +82,6 @@ public class CrashReportDownloaderState: NSObject {
 /// ```
 /// device.getPeripheral(Peripherals.crashReportDownloader)
 /// ```
-@objc(GSCrashReportDownloader)
 public protocol CrashReportDownloader: Peripheral {
     /// Current download state
     var state: CrashReportDownloaderState { get }
@@ -96,7 +92,6 @@ public protocol CrashReportDownloader: Peripheral {
 
 /// :nodoc:
 /// CrashReportDownloader description
-@objc(GSCrashReportDownloaderDesc)
 public class CrashReportDownloaderDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = CrashReportDownloader
     public let uid = PeripheralUid.crashReportDownloader.rawValue

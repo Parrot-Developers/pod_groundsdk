@@ -69,7 +69,7 @@ public class GroundSdkCore: NSObject {
         /// Gets a drone by uid
         ///
         /// - Parameter uid: requested drone uid
-        /// - Returns: a drone with the requested uid, or null if not found
+        /// - Returns: a drone with the requested uid, or nil if not found
         func getDrone(uid: String) -> Drone? {
             if let droneCore = GroundSdkCore.getInstance().droneStore.getDevice(uid: uid) {
                 return Drone(droneCore: droneCore)
@@ -82,7 +82,7 @@ public class GroundSdkCore: NSObject {
         /// - Parameters:
         ///    - uid: requested drone uid
         ///    - removedCallback: closure called when the drone is removed from the store
-        /// - Returns: a drone with the requested uid, or null if not found
+        /// - Returns: a drone with the requested uid, or nil if not found
         func getDrone(uid: String, removedCallback: @escaping (String) -> Void) -> Drone? {
             let droneStore = GroundSdkCore.getInstance().droneStore
             if let droneCore = droneStore.getDevice(uid: uid) {
@@ -113,7 +113,7 @@ public class GroundSdkCore: NSObject {
         /// Gets a remote control by uid
         ///
         /// - Parameter uid: requested remote control uid
-        /// - Returns: a remote control with the requested uid, or null if not found
+        /// - Returns: a remote control with the requested uid, or nil if not found
         func getRemoteControl(uid: String) -> RemoteControl? {
             if let remoteControlCore = GroundSdkCore.getInstance().rcStore.getDevice(uid: uid) {
                 return RemoteControl(remoteControlCore: remoteControlCore)
@@ -126,7 +126,7 @@ public class GroundSdkCore: NSObject {
         /// - Parameters:
         ///    - uid: requested remote control uid
         ///    - removedCallback: closure called when the remote control is removed from the store
-        /// - Returns: a remote control with the requested uid, or null if not found
+        /// - Returns: a remote control with the requested uid, or nil if not found
         func getRemoteControl(uid: String, removedCallback: @escaping (String) -> Void) -> RemoteControl? {
             let rcStore = GroundSdkCore.getInstance().rcStore
             if let remoteControlCore = rcStore.getDevice(uid: uid) {
@@ -215,6 +215,18 @@ public class GroundSdkCore: NSObject {
                                     toDirectory directory: URL,
                                     observer: @escaping (LogCollector?) -> Void) -> Ref<LogCollector> {
             return LogCollectorRefCore(from: sources, toDirectory: directory, observer: observer)
+        }
+
+        /// Retrieves currently discovered services.
+        ///
+        /// - Returns: a list of discovered services.
+        public func getDiscoveredServices() -> [DiscoveredService] {
+            guard let browser =
+                    GroundSdkCore.getInstance().utilities.getUtility(Utilities.serviceDiscoveryBrowser) else {
+                return []
+            }
+
+            return browser.discoveredServices
         }
     }
 

@@ -30,7 +30,6 @@
 import Foundation
 
 /// Motor error.
-@objc(GSMotorError)
 public enum MotorError: Int {
 
     /// No error.

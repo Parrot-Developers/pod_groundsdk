@@ -158,8 +158,8 @@ public class VideoFormatAspectRatioCore: VideoFormatAspectRatio {
     }
 }
 
+// swiftlint:disable type_name
 /// Mastering display color volume.
-// swiftlint:disable:next type_name
 public class VideoFormatMasteringDisplayColorVolumeCore: VideoFormatMasteringDisplayColorVolume {
     /// color primaries
     public let colorPrimaries: VideoFormatColorPrimaries
@@ -176,6 +176,7 @@ public class VideoFormatMasteringDisplayColorVolumeCore: VideoFormatMasteringDis
         self.luminanceRange = luminanceRange
     }
 }
+// swiftlint:enable type_name
 
 /// Content light level.
 public class VideoFormatContentLightLevelCore: VideoFormatContentLightLevel {

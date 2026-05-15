@@ -79,12 +79,12 @@ public protocol ObstacleAvoidance: Peripheral {
     var mode: ObstacleAvoidanceSetting { get }
 
     /// Current state of obstacle avoidance.
-    var state: ObstacleAvoidanceState { get }
+    /// `nil` if not available.
+    var state: ObstacleAvoidanceState? { get }
 }
 
 /// :nodoc:
 /// Obstacle avoidance description.
-@objc(GSObstacleAvoidanceDesc)
 public class ObstacleAvoidanceDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = ObstacleAvoidance
     public let uid = PeripheralUid.obstacleAvoidance.rawValue

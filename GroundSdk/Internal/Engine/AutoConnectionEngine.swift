@@ -222,7 +222,7 @@ class AutoConnectionEngine: EngineBaseCore {
             // ensure best rc is connecting or connected (if possible)
             if !bestRc.isAtLeastConnecting {
                 if bestRc.canBeConnected {
-                    _ = bestRc.connect(connector: bestRc.oneOfTheBestConnector, password: nil)
+                    _ = bestRc.connect(connector: bestRc.oneOfTheBestConnector, parameters: [])
                 }
                 ULog.d(.autoConnectEngineTag, "Not connected to the best rc \(bestRc), try to connect to it.")
             } else if !bestRc.usesOneOfTheBestConnector && bestRc.canBeDisconnected {
@@ -292,7 +292,7 @@ class AutoConnectionEngine: EngineBaseCore {
             } else if currentRc.connected { // if the current rc is connected
                 // if the drone to reconnect is visible through the current rc
                 if let droneToReconnectRemoteConnector = droneToReconnect?.getRemoteConnector(from: currentRc) {
-                    _ = droneToReconnect?.connect(connector: droneToReconnectRemoteConnector, password: nil)
+                    _ = droneToReconnect?.connect(connector: droneToReconnectRemoteConnector, parameters: [])
                     ULog.d(.autoConnectEngineTag, "Reconnect \(String(describing: droneToReconnect)) to \(currentRc).")
                     currentDrone = droneToReconnect
                     droneToReconnect = nil
@@ -308,7 +308,7 @@ class AutoConnectionEngine: EngineBaseCore {
             // ensure best drone is connecting or connected (if possible)
             if !bestDrone.isAtLeastConnecting {
                 if bestDrone.canBeConnected {
-                    _ = bestDrone.connect(connector: bestDrone.oneOfTheBestConnector, password: nil)
+                    _ = bestDrone.connect(connector: bestDrone.oneOfTheBestConnector, parameters: [])
                 }
                 ULog.d(.autoConnectEngineTag, "Not connected to the best drone \(bestDrone), try to connect to it.")
             } else if !bestDrone.usesOneOfTheBestConnector && bestDrone.canBeDisconnected {

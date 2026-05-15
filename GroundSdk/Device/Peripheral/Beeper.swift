@@ -37,7 +37,6 @@ import Foundation
 /// ```
 /// device.getPeripheral(Peripherals.beeper)
 /// ```
-@objc(GSBeeper)
 public protocol Beeper: Peripheral {
 
     /// Whether the device is currently playing an alert sound.
@@ -60,7 +59,6 @@ public protocol Beeper: Peripheral {
 
 /// :nodoc:
 /// Beeper description
-@objc(GSBeeperDesc)
 public class BeeperDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = Beeper
     public let uid = PeripheralUid.beeper.rawValue

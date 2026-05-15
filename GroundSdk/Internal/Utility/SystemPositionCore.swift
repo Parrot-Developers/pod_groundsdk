@@ -211,7 +211,7 @@ class SystemPositionCoreImpl: SystemPositionCore {
     /// List of registered monitors for Heading
     private var headingMonitors: Set<HeadingMonitor> = []
 
-    private (set) var userLocation: CLLocation? {
+    private(set) var userLocation: CLLocation? {
         didSet {
             if userLocation != oldValue {
                 // notifies all monitors that a location was updated
@@ -220,7 +220,7 @@ class SystemPositionCoreImpl: SystemPositionCore {
         }
     }
 
-    private (set) var authorized = false {
+    private(set) var authorized = false {
         didSet {
             if authorized != oldValue {
                 // notifies all monitors that authorization was updated (location and heading monitors)
@@ -234,7 +234,7 @@ class SystemPositionCoreImpl: SystemPositionCore {
         }
     }
 
-    private (set) var suspended = false {
+    private(set) var suspended = false {
         didSet {
             if suspended != oldValue {
                 // Notifies all monitors that location services are stopped
@@ -243,7 +243,7 @@ class SystemPositionCoreImpl: SystemPositionCore {
         }
     }
 
-    private (set) var heading: CLHeading? {
+    private(set) var heading: CLHeading? {
         didSet {
             if heading != oldValue {
                 // notifies all monitors that a location was updated
@@ -258,6 +258,7 @@ class SystemPositionCoreImpl: SystemPositionCore {
         self.systemLocationObserver = SystemLocationObserverCore(
             locationDidChange: { [unowned self] (newLocation) in
                 if newLocation != self.userLocation {
+                    ULog.d(.systemPositionTag, "New location detected: \(newLocation)")
                     // the didSet of self.userLocation will notify
                     self.userLocation = newLocation
                 }

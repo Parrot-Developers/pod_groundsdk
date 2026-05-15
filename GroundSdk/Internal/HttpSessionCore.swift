@@ -91,6 +91,9 @@ public class HttpSessionCore: NSObject {
     /// 418 error code is "I'm a teapot" error (which is the best error name ever).
     private static let defaultError = Result.httpError(418)
 
+    /// Set of insecure hosts.
+    private var insecureHosts: Set<String> = []
+
     /// Constructor
     ///
     /// - Parameter sessionConfiguration: the session configuration
@@ -168,14 +171,18 @@ public class HttpSessionCore: NSObject {
     /// - Parameters:
     ///   - request: request to use
     ///   - method: method to use to send the file. Default is `.put`.
+    ///   - trustAllCertificates: `true` to trust all certificates, `false` otherwise
     ///   - completion: completion callback
     ///   - result: the request result
     ///   - data: the data that has been get. `nil` if result is not `.success`
     /// - Returns: the request
-    public func sendData(request: URLRequest, method: SendMethod = .put,
+    public func sendData(request: URLRequest, method: SendMethod = .put, trustAllCertificates: Bool = false,
                          completion: @escaping (_ result: Result, _ data: Data?) -> Void) -> CancelableCore {
         var request = request
         request.httpMethod = method.rawValue
+        if trustAllCertificates, let insecureHost = request.url?.host {
+            insecureHosts.insert(insecureHost)
+        }
 
         var taskIdentifier: Int?
         let task = session.dataTask(with: request) { data, response, error in
@@ -565,6 +572,22 @@ extension HttpSessionCore: URLSessionDownloadDelegate {
         }
     }
 
+    public func urlSession(_ session: URLSession,
+                           didReceive challenge: URLAuthenticationChallenge,
+                           completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+
+        let host = challenge.protectionSpace.host
+        let isInsecureHost = insecureHosts.contains(host)
+
+        if isInsecureHost,
+           challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
+           let trust = challenge.protectionSpace.serverTrust {
+            ULog.w(.httpClientTag, "Ignoring SSL certificate for host \(host)")
+            completionHandler(.useCredential, URLCredential(trust: trust))
+            return
+        }
+        completionHandler(.performDefaultHandling, nil)
+    }
 }
 
 /// Extension of URLSessionTask that declare that this object implements the CancelableCore protocol

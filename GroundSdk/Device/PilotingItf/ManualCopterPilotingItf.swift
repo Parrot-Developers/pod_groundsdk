@@ -30,7 +30,6 @@
 import Foundation
 
 /// Action performed when `smartTakeOffLand()` is called.
-@objc(GSSmartTakeOffLandAction)
 public enum SmartTakeOffLandAction: Int, CustomStringConvertible {
     /// Take Off from ground.
     case takeOff
@@ -56,6 +55,49 @@ public enum SmartTakeOffLandAction: Int, CustomStringConvertible {
     }
 }
 
+/// Drone speed mode.
+public enum SpeedMode: CaseIterable {
+
+    /// Normal speed mode.
+    case normal
+
+    /// Low speed mode.
+    case low
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .normal:     return "normal"
+        case .low:        return "low"
+        }
+    }
+}
+
+/// Drone vehicle type.
+public enum VehicleType: CaseIterable {
+    /// Multicopter type
+    case multicopter
+
+    /// Vtol type
+    case vtol
+
+    /// Helicopter type
+    case helicopter
+
+    /// Plane type
+    case plane
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .multicopter: return "multicopter"
+        case .vtol:         return "vtol"
+        case .helicopter:   return "helicopter"
+        case .plane:        return "plane"
+        }
+    }
+}
+
 /// Manual copter piloting interface.
 /// Used to pilot manually a copter.
 ///
@@ -67,14 +109,33 @@ public enum SmartTakeOffLandAction: Int, CustomStringConvertible {
 /// ```
 /// drone.getPilotingItf(PilotingItfs.manualCopter)
 /// ```
-@objc(GSManualCopterPilotingItf)
 public protocol ManualCopterPilotingItf: PilotingItf, ActivablePilotingItf {
 
     /// Maximum roll and pitch angle in degrees.
     ///
     /// This value defines the range used by set:pitch and set:roll functions, 100 correspond to an angle of
     /// maxPitchRoll value.
+    ///
+    /// Setting a new maximum pitch/roll value will also change the maximum horizontal speed setting value.
     var maxPitchRoll: DoubleSetting { get }
+
+    /// Maximum horizontal speed in meters/second.
+    ///
+    /// This value defines the range used by set:pitch and set:roll functions, 100 correspond to an horizontal speed of
+    /// maxHorizontalSpeed value.
+    ///
+    /// Setting a new maximum horizontal speed value will also change the maximum pitch/roll setting value.
+    var maxHorizontalSpeed: DoubleSetting? { get }
+
+    /// Speed mode
+    ///
+    /// This value sets the drone speed mode.
+    var speedMode: EnumSetting<SpeedMode>? { get }
+
+    /// Vehicle type
+    ///
+    /// `nil` if not supported by the drone.
+    var vehicleType: VehicleType? { get }
 
     /// Maximum roll and pitch velocity in degrees/second.
     ///
@@ -98,7 +159,7 @@ public protocol ManualCopterPilotingItf: PilotingItf, ActivablePilotingItf {
     /// Banked-turn mode.
     ///
     /// When enabled, the drone will use yaw values from the piloting command to infer with roll and pitch when the
-    /// horizontal speed is not null.
+    /// horizontal speed is not nil.
     ///
     /// `nil` if not supported by the drone.
     var bankedTurnMode: BoolSetting? { get }
@@ -107,11 +168,25 @@ public protocol ManualCopterPilotingItf: PilotingItf, ActivablePilotingItf {
     /// `nil` if not supported by the drone.
     var thrownTakeOffSettings: BoolSetting? { get }
 
+    /// Takeoff hovering altitude above ground in meters.
+    /// `nil` if not supported by the drone.
+    var takeoffHoveringAltitude: DoubleSetting? { get }
+
     /// Whether the drone is ready to takeoff.
     var canTakeOff: Bool { get }
 
     /// Whether the drone is ready to land.
     var canLand: Bool { get }
+
+    /// Preferred ATTI mode.
+    ///
+    /// `nil` if not supported by the drone.
+    var preferredAttiMode: BoolSetting? { get }
+
+    /// Current ATTI mode.
+    ///
+    /// - Note: May be different from the one selected by preferredAttiMode if the requirements are not met.
+    var currentAttiMode: Bool? { get}
 
     /// Activates this piloting interface.
     ///
@@ -130,7 +205,6 @@ public protocol ManualCopterPilotingItf: PilotingItf, ActivablePilotingItf {
     /// the copter.
     ///
     /// - Parameter pitch: the new pitch value to set
-    @objc(setPitch:)
     func set(pitch: Int)
 
     /// Sets the current roll value.
@@ -143,7 +217,6 @@ public protocol ManualCopterPilotingItf: PilotingItf, ActivablePilotingItf {
     /// the copter.
     ///
     /// - Parameter roll: the new roll value to set
-    @objc(setRoll:)
     func set(roll: Int)
 
     /// Sets the yaw rotation speed value.
@@ -154,7 +227,6 @@ public protocol ManualCopterPilotingItf: PilotingItf, ActivablePilotingItf {
     /// * 100 corresponds to a clockwise rotation of max yaw rotation speed
     ///
     /// - Parameter yawRotationSpeed: the new yaw rotation speed value to set
-    @objc(setYawRotationSpeed:)
     func set(yawRotationSpeed: Int)
 
     /// Sets the current vertical speed value.
@@ -164,7 +236,6 @@ public protocol ManualCopterPilotingItf: PilotingItf, ActivablePilotingItf {
     /// * 100 corresponds to max vertical speed towards sky
     ///
     /// - Parameter verticalSpeed: the new vertical speed value to set
-    @objc(setVerticalSpeed:)
     func set(verticalSpeed: Int)
 
     /// Requests the drone to hover.
@@ -201,7 +272,6 @@ public protocol ManualCopterPilotingItf: PilotingItf, ActivablePilotingItf {
 
 /// :nodoc:
 /// Manual copter piloting interface description
-@objc(GSManualCopterPilotingItfs)
 public class ManualCopterPilotingItfs: NSObject, PilotingItfClassDesc {
     public typealias ApiProtocol = ManualCopterPilotingItf
     public let uid = PilotingItfUid.manualCopter.rawValue

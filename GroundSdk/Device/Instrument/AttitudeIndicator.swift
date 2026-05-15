@@ -35,25 +35,25 @@ import Foundation
 /// ```
 /// drone.getInstrument(Instruments.attitudeIndicator)
 /// ```
-@objc(GSAttitudeIndicator)
 public protocol AttitudeIndicator: Instrument {
 
     /// Pitch angle of the drone, in degrees in range ]-90, 90].
     /// Pitch angle is the angle between the horizontal plane parallel to the ground, and the drone longitudinal axis,
     /// which is the axis traversing the drone from tail to head.
     /// Negative values mean the drone is tilted towards ground, positive values mean the drone is tilted towards sky.
-    var roll: Double { get }
+    /// `nil` if not available.
+    var pitch: Double? { get }
 
     /// Roll angle of the drone, in degrees in range ]-180, 180].
     /// Roll angle is the angle between the horizontal plane parallel to the ground, and the drone lateral axis, which
     /// is the axis traversing the drone from left side to right side.
     /// Negative values mean the drone is tilted to the right, positive values mean the drone is tilted to the left.
-    var pitch: Double { get }
+    /// `nil` if not available.
+    var roll: Double? { get }
 }
 
 /// :nodoc:
 /// Instrument descriptor
-@objc(GSAttitudeIndicatorDesc)
 public class AttitudeIndicatorDesc: NSObject, InstrumentClassDesc {
     public typealias ApiProtocol = AttitudeIndicator
     public let uid = InstrumentUid.attitudeIndicator.rawValue

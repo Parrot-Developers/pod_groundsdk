@@ -30,13 +30,10 @@
 import Foundation
 
 /// Alarm with a level.
-@objcMembers
-@objc(GSAlarm)
 public class Alarm: NSObject {
 
     /// Kind of alarm.
-    @objc(GSAlarmKind)
-    public enum Kind: Int, CustomStringConvertible {
+    public enum Kind: Int, CustomStringConvertible, CaseIterable {
         /// The drone power is low.
         case power
 
@@ -109,7 +106,7 @@ public class Alarm: NSObject {
         case strongVibrations
 
         /// A magnetic element disturbs the drone's magnetometer and alters the drone ability to fly safely.
-        case magnetometerPertubation
+        case magnetometerPerturbation
 
         /// The local terrestrial magnetic field is too weak to allow to fly safely.
         case magnetometerLowEarthField
@@ -150,6 +147,9 @@ public class Alarm: NSObject {
 
         /// Obstacle avoidance is disabled because perception system lens is dirty or broken.
         case obstacleAvoidanceDisabledStereoLensFailure
+
+        /// Obstacle avoidance is disabled because perception system is used for navigation.
+        case obstacleAvoidanceDisabledStereoUnavailable
 
         /// Obstacle avoidance is disabled because gimbal is not stabilized in direction of motion.
         case obstacleAvoidanceDisabledGimbalFailure
@@ -205,11 +205,53 @@ public class Alarm: NSObject {
         /// Battery is too cold, so forced landing auto trigger is planned.
         case automaticLandingBatteryTooCold
 
+        /// ESC (motor) is too hot, so forced landing auto trigger is planned.
+        case automaticLandingMotorTooHot
+
+        /// Battery cell voltage is too low, so forced landing auto trigger is planned.
+        case automaticLandingCellVoltageTooLow
+
+        /// A defective sensor has been detected, so forced landing auto trigger is planned.
+        case automaticLandingDefectiveSensor
+
+        /// A flyaway has been detected, so forced landing auto trigger is planned.
+        case automaticLandingFlyawayDetected
+
         /// DRI is not functional.
         case driFailing
 
         /// Video signal processing is not functional.
         case videoPipeline
+
+        /// Main radio connection is lost, but backup radio link is active.
+        case backupLink
+
+        /// Missing sector for vision map.
+        case visionMapMissingSector
+
+        /// Failed to load data for vision map.
+        case visionMapfailedToLoadData
+
+        /// GNSS spoofing detected
+        case gnssSpoofingDetected
+
+        /// At last one tile cannot be found and may be in an version-incompatible sector.
+        case visionMapFrontierArea
+
+        /// Altitude too low for vision map, degraded optical navigation.
+        case visionMapLowAltitude
+
+        /// Environment too dark, disabled optical navigation.
+        case opticalNavigationTooDark
+
+        /// Pitot tube is defective.
+        case pitotDefective
+
+        /// Autopilot internal error.
+        case autopilotInternalError
+
+        /// Error from the external autopilot.
+        case externalAutopilotError
 
         /// Debug description.
         public var description: String {
@@ -229,7 +271,7 @@ public class Alarm: NSObject {
             case .wind:                                          return "wind"
             case .verticalCamera:                                return "verticalCamera"
             case .strongVibrations:                              return "strongVibrations"
-            case .magnetometerPertubation:                       return "magnetometerPertubation"
+            case .magnetometerPerturbation:                       return "magnetometerPerturbation"
             case .magnetometerLowEarthField:                     return "magnetometerLowEarthField"
             case .headingLock:                                   return "headingLock"
             case .icingLevel:                                    return "icingLevel"
@@ -239,6 +281,7 @@ public class Alarm: NSObject {
             case .droneStuck:                                    return "droneStuck"
             case .obstacleAvoidanceDisabledStereoFailure:        return "obstacleAvoidanceDisabledStereoFailure"
             case .obstacleAvoidanceDisabledStereoLensFailure:    return "obstacleAvoidanceDisabledStereoLensFailure"
+            case .obstacleAvoidanceDisabledStereoUnavailable:    return "obstacleAvoidanceDisabledStereoUnavailable"
             case .obstacleAvoidanceDisabledGimbalFailure:        return "obstacleAvoidanceDisabledGimbalFailure"
             case .obstacleAvoidanceDisabledTooDark:              return "obstacleAvoidanceDisabledTooDark"
             case .obstacleAvoidanceDisabledEstimationUnreliable: return "obstacleAvoidanceDisabledEstimationUnreliable"
@@ -256,32 +299,27 @@ public class Alarm: NSObject {
             case .automaticLandingPropellerIcingIssue:           return "automaticLandingPropellerIcingIssue"
             case .automaticLandingBatteryTooHot:                 return "automaticLandingBatteryTooHot"
             case .automaticLandingBatteryTooCold:                return "automaticLandingBatteryTooCold"
+            case .automaticLandingMotorTooHot:                   return "automaticLandingMotorTooHot"
+            case .automaticLandingCellVoltageTooLow:             return "automaticLandingCellVoltageTooLow"
+            case .automaticLandingDefectiveSensor:               return "automaticLandingDefectiveSensor"
+            case .automaticLandingFlyawayDetected:               return "automaticLandingFlyawayDetected"
             case .driFailing:                                    return "driFailing"
             case .videoPipeline:                                 return "videoPipeline"
+            case .backupLink:                                    return "backupLink"
+            case .visionMapMissingSector:                        return "visionMapMissingSector"
+            case .visionMapfailedToLoadData:                     return "visionMapfailedToLoadData"
+            case .gnssSpoofingDetected:                          return "gnssSpoofingDetected"
+            case .visionMapFrontierArea:                         return "visionMapFrontierArea"
+            case .visionMapLowAltitude:                          return "visionMapLowAltitude"
+            case .opticalNavigationTooDark:                      return "opticalNavigationTooDark"
+            case .pitotDefective:                                return "pitotDefective"
+            case .autopilotInternalError:                        return "autopilotInternalError"
+            case .externalAutopilotError:                        return "externalAutopilotError"
             }
         }
-
-        /// Set containing all possible kinds of alarm.
-        public static let allCases: Set<Kind> = [
-            .power, .motorCutOut, .userEmergency, .motorError, .batteryTooHot, .batteryTooCold,
-            .batteryGaugeUpdateRequired, .batteryAuthenticationFailure, .batteryPoorConnection,
-            .hoveringDifficultiesNoGpsTooDark, .hoveringDifficultiesNoGpsTooHigh,
-            .automaticLandingBatteryIssue, .wind, .verticalCamera, .strongVibrations,
-            .magnetometerPertubation, .magnetometerLowEarthField, .unreliableControllerLocation,
-            .headingLock, .icingLevel, .threeMotorsFlight, .highDeviation, .droneStuck,
-            .obstacleAvoidanceDisabledStereoFailure, .obstacleAvoidanceDisabledStereoLensFailure,
-            .obstacleAvoidanceDisabledGimbalFailure, .obstacleAvoidanceDisabledTooDark,
-            .obstacleAvoidanceDisabledEstimationUnreliable,
-            .obstacleAvoidanceDisabledCalibrationFailure, .obstacleAvoidanceStrongWind,
-            .obstacleAvoidancePoorGps, .obstacleAvoidanceComputationalError,
-            .obstacleAvoidanceBlindMotionDirection, .inclinationTooHigh, .horizontalGeofenceReached,
-            .verticalGeofenceReached, .obstacleAvoidanceFreeze, .freeFallDetected,
-            .stereoCameraDecalibrated, .automaticLandingPropellerIcingIssue, .automaticLandingBatteryTooHot,
-            .automaticLandingBatteryTooCold, .driFailing, .videoPipeline]
     }
 
     /// Alarm level.
-    @objc(GSAlarmLevel)
     public enum Level: Int, CustomStringConvertible {
         /// Alarm not available.
         /// Used when the linked alarm type is not supported by the drone.
@@ -340,7 +378,6 @@ public class Alarm: NSObject {
 /// ```
 /// drone.getInstrument(Instruments.alarms)
 /// ```
-@objc(GSAlarms)
 public protocol Alarms: Instrument {
 
     /// Delay in seconds before the drone starts an automatic landing.
@@ -364,7 +401,6 @@ public protocol Alarms: Instrument {
 
 /// :nodoc:
 /// Instrument descriptor
-@objc(GSAlarmsDesc)
 public class AlarmsDesc: NSObject, InstrumentClassDesc {
     public typealias ApiProtocol = Alarms
     public let uid = InstrumentUid.alarms.rawValue

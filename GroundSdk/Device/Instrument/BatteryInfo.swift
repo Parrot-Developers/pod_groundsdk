@@ -80,6 +80,15 @@ public protocol BatteryInfo: Instrument {
     /// Battery components' versions.
     /// `nil` if not available. This can happen if the drone does not know or provide this information.
     var version: BatteryVersion? { get }
+
+    /// Whether battery charge level is reliable.
+    ///
+    /// `true` if `batteryLevel` is reliable, `false` otherwise, `nil` if not supported.
+    var isChargeLevelReliable: Bool? { get }
+
+    /// Cell configuration of the battery.
+    /// `nil` if not available. This can happen if the drone does not know or provide this information.
+    var cellConfiguration: BatteryCellConfiguration? { get }
 }
 
 /// The battery description.
@@ -165,37 +174,30 @@ public struct BatteryVersion: Equatable {
     }
 }
 
-// MARK: Objective-C API
+/// The battery cell configuration.
+public struct BatteryCellConfiguration: Equatable {
+    /// The battery cell config.
+    public let config: String
+    /// Battery cells in series.
+    public let series: UInt
+    /// Battery cells in parallel.
+    public let parallel: UInt
 
-/// Instrument that informs a device's battery.
-///
-/// This instrument can be retrieved by:
-/// ```
-/// drone.getInstrument(Instruments.batteryInfo)
-/// ```
-/// - Note: This protocol is for Objective-C only. Swift must use the protocol `BatteryInfo`.
-@objc
-public protocol GSBatteryInfo: Instrument {
-
-    /// Device's current battery charge level, as an integer percentage of full charge.
-    /// From 100 to 0.
-    var batteryLevel: Int { get }
-
-    /// Whether the device is currently charging.
+    /// Constructor
     ///
-    /// `true` if the device is charging, `false` otherwise.
-    var isCharging: Bool { get }
-
-    /// Device's current battery state of health, as an integer percentage of full health.
-    /// From 100 to 0.
-    /// `nil` if not available. This can happen if the drone does not know or provide this information.
-    @objc(batteryHealth)
-    var gsBatteryHealth: NSNumber? { get }
+    /// - Parameters:
+    ///   - config: the battery cell configuration
+    ///   - series: battery cell in series
+    ///   - parallel: battery cell in parallel
+    public init(config: String, series: UInt, parallel: UInt) {
+        self.config = config
+        self.series = series
+        self.parallel = parallel
+    }
 }
 
 /// :nodoc:
 /// Instrument descriptor
-@objc(GSBatteryInfoDesc)
 public class BatteryInfoDesc: NSObject, InstrumentClassDesc {
     public typealias ApiProtocol = BatteryInfo
     public let uid = InstrumentUid.batteryInfo.rawValue

@@ -30,64 +30,44 @@
 import Foundation
 
 /// EV compensation.
-@objc(GSCameraEvCompensation)
 public enum CameraEvCompensation: Int, CustomStringConvertible, Comparable {
     /// -3.00 EV
-    @objc(GSCameraEvMinus3_00)
     case evMinus3_00
     /// -2.67 EV
-    @objc(GSCameraEvMinus2_67)
     case evMinus2_67
     /// -2.33 EV
-    @objc(GSCameraEvMinus2_33)
     case evMinus2_33
     /// -2.00 EV
-    @objc(GSCameraEvMinus2_00)
     case evMinus2_00
     /// -1.67 EV
-    @objc(GSCameraEvMinus1_67)
     case evMinus1_67
     /// -1.33 EV
-    @objc(GSCameraEvMinus1_33)
     case evMinus1_33
     /// -1.00 EV
-    @objc(GSCameraEvMinus1_00)
     case evMinus1_00
     /// -0.67 EV
-    @objc(GSCameraEvMinus0_67)
     case evMinus0_67
     /// -0.33 EV
-    @objc(GSCameraEvMinus0_33)
     case evMinus0_33
     /// 0.00 EV
-    @objc(GSCameraEv0_00)
     case ev0_00
     /// +0.33 EV
-    @objc(GSCameraEv0_33)
     case ev0_33
     /// +0.67 EV
-    @objc(GSCameraEv0_67)
     case ev0_67
     /// +1.00 EV
-    @objc(GSCameraEv1_00)
     case ev1_00
     /// +1.33 EV
-    @objc(GSCameraEv1_33)
     case ev1_33
     /// +1.67 EV
-    @objc(GSCameraEv1_67)
     case ev1_67
     /// +2.00 EV
-    @objc(GSCameraEv2_00)
     case ev2_00
     /// +2.33 EV
-    @objc(GSCameraEv2_33)
     case ev2_33
     /// +2.67 EV
-    @objc(GSCameraEv2_67)
     case ev2_67
     /// +3.00 EV
-    @objc(GSCameraEv3_00)
     case ev3_00
 
     /// Comparator.
@@ -140,22 +120,4 @@ public protocol CameraExposureCompensationSetting: AnyObject {
     /// Value should be considered meaningless in case the set of `supportedValues` is empty.
     /// Value can only be changed to one of the value `supportedValues`
     var value: CameraEvCompensation { get set }
-}
-
-// MARK: - objc compatibility
-
-/// Setting to configure camera exposure compensation
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSCameraExposureCompensationSetting {
-    /// Tells if a setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Exposure compensation value.
-    var value: CameraEvCompensation { get set }
-
-    /// Checks if an exposure compensation value is supported.
-    ///
-    /// - Parameter value: exposure compensation value to check
-    /// - Returns: `true` if the exposure compensation value is supported
-    func isValueSupported(_ value: CameraEvCompensation) -> Bool
 }

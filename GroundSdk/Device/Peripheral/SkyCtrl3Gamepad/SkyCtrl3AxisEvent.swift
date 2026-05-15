@@ -33,7 +33,6 @@ import Foundation
 ///
 /// The corresponding input has an axis behavior, i.e. it has a position in some range, and an event is sent each time
 /// that position changes, along with the current position value linearly scaled in a [-100, 100] range.
-@objc(GSSkyCtrl3AxisEvent)
 public enum SkyCtrl3AxisEvent: Int {
     /// Event sent when the `SkyCtrl3Axis.leftStickHorizontal` is moved.
     case leftStickHorizontal

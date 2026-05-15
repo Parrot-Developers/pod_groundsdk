@@ -30,7 +30,6 @@
 import Foundation
 
 /// Base protocol for all Peripheral components.
-@objc(GSPeripheral)
 public protocol Peripheral: Component {
 }
 
@@ -41,11 +40,11 @@ public protocol PeripheralClassDesc: ComponentApiDescriptor {
 }
 
 /// Defines all known Peripheral descriptors.
-@objcMembers
-@objc(GSPeripherals)
 public class Peripherals: NSObject {
     /// Anti-flicker.
     public static let antiflicker = AntiflickerDesc()
+    /// Backup link
+    public static let backupLink = BackupLinkDesc()
     /// Battery gauge updater.
     public static let batteryGaugeUpdater = BatteryGaugeUpdaterDesc()
     /// Beeper.
@@ -66,12 +65,18 @@ public class Peripherals: NSObject {
     public static let crashReportDownloader = CrashReportDownloaderDesc()
     /// Debug shell peripheral.
     public static let debugShell = DebugShellDesc()
+    /// External autopilot debug peripheral.
+    public static let externalAutopilotDebug = ExternalAutopilotDebugDesc()
     /// Development toolbox.
     public static let devToolbox = DevToolboxDesc()
     /// Dri.
     public static let dri = DriDesc()
     /// Drone finder peripheral.
     public static let droneFinder = DroneFinderDesc()
+    /// Dted Store peripheral
+    public static let dtedStore = DtedStoreDesc()
+    /// ESim peripheral
+    public static let eSim = ESimDesc()
     /// Flight camera record downloader.
     public static let flightCameraRecordDownloader = FlightCameraRecordDownloaderDesc()
     /// Flight camera recorder.
@@ -94,6 +99,8 @@ public class Peripherals: NSObject {
     public static let killSwitch = KillSwitchDesc()
     /// Leds.
     public static let leds = LedsDesc()
+    /// LineOfSight
+    public static let lineOfSight = LineOfSightDesc()
     /// Log control.
     public static let logControl = LogControlDesc()
     /// Magnetometer peripheral.
@@ -102,6 +109,10 @@ public class Peripherals: NSObject {
     public static let magnetometerWith1StepCalibration = MagnetometerWith1StepCalibrationDesc()
     /// 3-steps calibration magnetometer peripheral.
     public static let magnetometerWith3StepCalibration = MagnetometerWith3StepCalibrationDesc()
+    /// Mars master peripheral.
+    public static let marsMaster = MarsMasterDesc()
+    /// Mars slave peripheral.
+    public static let marsSlave = MarsSlaveDesc()
     /// Main camera peripheral.
     public static let mainCamera = MainCameraDesc()
     /// Main camera 2 peripheral.
@@ -116,26 +127,46 @@ public class Peripherals: NSObject {
     public static let missionManager = MissionManagerDesc()
     /// Mission Store.
     public static let missionsUpdater = MissionUpdaterDesc()
+    /// Navigation control.
+    public static let navigationControl = NavigationControlDesc()
     /// Network control.
     public static let networkControl = NetworkControlDesc()
+    /// Night vision.
+    public static let nightVision = NightVisionDesc()
     /// Obstacle avoidance.
     public static let obstacleAvoidance = ObstacleAvoidanceDesc()
     /// Onboard tracker.
     public static let onboardTracker = OnboardTrackerDesc()
+    /// Pairing
+    public static let pairing = PairingDesc()
     /// Piloting control.
     public static let pilotingControl = PilotingControlDesc()
     /// Precise home.
     public static let preciseHome = PreciseHomeDesc()
+    /// Privacy.
+    public static let privacy = PrivacyDesc()
     /// Radio control.
     public static let radioControl = RadioControlDesc()
+    /// Remote antenna.
+    public static let remoteAntenna = RemoteAntennaDesc()
+    /// Remote antenna HTTP server.
+    public static let remoteAntennaHttpServer = RemoteAntennaHttpServerDesc()
+    /// Remote antenna secure element
+    public static let remoteAntennaSecureElement = RemoteAntennaSecureElementDesc()
+    /// Remote antenna updater
+    public static let remoteAntennaUpdater = RemoteAntennaUpdaterDesc()
     /// Removable user storage.
     public static let removableUserStorage = RemovableUserStorageDesc()
+    /// Remote control system info.
+    public static let remoteControlSystemInfo = RemoteControlSystemInfoDesc()
     /// SecureElement.
     public static let secureElement = SecureElementDesc()
     /// SkyController3 gamepad peripheral.
     public static let skyCtrl3Gamepad = SkyCtrl3GamepadDesc()
     /// SkyController4 gamepad peripheral.
     public static let skyCtrl4Gamepad = SkyCtrl4GamepadDesc()
+    /// SkyControllerUa2 gamepad peripheral.
+    public static let skyCtrlUa2Gamepad = SkyCtrlUa2GamepadDesc()
     /// Sleep mode peripheral.
     public static let sleepMode = SleepModeDesc()
     /// Stereo vision sensor.
@@ -150,6 +181,12 @@ public class Peripherals: NSObject {
     public static let thermalCamera = ThermalCameraDesc()
     /// Thermal control.
     public static let thermalControl = ThermalControlDesc()
+    /// Thermal control 2.
+    public static let thermalControl2 = ThermalControl2Desc()
+    /// Unguarded flight peripheral.
+    public static let unguardedFlight = UnguardedFlightDesc()
+    /// Usb power peripheral.
+    public static let usbPower = UsbPowerDesc()
     /// Firmware updater peripheral.
     public static let updater = UpdaterDesc()
     /// Virtual gamepad peripheral.
@@ -171,6 +208,7 @@ public class Peripherals: NSObject {
 /// Peripheral uid.
 enum PeripheralUid: Int {
     case antiflicker
+    case backupLink
     case batteryGaugeUpdater
     case beeper
     case blendedThermalCamera
@@ -181,9 +219,12 @@ enum PeripheralUid: Int {
     case copterMotors
     case crashReportDownloader
     case debugShell
+    case externalAutopilotDebug
     case devToolbox
     case dri
     case droneFinder
+    case dtedStore
+    case eSim
     case flightCameraRecordDownloader
     case flightCameraRecorder
     case flightDataDownloader
@@ -197,9 +238,12 @@ enum PeripheralUid: Int {
     case latestLogDownloader
     case leds
     case logControl
+    case lineOfSight
     case magnetometer
     case magnetometerWith1StepCalibration
     case magnetometerWith3StepCalibration
+    case marsMaster
+    case marsSlave
     case mainCamera
     case mainCamera2
     case mediaStore
@@ -207,16 +251,26 @@ enum PeripheralUid: Int {
     case microhard
     case missionManager
     case missionUpdater
+    case navigationControl
     case networkControl
+    case nightVision
     case obstacleAvoidance
     case onboardTracker
+    case pairing
     case pilotingControl
     case preciseHome
+    case privacy
     case radioControl
+    case remoteAntenna
+    case remoteAntennaHttpServer
+    case remoteAntennaSecureElement
+    case remoteAntennaUpdater
     case removableUserStorage
+    case remoteControlSystemInfo
     case secureElement
     case skyCtrl3Gamepad
     case skyCtrl4Gamepad
+    case skyCtrlUa2Gamepad
     case sleepMode
     case stereoVisionSensor
     case streamServer
@@ -225,29 +279,12 @@ enum PeripheralUid: Int {
     case terrainControl
     case thermalCamera
     case thermalControl
+    case thermalControl2
+    case unguardedFlight
     case updater
+    case usbPower
     case virtualGamepad
     case wifiAccessPoint
     case wifiScanner
     case wifiStation
-}
-
-/// Objective-C wrapper of Ref<Peripheral>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSPeripheralRef: NSObject {
-
-    private let ref: Ref<Peripheral>
-
-    /// Referenced peripheral.
-    public var value: Peripheral? {
-        return ref.value
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameter ref: referenced peripheral
-    init(ref: Ref<Peripheral>) {
-        self.ref = ref
-    }
 }

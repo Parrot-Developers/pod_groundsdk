@@ -46,16 +46,8 @@ import Foundation
 public protocol BlendedThermalCamera: Camera, Peripheral {
 }
 
-// MARK: - objc compatibility
-
-/// Blended Thermal camera peripheral.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSBlendedThermalCamera: GSCamera, Peripheral {
-}
-
 /// :nodoc:
 /// Blended Thermal camera description
-@objc(GSBlendedThermalCameraDesc)
 public class BlendedThermalCameraDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = BlendedThermalCamera
     public let uid = PeripheralUid.blendedThermalCamera.rawValue

@@ -30,7 +30,6 @@
 import Foundation
 
 /// LookAtMe mode, defines how the drone looks at the target.
-@objc(GSLookAtMode)
 public enum LookAtMode: Int, CustomStringConvertible {
 
     /// Look at the target without moving automatically.
@@ -64,26 +63,6 @@ public protocol LookAtModeSetting: AnyObject {
     ///
     /// - Note: Only a supported look at mode can be set.
     var value: LookAtMode { get set }
-}
-
-/// Setting providing access to the mode (LookAtMode) setup.
-///
-/// This protocol is Objective-C only. Swift must use `LookAtModeSetting`.
-@objc
-public protocol GSLookAtModeSetting {
-    /// Tell if the setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Look at mode.
-    ///
-    /// - Note: Only a supported Look at mode can be set.
-    var value: LookAtMode { get set }
-
-    /// Tells whether a given mode is supported or not.
-    ///
-    /// - Parameter mode: the mode to query
-    /// - Returns: `true` if the mode is supported
-    func modeIsSupported(_ mode: LookAtMode) -> Bool
 }
 
 /// LookAt piloting interface.
@@ -152,91 +131,8 @@ public protocol LookAtPilotingItf: PilotingItf, ActivablePilotingItf {
     func activate() -> Bool
 }
 
-// MARK: - objc compatibility
-
-/// Objective-C version of LookAtPilotingItf.
-///
-/// During an activated LookAt, the drone will always look at the target but can be piloted
-/// normally. However, yaw value is not settable. Camera tilt and pan command is ignored by the drone.
-///
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objc
-public protocol GSLookAtPilotingItf: PilotingItf, ActivablePilotingItf {
-
-    /// The look at mode to use.
-    ///
-    /// - Note: This setting is not saved at the application level.
-    @objc(lookAtMode)
-    var gsLookAtMode: GSLookAtModeSetting { get }
-
-    /// If the interface is `unavailable`, each TrackingIssue case can be tested.
-    ///
-    /// - Parameter issue: tracking issue to be tested
-    /// - Returns: `true` if the issue is present, `false` otherwise
-    func availabilityIssuesContains( _ issue: TrackingIssue) -> Bool
-
-    /// Tells if at least one availabilityIssue is present
-    ///
-    /// - Returns: `true` if there is no availability TrackingIssue, `false` otherwise
-    func availabilityIssuesIsEmpty() -> Bool
-
-    /// If the interface is `active`, each quality issue case can be tested
-    ///
-    /// - Parameter issue: tracking issue to be tested
-    /// - Returns: `true` if the issue is present, `false` otherwise
-    func qualityIssuesContains( _ issue: TrackingIssue) -> Bool
-
-    /// Tells if at least one qualityIssue is present
-    ///
-    /// - Returns: `true` if there is no quality TrackingIssue, `false` otherwise
-    func qualityIssuesIsEmpty() -> Bool
-
-    /// Sets the current pitch value.
-    ///
-    /// Expressed as a signed percentage of the max pitch/roll setting (`maxPitchRoll`), in range [-100, 100].
-    /// * -100 corresponds to a pitch angle of max pitch/roll towards ground (copter will fly forward)
-    /// * 100 corresponds to a pitch angle of max pitch/roll towards sky (copter will fly backward)
-    ///
-    /// - Note: this value may be clamped if necessary, in order to respect the maximum supported physical tilt of
-    /// the copter.
-    ///
-    /// - Parameter pitch: the new pitch value to set
-    @objc(setPitch:)
-    func set(pitch: Int)
-
-    /// Sets the current roll value.
-    ///
-    /// Expressed as a signed percentage of the max pitch/roll setting (`maxPitchRoll`), in range [-100, 100].
-    /// * -100 corresponds to a roll angle of max pitch/roll to the left (copter will fly left)
-    /// * 100 corresponds to a roll angle of max pitch/roll to the right (copter will fly right)
-    ///
-    /// - Note: this value may be clamped if necessary, in order to respect the maximum supported physical tilt of
-    /// the copter.
-    ///
-    /// - Parameter roll: the new roll value to set
-    @objc(setRoll:)
-    func set(roll: Int)
-
-    /// Sets the current vertical speed value.
-    ///
-    /// Expressed as a signed percentage of the max vertical speed setting (`maxVerticalSpeed`), in range [-100, 100].
-    /// * -100 corresponds to max vertical speed towards ground
-    /// * 100 corresponds to max vertical speed towards sky
-    ///
-    /// - Parameter verticalSpeed: the new vertical speed value to set
-    @objc(setVerticalSpeed:)
-    func set(verticalSpeed: Int)
-
-    /// Activates this piloting interface.
-    ///
-    /// If successful, it deactivates the current piloting interface and activate this one.
-    ///
-    /// - Returns: `true` on success, `false` if the piloting interface can't be activated
-    func activate() -> Bool
-}
 /// :nodoc:
 /// LookAt piloting interface description
-@objc(GSLookAtPilotingItfs)
 public class LookAtPilotingItfs: NSObject, PilotingItfClassDesc {
     public typealias ApiProtocol = LookAtPilotingItf
     public let uid = PilotingItfUid.lookAt.rawValue

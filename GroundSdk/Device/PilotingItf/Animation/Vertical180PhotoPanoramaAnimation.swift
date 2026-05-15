@@ -30,8 +30,6 @@
 import Foundation
 
 /// Vertical 180 Photo panorama animation configuration.
-@objcMembers
-@objc(GSVertical180PhotoPanoramaAnimationConfig)
 public class Vertical180PhotoPanoramaAnimationConfig: NSObject, AnimationConfig {
     public let type = AnimationType.vertical180PhotoPanorama
 }
@@ -41,6 +39,5 @@ public class Vertical180PhotoPanoramaAnimationConfig: NSObject, AnimationConfig 
 /// The drone camera performs a 180° rotation on the tilt axis while taking photos at various angles.
 /// The resulting set of photos can then be retrieved as a single 'panorama' media that may be
 /// post-processed to make panoramic images.
-@objc(GSVertical180PhotoPanoramaAnimation)
 public protocol Vertical180PhotoPanoramaAnimation: Animation {
 }

@@ -31,7 +31,6 @@ import Foundation
 import CoreLocation
 
 /// Geofence modes, indicating the zone type where the drone is able to fly.
-@objc(GSGeofenceMode)
 public enum GeofenceMode: Int, CustomStringConvertible, CaseIterable {
     /// The drone flying zone is only bounded by the maximum altitude setting.
     case altitude
@@ -47,16 +46,6 @@ public enum GeofenceMode: Int, CustomStringConvertible, CaseIterable {
     }
 }
 
-/// Setting providing access to the GeofenceMode.
-@objc(GSGeofenceMode)
-public protocol GeofenceModeSetting: AnyObject {
-    /// Tells if the setting value has been changed and is waiting for change confirmation
-    var updating: Bool { get }
-
-    /// Geofence mode value.
-    var value: GeofenceMode { get set }
-}
-
 /// Geofence peripheral interface.
 ///
 /// This peripheral provides access to geofence settings, which prevent the drone from flying over the given altitude
@@ -66,7 +55,6 @@ public protocol GeofenceModeSetting: AnyObject {
 /// ```
 /// device.getPeripheral(Peripherals.geofence)
 /// ```
-@objc(GSGeofence)
 public protocol Geofence: Peripheral {
 
     /// Maximum altitude setting.
@@ -82,18 +70,22 @@ public protocol Geofence: Peripheral {
     var maxDistance: DoubleSetting { get }
 
     /// Geofence mode setting.
-    var mode: GeofenceModeSetting { get }
+    var mode: EnumSetting<GeofenceMode> { get }
 
     /// Geofence center location.
     ///
     /// This location represents the center of the geofence zone. This can be either the controller position, or the
     /// home location.
     var center: CLLocation? { get }
+
+    /// Whether the geofence feature is available or not.
+    ///
+    /// `nil` if not supported by the drone.
+    var isAvailable: Bool? { get }
 }
 
 /// :nodoc:
 /// Geofence description
-@objc(GSGeofenceDesc)
 public class GeofenceDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = Geofence
     public let uid = PeripheralUid.geofence.rawValue

@@ -31,7 +31,6 @@ import Foundation
 import UIKit
 
 /// Indexing state of the media store.
-@objc(GSMediaStoreIndexingState)
 public enum MediaStoreIndexingState: Int, CustomStringConvertible {
     /// The media store is not available.
     case unavailable
@@ -51,26 +50,29 @@ public enum MediaStoreIndexingState: Int, CustomStringConvertible {
 }
 
 /// Status of the media task.
-@objc(GSMediaTaskStatus)
 public enum MediaTaskStatus: Int, CustomStringConvertible {
     /// Task is running.
     case running
+    /// Task has finished downloading successfully a file from a media.
+    case fileDownloaded
+    /// Task has encountered an error while processing a file, the operation will go on.
+    case fileError
     /// Task completed successfully.
     case complete
     /// Task stopped or canceled.
     case error
-    /// Task has finished downloading successfully a file from a media.
-    case fileDownloaded
 
     /// Debug description.
     public var description: String {
         switch self {
         case .running:
             return "running"
-        case .complete:
-            return "complete"
         case .fileDownloaded:
             return "fileDownloaded"
+        case .fileError:
+            return "fileError"
+        case .complete:
+            return "complete"
         case .error:
             return "error"
         }
@@ -88,8 +90,6 @@ public protocol MediaOperationRef: MediaOperation, CancelableCore {
 /// Media deleter, containing info on a delete medias task.
 ///
 /// - Seealso: `MediaStore.newDeleter(medias:observer:)`
-@objcMembers
-@objc(GSMediaDeleter)
 public class MediaDeleter: NSObject, MediaOperation {
     /// Total number of media to delete.
     public let totalCount: Int
@@ -116,8 +116,6 @@ public class MediaDeleter: NSObject, MediaOperation {
 /// All media deleter, containing info on a delete all medias task.
 ///
 /// - Seealso: `MediaStore.newAllMediaDeleter(observer:)`
-@objcMembers
-@objc(GSAllMediaDeleter)
 public class AllMediasDeleter: NSObject, MediaOperation {
     /// Delete progress status.
     public let status: MediaTaskStatus
@@ -134,7 +132,6 @@ public class AllMediasDeleter: NSObject, MediaOperation {
 /// A list of media resources to download.
 ///
 /// - Seealso: `MediaResourceListFactory` to create `MediaResourceList`.
-@objc(GSMediaResourceList)
 public protocol MediaResourceList {
 
     /// Adds a media resource to the list.
@@ -152,8 +149,6 @@ public protocol MediaResourceList {
 }
 
 /// Factory class to create `MediaResourceList`.
-@objcMembers
-@objc(GSMediaResourceListFactory)
 public class MediaResourceListFactory: NSObject {
 
     /// Creates a list of media resources containing all resources of the given media list.
@@ -180,12 +175,29 @@ public class MediaResourceListFactory: NSObject {
     }
 }
 
+/// Represents an image resolution.
+public struct PreviewResolution: CustomStringConvertible {
+
+    /// Width in pixels
+    public let width: Int
+
+    /// Height in pixels
+    public let height: Int
+
+    /// Debug description.
+    public var description: String { return  "\(width)x\(height)" }
+}
+
 /// Media download type.
 public enum DownloadType {
+
     /// Download original media (with metadata) and digital signature if available.
     case full
     /// Download preview image only (without metadata), if available.
-    case preview
+    /// - Parameters:
+    ///   - resolution: preview resolution, `nil` for default value (`1600x1200`)
+    ///   - quality: preview quality, in range `[0, 99]`, `nil` for default value (`90`)
+    case preview(resolution: PreviewResolution? = nil, quality: Int? = nil)
 }
 
 /// Download destination.
@@ -207,7 +219,6 @@ public enum DownloadDestination {
 }
 
 /// Storage type
-@objc(GSStorageType)
 public enum StorageType: Int, CustomStringConvertible {
     /// The removable storage.
     case removable
@@ -228,65 +239,51 @@ public enum StorageType: Int, CustomStringConvertible {
 /// Media downloader, containing info on a download medias task.
 ///
 /// - Seealso: `MediaStore.newDownloader`
-@objcMembers
-@objc(GSMediaDownloader)
-public class MediaDownloader: NSObject, MediaOperation {
-    /// Total number of media to download.
-    public let totalMediaCount: Int
+public protocol MediaDownloader: MediaOperation {
+    /// Total amount of media containing resource(s) to download.
+    var totalMediaCount: Int { get }
 
-    /// Number of already downloaded media.
-    public let currentMediaCount: Int
+    /// Index of the media whose resources are currently being downloaded.
+    ///
+    /// This index is in range `[1, totalMediaCount]` and is incremented each time a set
+    /// of resources from a given media starts being downloaded.
+    var currentMediaIndex: Int { get }
 
     /// Total number of resources to download.
-    public let totalResourceCount: Int
+    var totalResourceCount: Int { get }
 
-    /// Number of already downloaded resources.
-    public let currentResourceCount: Int
+    /// Index of the resource being currently downloaded.
+    ///
+    /// This index is in range `[1, totalResourceCount]` and
+    /// is incremented each time a given resource starts being downloaded.
+    var currentResourceIndex: Int { get }
 
     /// Current file download between 0.0 (0%) and 1.0 (100%).
-    public let currentFileProgress: Float
+    var currentFileProgress: Float { get }
 
     /// Total download progress between 0.0 (0%) and 1.0 (100%).
-    public let totalProgress: Float
+    var totalProgress: Float { get }
 
     /// Download progress status.
-    public let status: MediaTaskStatus
+    var status: MediaTaskStatus { get }
 
     /// Url of downloaded file (if exists) when status is fileDownloaded, nil in other cases.
-    public let fileUrl: URL?
+    var fileUrl: URL? { get }
 
     /// Url of downloaded file signature (if exists) when status is fileDownloaded, nil in other cases.
-    public let signatureUrl: URL?
+    var signatureUrl: URL? { get }
 
     /// Current downloading media.
-    public let currentMedia: MediaItem?
+    var currentMedia: MediaItem? { get }
 
-    /// Constructor.
+    /// Current downloading resource
+    var currentResource: MediaItem.Resource? { get }
+
+    /// Adds resources to this media download task.
     ///
-    /// - Parameters:
-    ///   - totalMedia: total number of media to download
-    ///   - countMedia: number of already downloaded media
-    ///   - totalResources: total number of resources to download
-    ///   - countResources: number of already downloaded resources
-    ///   - currentFileProgress: current file download between 0.0 (0%) and 1.0 (100%)
-    ///   - progress: total download progress between 0.0 (0%) and 1.0 (100%)
-    ///   - status: download progress status
-    ///   - fileUrl : url of downloaded file when progress is at 1.0, nil in other cases
-    ///   - signatureUrl : url of downloaded file signature, if exists, when progress is at 1.0, nil in other cases
-    init(totalMedia: Int, countMedia: Int, totalResources: Int, countResources: Int,
-         currentFileProgress: Float, progress: Float, status: MediaTaskStatus,
-         currentMedia: MediaItem? = nil, fileUrl: URL? = nil, signatureUrl: URL? = nil) {
-        self.totalMediaCount = totalMedia
-        self.currentMediaCount = countMedia
-        self.totalResourceCount = totalResources
-        self.currentResourceCount = countResources
-        self.currentFileProgress = currentFileProgress
-        self.totalProgress = progress
-        self.status = status
-        self.fileUrl = fileUrl
-        self.signatureUrl = signatureUrl
-        self.currentMedia = currentMedia
-    }
+    /// - Parameter resources: new resource list to download
+    func add(resources: MediaResourceList)
+
 }
 
 /// Resource uploader, containing info on a resource upload task.
@@ -500,256 +497,8 @@ public extension MediaStore {
     }
 }
 
-/// Objective-C wrapper of Ref<[MediaItem]>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSMediaListRef: NSObject {
-    /// Wrapper reference.
-    private let ref: Ref<[MediaItem]>
-
-    /// Referenced media list.
-    public var value: [MediaItem]? {
-        return ref.value
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameter ref: wrapper reference
-    init(ref: Ref<[MediaItem]>) {
-        self.ref = ref
-    }
-}
-
-/// Objective-C wrapper of Ref<UIImage>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSMediaImageRef: NSObject {
-    /// Wrapper reference
-    private let ref: Ref<UIImage>
-
-    /// Referenced media deleter.
-    public var value: UIImage? {
-        return ref.value
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameter ref: wrapper reference
-    init(ref: Ref<UIImage>) {
-        self.ref = ref
-    }
-}
-
-/// Objective-C wrapper of DownloadDestination. Required because swift enum with optional value can't be used
-/// from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-@objc
-public class GSDownloadDestination: NSObject {
-    /// Wrapped DownloadDestination.
-    let destination: DownloadDestination
-
-    /// Init with an optional directory in document directory.
-    ///
-    /// - Parameter directoryName: directory name
-    public init(documentDirectory directoryName: String?) {
-        destination = .document(directoryName: directoryName)
-    }
-
-    /// Init with a directory path.
-    ///
-    /// - Parameter path: destination directory where to download the resources
-    public init(directory path: String) {
-        destination = .directory(path: path)
-    }
-
-    /// Init with an optional album name in media gallery.
-    ///
-    /// - Parameter albumName: album name
-    public init(mediaGalleryAlbum albumName: String?) {
-        destination = .mediaGallery(albumName: albumName)
-    }
-
-    /// Init with tmp directory.
-    public override init() {
-        destination = .tmp
-    }
-}
-
-/// Objective-C wrapper of Ref<MediaDownloader>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSMediaDownloaderRef: NSObject, MediaOperation {
-    /// Wrapper reference.
-    private let ref: Ref<MediaDownloader>
-
-    /// Referenced media deleter.
-    public var value: MediaDownloader? {
-        return ref.value
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameter ref: wrapper reference
-    init(ref: Ref<MediaDownloader>) {
-        self.ref = ref
-    }
-}
-
-/// Objective-C wrapper of Ref<MediaDeleter>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSMediaDeleterRef: NSObject, MediaOperation {
-    /// Wrapper reference
-    private let ref: Ref<MediaDeleter>
-
-    /// Referenced media deleter
-    public var value: MediaDeleter? {
-        return ref.value
-    }
-
-    /// Constructor
-    ///
-    /// - Parameter ref: wrapper reference
-    init(ref: Ref<MediaDeleter>) {
-        self.ref = ref
-    }
-}
-
-/// Objective-C wrapper of Ref<AllMediaDeleter>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSAllMediasDeleterRef: NSObject, MediaOperation {
-    /// Wrapper reference.
-    private let ref: Ref<AllMediasDeleter>
-
-    /// Referenced media deleter.
-    public var value: AllMediasDeleter? {
-        return ref.value
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameter ref: wrapper reference
-    init(ref: Ref<AllMediasDeleter>) {
-        self.ref = ref
-    }
-}
-
-/// Objective-C version of MediaStore.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objc(GSMediaStore)
-public protocol GSMediaStore: Peripheral {
-    /// Current indexing state of the media store.
-    var indexingState: MediaStoreIndexingState { get }
-
-    /// Total number of photo medias in the media store.
-    var photoMediaCount: Int { get }
-
-    /// Total number of video medias in the media store.
-    var videoMediaCount: Int { get }
-
-    /// Total number of photo resources in the media store.
-    var photoResourceCount: Int { get }
-
-    /// Total number of video resources in the media store.
-    var videoResourceCount: Int { get }
-
-    /// Creates a new Media list.
-    ///
-    /// This function starts loading the media store content, and notifies when it has been loaded
-    /// and each time the content changes.
-    ///
-    /// - Parameters:
-    ///   - observer: observer which gets notified when the media list loads or changes
-    ///   - medias: list media, `nil` if the store has been removed
-    /// - Returns: a reference on a list of `MediaItem`. Caller must keep this instance referenced
-    ///   for the observer to be called.
-    /// - Note: This function is for Objective-C only.
-    @objc(newList:)
-    func newListRef(observer: @escaping (_ medias: [MediaItem]?) -> Void) -> GSMediaListRef
-
-    /// Creates a new Media list for a specific storage.
-    ///
-    /// This function starts loading the media store content on a specific storage, and notifies
-    /// when it has been loaded and each time the content changes.
-    ///
-    /// - Parameters:
-    ///   - storage: storage type on which the Media list will be created
-    ///   - observer: observer which gets notified when the media list loads or changes
-    ///   - medias: list media, `nil` if the store has been removed
-    /// - Returns: a reference on a list of `MediaItem`. Caller must keep this instance referenced
-    ///   for the observer to be called.
-    /// - Note: if storage is `nil`, `MediaItem`s in any storage are returned in the list.
-    /// - Note: This function is for Objective-C only.
-    @objc(newList:storage:)
-    func newListRef(storage: StorageType,
-                    observer: @escaping (_ medias: [MediaItem]?) -> Void) -> GSMediaListRef
-
-    /// Creates a new media thumbnail downloader.
-    ///
-    /// - Parameters:
-    ///   - media: media item to download the thumbnail from
-    ///   - observer: observer called when the thumbnail has been downloaded. Observer is called
-    ///     immediately if the thumbnail is already cached
-    ///   - thumbnail: loaded or cached thumbnail, `nil` if the thumbnail can't be downloaded
-    /// - Returns: A reference of the media downloader. Caller must keep this instance referenced
-    ///   for the observer to be called.
-    /// - Note: Typical usage in a `UITableView` is to call `newMediaThumbnailDownloader()` in
-    ///   `UITableViewDataSource.(tableView:cellForRowAt:)` and store the returned `Ref<UIImage>`
-    ///   inside the `UITableViewCell`. Then in the `UITableViewCell.prepareForReuse()` function
-    ///   set the stored `Ref<UIImage>` to `nil` to cancel the download request.
-    /// - Note: This function is for Objective-C only.
-    @objc(newThumbnailDownloaderForMedia:observer:)
-    func newThumbnailDownloaderRef(media: MediaItem, observer: @escaping (_ thumbnail: UIImage?) -> Void)
-        -> GSMediaImageRef
-
-    /// Creates a new media resource downloader.
-    ///
-    /// - Parameters:
-    ///   - mediaResources: list of media resources to download
-    ///   - destination: download destination
-    ///   - observer: observer called when the `MediaDownloader` changes, indicating download
-    ///     progress
-    /// - Returns: a reference on a `GSMediaDownloaderRef`. Caller must keep this instance referenced
-    ///   until all media are downloaded. Setting it to `nil` cancels the download.
-    /// - Note: If `full` type is selected (default), signatures will also be downloaded. If `preview` type is
-    ///   selected, no signature will be downloaded and videos will be ignored.
-    /// - Note: This function is for Objective-C only.
-    @objc(newDownloaderForMediaResources:destination:observer:)
-    func newDownloaderRef(mediaResources: MediaResourceList, destination: GSDownloadDestination,
-                          observer: @escaping (_ downloader: MediaDownloader?) -> Void) -> GSMediaDownloaderRef
-
-    /// Creates a new Media deleter, to delete a list of media.
-    ///
-    /// - Parameters:
-    ///   - medias: list of media to delete
-    ///   - observer: observer called with `MediaDeleter` changes, indicating progress of the delete
-    ///     task. Referenced media deleter is `nil` if the delete task was interrupted.
-    ///   - deleter: deleter storing the delete progress info
-    /// - Returns: a reference on a `GSMediaDeleterRef`. Caller must keep this instance referenced
-    ///   until all media are deleted. Setting it to `nil` cancels the delete.
-    /// - Note: This function is for Objective-C only.
-    @objc(newDeleterForMedia:observer:)
-    func newDeleterRef(medias: [MediaItem], observer: @escaping (_ deleter: MediaDeleter?) -> Void)
-        -> GSMediaDeleterRef
-
-    /// Creates a new media deleter to delete all medias.
-    ///
-    /// - Parameters:
-    ///   - observer: observer called when `AllMediasDeleter` changes, indicating progress of the
-    ///     delete task. Referenced media deleter is `nil` if the delete task was interrupted.
-    ///   - deleter: deleter storing the delete progress info
-    /// - Returns: a reference on a `AllMediaDeleter`. Caller must keep this instance referenced
-    ///   until all media are deleted. Setting it to `nil` cancels the delete.
-    /// - Note: This function is for Objective-C only.
-    @objc(newAllMediasDeleterWithObserver:)
-    func newAllMediasDeleterRef(observer: @escaping (_ deleter: AllMediasDeleter?) -> Void) -> GSAllMediasDeleterRef
-}
-
 /// :nodoc:
 /// MediaStore description
-@objc(GSMediaStoreDesc)
 public class MediaStoreDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = MediaStore
     public let uid = PeripheralUid.mediaStore.rawValue

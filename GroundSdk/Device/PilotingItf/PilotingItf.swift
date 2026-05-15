@@ -30,7 +30,6 @@
 import Foundation
 
 /// Base protocol for all Piloting interfaces components.
-@objc(GSPilotingItf)
 public protocol PilotingItf: Component {
 }
 
@@ -41,8 +40,6 @@ public protocol PilotingItfClassDesc: ComponentApiDescriptor {
 }
 
 /// Defines all known Piloting Interfaces descriptors.
-@objcMembers
-@objc(GSPilotingItfs)
 public class PilotingItfs: NSObject {
     /// Piloting interface for the animations.
     public static let animation = AnimationPilotingItfs()
@@ -56,6 +53,8 @@ public class PilotingItfs: NSObject {
     public static let lookAt = LookAtPilotingItfs()
     /// Piloting interface of a copter for manual piloting.
     public static let manualCopter = ManualCopterPilotingItfs()
+    /// Piloting interface of a plane for manual piloting.
+    public static let manualPlane = ManualPlanePilotingItfs()
     /// Piloting interface for point'n'fly piloting.
     public static let pointAndFly = PointAndFlyPilotingItfs()
     /// Piloting interface for Point Of Interest piloting.
@@ -72,26 +71,8 @@ enum PilotingItfUid: Int {
     case guided
     case lookAt
     case manualCopter
+    case manualPlane
     case pointAndFly
     case pointOfInterest
     case returnHome
-}
-
-/// Objective-C wrapper of Ref<PilotingItf>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSPilotingItfRef: NSObject {
-    let ref: Ref<PilotingItf>
-
-    /// Referenced piloting interface.
-    public var value: PilotingItf? {
-        return ref.value
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameter ref: referenced piloting interface
-    init(ref: Ref<PilotingItf>) {
-        self.ref = ref
-    }
 }

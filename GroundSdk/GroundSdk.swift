@@ -30,13 +30,23 @@
 import Foundation
 
 /// Ground SDK access class.
-@objcMembers
 public class GroundSdk: NSObject {
     /// Session used as an interface to access the GroundSdkCore.
     private var session: GroundSdkCore.Session!
 
     /// Completion handlers indexed by URLSession identifiers.
     static private(set) var backgroundTaskCompletionHandlers: [String: () -> Void] = [:]
+
+    /// Get the GroundSdk bootID.
+    /// - Returns: the GroundSdk bootID string.
+    public static func bootID() -> String {
+        return bootIDString
+    }
+
+    /// GroundSDK bootID value.
+    /// This UUID is generated when this class is initialized, and can be used to identify things
+    /// belonging to a given application lifetime
+    private static var bootIDString = UUID().uuidString
 
     /// Creates a GroundSdk instance.
     public override init() {
@@ -292,6 +302,13 @@ public class GroundSdk: NSObject {
                             observer: @escaping (LogCollector?) -> Void) -> Ref<LogCollector> {
         return session.newLogCollector(from: sources, toDirectory: directory, observer: observer)
     }
+
+    /// Retrieves currently discovered services.
+    ///
+    /// - Returns: a list of discovered services.
+    public func getDiscoveredServices() -> [DiscoveredService] {
+        return session.getDiscoveredServices()
+    }
 }
 
 /// Objective-C extension adding GroundSdk swift methods that can't be automatically converted.
@@ -374,24 +391,6 @@ public extension GroundSdk {
     @objc(getFacility:observer:)
     func getFacilityRef(desc: ComponentDescriptor, observer: @escaping (Facility?) -> Void) -> GSFacilityRef {
         return GSFacilityRef(ref: session.getFacility(uid: desc.uid, observer: observer))
-    }
-
-    /// Creates a new replay stream for a local file.
-    ///
-    /// Every successful call to this method creates a new replay stream instance for the given file,
-    /// that must be disposed by dereferencing the returned reference once that stream is not needed.
-    /// Dereferencing the returned reference automatically stops the referenced media replay stream.
-    ///
-    /// - Parameters:
-    ///    - source: source to stream
-    ///    - observer: notified when the stream state changes
-    /// - Returns: a reference to the replay stream interface,
-    ///            or `nil` in case the provided file cannot be streamed
-    @objc(replay:observer:)
-    func replayRef(source: FileReplaySource,
-                   observer: @escaping (_ stream: FileReplay?) -> Void) -> GSFileReplayRef? {
-        let ref: Ref<FileReplay>? = session.newFileReplay(source: source, observer: observer)
-        return ref != nil ? GSFileReplayRef(ref: ref!) : nil
     }
 }
 

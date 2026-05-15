@@ -47,28 +47,3 @@ public protocol CameraWhiteBalanceLock: AnyObject {
     /// - Parameter lock: lock value to set
     func setLock(lock: Bool)
 }
-
-/// Camera white balance lock.
-///
-///  Allows to lock/unlock the white balance values.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSCameraWhiteBalanceLock {
-    /// Tells if a setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Whether white balance is currently locked.
-    @objc(locked)
-    var gsLocked: Bool { get }
-
-    /// Whether white balance lock is lockable.
-    @objc(isLockable)
-    var gsIsLockable: Bool { get }
-
-    /// Whether white balance lock is supported.
-    var isLockableSupported: Bool { get }
-
-    /// Sets white balance lock setting.
-    ///
-    /// - Parameter lock: lock value to set
-    func setLock(lock: Bool)
-}

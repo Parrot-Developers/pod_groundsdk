@@ -30,7 +30,7 @@
 import Foundation
 
 /// Represent a setting with a current value and a valide range
-class DoubleSettingCore: NSObject, DoubleSetting {
+public class DoubleSettingCore: NSObject, DoubleSetting {
     /// Delegate called when the setting value is changed by setting `value` property
     private unowned let didChangeDelegate: SettingChangeDelegate
 
@@ -40,17 +40,17 @@ class DoubleSettingCore: NSObject, DoubleSetting {
     let timeout = SettingTimeout()
 
     /// Tells if the setting value has been changed and is waiting for change confirmation
-    var updating: Bool { return timeout.isScheduled }
+    public var updating: Bool { return timeout.isScheduled }
     /// Setting minimum value
-    var min: Double {
+    public var min: Double {
         return range.lowerBound
     }
     /// Setting maximum value
-    var max: Double {
+    public var max: Double {
         return range.upperBound
     }
     /// Setting current value
-    var value: Double {
+    public var value: Double {
         get {
             return _value
         }
@@ -81,7 +81,7 @@ class DoubleSettingCore: NSObject, DoubleSetting {
     private let backend: ((Double) -> Bool)
 
     /// Debug description.
-    override var description: String {
+    public override var description: String {
         return "\(min) / \(value) / \(max) [\(updating)]"
     }
 
@@ -90,7 +90,7 @@ class DoubleSettingCore: NSObject, DoubleSetting {
     /// - Parameters:
     ///   - didChangeDelegate: delegate called when the setting value is changed by setting `value` property
     ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (Double) -> Bool) {
+    public init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (Double) -> Bool) {
         self.didChangeDelegate = didChangeDelegate
         self.backend = backend
     }
@@ -102,7 +102,7 @@ class DoubleSettingCore: NSObject, DoubleSetting {
     ///   - value: if not nil the new current value
     ///   - max: if not nil the new max value
     /// - Returns: true if the setting has been changed, false else
-    func update(min newMin: Double?, value newValue: Double?, max newMax: Double?) -> Bool {
+    public func update(min newMin: Double?, value newValue: Double?, max newMax: Double?) -> Bool {
         var changed = false
 
         if let newMin = newMin, let newMax = newMax {

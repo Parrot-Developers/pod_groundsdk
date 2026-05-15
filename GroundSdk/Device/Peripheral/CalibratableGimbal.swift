@@ -30,7 +30,6 @@
 import Foundation
 
 /// Gimbal error.
-@objc(GSGimbalError)
 public enum GimbalError: Int, CustomStringConvertible {
     /// Calibration error.
     ///
@@ -92,7 +91,6 @@ public enum GimbalError: Int, CustomStringConvertible {
 }
 
 /// Gimbal calibration process state.
-@objc(GSGimbalCalibrationProcessState)
 public enum GimbalCalibrationProcessState: Int, CustomStringConvertible {
     /// No ongoing calibration process.
     case none
@@ -155,35 +153,4 @@ public protocol CalibratableGimbal: Peripheral {
     /// Does nothing when `calibrationProcessState` is not `calibrating`.
     func cancelCalibration()
 
-}
-
-/// Objective-C version of Gimbal.
-///
-/// The gimbal is the peripheral "holding" and orientating the camera. It can be a real mechanical gimbal, or a software
-/// one.
-///
-/// The gimbal can act on one or multiple axes. It can stabilize a given axis, meaning that the movement on this axis
-/// will be following the horizon (for `.roll` and `.pitch`) or the North (for the `.yaw`).
-///
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objc
-public protocol GSCalibratableGimbal: Peripheral {
-    /// Whether the gimbal is calibrated.
-    var calibrated: Bool { get }
-
-    /// Calibration process state.
-    /// See `startCalibration()` and `cancelCalibration()`
-    var calibrationProcessState: GimbalCalibrationProcessState { get }
-
-    /// Tells whether the gimbal currently has the given error.
-    ///
-    /// - Parameter error: the error to query
-    /// - Returns: `true` if the error is currently happening
-    func hasError(_ error: GimbalError) -> Bool
-
-    /// Starts calibration process.
-    func startCalibration()
-
-    /// Cancels the current calibration process.
-    func cancelCalibration()
 }

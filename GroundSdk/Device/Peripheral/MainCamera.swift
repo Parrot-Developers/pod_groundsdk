@@ -46,16 +46,8 @@ import Foundation
 public protocol MainCamera: Camera, Peripheral {
 }
 
-// MARK: - objc compatibility
-
-/// Main Camera peripheral.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSMainCamera: GSCamera, Peripheral {
-}
-
 /// :nodoc:
 /// Main Camera description
-@objc(GSMainCameraDesc)
 public class MainCameraDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = MainCamera
     public let uid = PeripheralUid.mainCamera.rawValue

@@ -26,6 +26,7 @@
 //    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 //    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 //    SUCH DAMAGE.
+
 import Foundation
 
 /// Mission state.
@@ -110,4 +111,10 @@ public protocol Mission {
 
     /// Model id of the supported target.
     var targetModelId: Drone.Model? { get }
+
+    /// Mission specific digest.
+    var digest: String? { get }
+
+    /// Assets of the mission
+    var assets: [String]? { get }
 }

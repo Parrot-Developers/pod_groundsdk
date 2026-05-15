@@ -30,7 +30,6 @@
 import Foundation
 
 /// Piloting Behaviour.
-@objc(GSPilotingControlBehaviour)
 public enum PilotingBehaviour: Int, CustomStringConvertible {
 
     /// Standard piloting mode.
@@ -64,15 +63,6 @@ public protocol PilotingControl: Peripheral {
     var behaviourSetting: PilotingBehaviourSetting { get }
 }
 
-/// Peripheral managing the piloting general controls.
-///
-/// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSPilotingControl: Peripheral {
-    /// Behaviour setting.
-    @objc(behaviourSetting)
-    var gsBehaviourSetting: GSPilotingBehaviourSetting { get }
-}
-
 /// Setting to change the piloting behaviour.
 public protocol PilotingBehaviourSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
@@ -85,26 +75,8 @@ public protocol PilotingBehaviourSetting: AnyObject {
     var supportedBehaviours: Set<PilotingBehaviour> { get }
 }
 
-/// Setting to change the piloting behaviour.
-///
-/// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSPilotingBehaviourSetting {
-    /// Tells if the setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Current behaviour setting.
-    var value: PilotingBehaviour { get set }
-
-    /// Tells whether a given behaviour is supported.
-    ///
-    /// - Parameter behaviour: the behaviour to query
-    /// - Returns: `true` if the behaviour is supported, `false` otherwise
-    func isSupportedBehaviour(_ behaviour: PilotingBehaviour) -> Bool
-}
-
 /// :nodoc:
 /// PilotingControl description.
-@objc(GSPilotingControlDesc)
 public class PilotingControlDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = PilotingControl
     public let uid = PeripheralUid.pilotingControl.rawValue

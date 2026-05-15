@@ -211,34 +211,3 @@ extension AnimationPilotingItfCore {
         return self
     }
 }
-
-/// Extension of AnimationPilotingItfCore that brings the support of the ObjC GSAnimationPilotingItf protocol.
-extension AnimationPilotingItfCore: GSAnimationPilotingItf {
-    /// Tells whether the animation has the corresponding issue.
-    ///
-    /// - Parameters:
-    ///     - animation: the animation type to query
-    ///     - requierement: requierement to fix
-    public func isIssuePresent(_ animation: AnimationType, requierement: AnimationIssue) -> Bool {
-        if let requierements = availabilityIssues?[animation] {
-            return requierements.contains(requierement)
-        }
-        return false
-    }
-
-    /// Tells whether the animation is supported for a piloting mode.
-    ///
-    /// - Parameters:
-    ///     - animation: the animation type to query
-    ///     - mode: piloting mode
-    public func isAnimationSupported(animation: AnimationType, mode: PilotingMode) -> Bool {
-        if let animations = supportedAnimations?[mode] {
-            return animations.contains(animation)
-        }
-        return false
-    }
-
-    public func isAnimationAvailable(_ animation: AnimationType) -> Bool {
-        return availableAnimations.contains(animation)
-    }
-}

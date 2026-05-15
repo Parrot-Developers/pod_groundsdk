@@ -159,7 +159,7 @@ class FlightCameraRecordCollector {
 private extension URL {
     /// Whether the flight camera record located at this url is finalized (i.e. fully downloaded) or not.
     var isAFinalizedFlightCameraRecord: Bool {
-        return pathExtension == "jpeg" && !lastPathComponent.contains("-blur")
+        return (pathExtension == "jpeg" || pathExtension == "png") && !lastPathComponent.contains("-blur")
     }
 
     /// Whether the flight camera record is processing  (i.e. blurred or generation of json crashed)  or not

@@ -131,7 +131,7 @@ public class ObstacleAvoidanceCore: PeripheralCore, ObstacleAvoidance {
     /// Internal storage for mode setting.
     private var _mode: ObstacleAvoidanceSettingCore!
 
-    public private(set) var state = ObstacleAvoidanceState.inactive
+    public private(set) var state: ObstacleAvoidanceState?
 
     /// Implementation backend.
     private unowned let backend: ObstacleAvoidanceBackend
@@ -160,7 +160,7 @@ extension ObstacleAvoidanceCore {
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult
-    public func update(state newState: ObstacleAvoidanceState) -> ObstacleAvoidanceCore {
+    public func update(state newState: ObstacleAvoidanceState?) -> ObstacleAvoidanceCore {
         if state != newState {
             state = newState
             markChanged()

@@ -39,16 +39,8 @@ public protocol InternalUserStorage: UserStorage { }
 
 /// :nodoc:
 /// Internal user storage description
-@objc(GSInternalUserStorageDesc)
 public class InternalUserStorageDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = InternalUserStorage
     public let uid = PeripheralUid.internalUserStorage.rawValue
     public let parent: ComponentDescriptor? = nil
-}
-
-// MARK: - objc compatibility
-
-/// Internal user storage.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSInternalUserStorage: GSUserStorage {
 }

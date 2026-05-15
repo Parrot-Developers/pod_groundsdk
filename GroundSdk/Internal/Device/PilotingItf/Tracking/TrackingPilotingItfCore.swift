@@ -65,7 +65,7 @@ public protocol TrackingPilotingItfBackend: ActivablePilotingItfBackend {
     /// - Parameter verticalSpeed: the new vertical speed value to set
     func set(verticalSpeed: Int)
 
-    /// Activate this piloting interface
+    /// Activates this piloting interface
     /// - Returns: false if it can't be activated
     func activate() -> Bool
 }
@@ -128,7 +128,6 @@ extension TrackingPilotingItfCore {
     ///
     /// - Parameter issue: issue to check
     /// - Returns: `true` if the issue is present, `false` otherwise
-    @objc
     public func availabilityIssuesContains(_ issue: TrackingIssue) -> Bool {
         return availabilityIssues.contains(issue)
     }
@@ -137,7 +136,6 @@ extension TrackingPilotingItfCore {
     ///
     /// - Parameter issue: issue to check
     /// - Returns: `true` if the issue is present, `false` otherwise
-    @objc
     public func qualityIssuesContains(_ issue: TrackingIssue) -> Bool {
         return qualityIssues.contains(issue)
     }

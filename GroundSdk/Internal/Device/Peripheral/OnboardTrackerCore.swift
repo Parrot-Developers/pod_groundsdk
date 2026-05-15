@@ -85,16 +85,16 @@ public enum TrackingRequestType: Int, CustomStringConvertible {
 /// Core class for requests to add a target to track from a rectangle in the video.
 public class RectTrackingRequestCore: TrackingRequestCore {
     /// Horizontal position of the top left corner's target in the video, in range [0, 1].
-    private (set) public var horizontalPosition: Float
+    private(set) public var horizontalPosition: Float
 
     /// Vertical position of the top left corner's target in the video, in range [0, 1].
-    private (set) public var verticalPosition: Float
+    private(set) public var verticalPosition: Float
 
     /// Width of target in the video, in range [0, 1].
-    private (set) public var width: Float
+    private(set) public var width: Float
 
     /// Height of target in the video, in range [0, 1].
-    private (set) public var height: Float
+    private(set) public var height: Float
 
     /// Constructor
     ///
@@ -116,7 +116,7 @@ public class RectTrackingRequestCore: TrackingRequestCore {
 /// Core class for requests to add a target to track from a proposal id.
 public class ProposalTrackingRequestCore: TrackingRequestCore {
     /// Proposal id.
-    private (set) public var proposalId: UInt
+    private(set) public var proposalId: UInt
 
     /// Constructor.
     ///
@@ -139,10 +139,10 @@ public class ProposalTrackingRequestCore: TrackingRequestCore {
 /// Base core class for requests to add a target to track.
 public class TrackingRequestCore: TrackingRequest {
     /// Type of tracking request.
-    private (set) public var type: TrackingRequestType
+    private(set) public var type: TrackingRequestType
 
     /// Timestamp of the video frame.
-    private (set) public var timestamp: UInt64
+    private(set) public var timestamp: UInt64
 
     /// Sets a cookie that will be attached to the target.
     ///
@@ -169,6 +169,8 @@ public class OnboardTrackerCore: PeripheralCore, OnboardTracker {
     public private(set) var _isAvailable: Bool = false
 
     public private(set) var _trackingEngineState: TrackingEngineState = .droneActivated
+
+    public private(set) var _trackingMargins: TrackingMargins?
 
     /// Implementation backend
     private unowned let backend: OnboardTrackerBackend
@@ -276,6 +278,11 @@ public class OnboardTrackerCore: PeripheralCore, OnboardTracker {
     public var isAvailable: Bool {
         return _isAvailable
     }
+
+    /// Tells the current tracking margins.
+    public var trackingMargins: TrackingMargins? {
+        return _trackingMargins
+    }
 }
 
 // MARK: - Backend callback methods
@@ -331,6 +338,20 @@ extension OnboardTrackerCore {
         -> OnboardTrackerCore {
         if _trackingEngineState != newTrackingEngineState {
             _trackingEngineState = newTrackingEngineState
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates the tracking margins.
+    ///
+    /// - Parameter trackingMargins: new tracking margin.
+    /// - Returns: self to allow call chaining.
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(trackingMargins newTrackingMargins: TrackingMargins?)
+        -> OnboardTrackerCore {
+        if _trackingMargins != newTrackingMargins {
+            _trackingMargins = newTrackingMargins
             markChanged()
         }
         return self

@@ -34,7 +34,7 @@ public class MagnetometerWith3StepCalibrationCore: MagnetometerCore, Magnetomete
 
     private(set) public var calibrationProcessState: Magnetometer3StepCalibrationProcessState?
 
-    /// implementation backend
+    /// Implementation backend
     private unowned let backend: MagnetometerBackend
 
     public override init(store: ComponentStoreCore, backend: MagnetometerBackend) {

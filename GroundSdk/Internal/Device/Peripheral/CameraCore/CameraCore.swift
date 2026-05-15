@@ -194,7 +194,7 @@ public protocol CameraBackend: AnyObject {
 
 /// Camera peripheral implementation
 public class CameraCore: PeripheralCore, Camera {
-    /// implementation backend
+    /// Implementation backend
     private unowned let backend: CameraBackend
 
     /// Whether this camera is active or not
@@ -301,7 +301,7 @@ public class CameraCore: PeripheralCore, Camera {
     private var _photoState = CameraPhotoStateCore()
 
     /// HDR state
-    public private (set) var hdrState = false
+    public private(set) var hdrState = false
 
     /// Camera zoom.
     public var zoom: CameraZoom? {
@@ -471,58 +471,6 @@ public class CameraCore: PeripheralCore, Camera {
     public override var description: String {
         return "CameraCore \(_modeSetting!) \(_exposureSettings!) \(_whiteBalanceSettings!) " +
         "\(_recordingSettings!) \(_photoSettings!)"
-    }
-}
-
-// MARK: - Objc Support
-/// Extension adding objc GSCamera conformance
-extension CameraCore: GSCamera {
-    /// Camera mode switcher, to select recording or photo mode if supported
-    public var gsModeSetting: GSCameraModeSetting {
-        return _modeSetting
-    }
-
-    /// Exposure settings
-    public var gsExposureSettings: GSCameraExposureSettings {
-        return _exposureSettings
-    }
-
-    public var gsExposureLock: GSCameraExposureLock? {
-        return _exposureLock
-    }
-
-    /// Camera alignment
-    public var gsAlignment: GSCameraAlignment? {
-        return _alignment
-    }
-
-    /// Exposure compensation setting
-    public var gsExposureCompensationSetting: GSCameraExposureCompensationSetting {
-        return _exposureCompensationSetting
-    }
-
-    /// White balance settings
-    public var gsWhiteBalanceSettings: GSCameraWhiteBalanceSettings {
-        return _whiteBalanceSettings
-    }
-
-    public var gsWhiteBalanceLock: GSCameraWhiteBalanceLock? {
-        return _whiteBalanceLock
-    }
-
-    /// Style settings
-    public var gsStyleSettings: GSCameraStyleSettings {
-        return _styleSettings
-    }
-
-    /// Settings when the camera is in recording mode
-    public var gsRecordingSettings: GSCameraRecordingSettings {
-        return _recordingSettings
-    }
-
-    /// Settings when the camera is in photo mode
-    public var gsPhotoSettings: GSCameraPhotoSettings {
-        return _photoSettings
     }
 }
 

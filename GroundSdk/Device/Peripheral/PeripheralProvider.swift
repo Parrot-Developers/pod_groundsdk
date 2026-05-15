@@ -53,26 +53,3 @@ public protocol PeripheralProvider {
     func getPeripheral<Desc: PeripheralClassDesc>(_ desc: Desc,
                        observer: @escaping Ref<Desc.ApiProtocol>.Observer) -> Ref<Desc.ApiProtocol>
 }
-
-/// Protocol that provides functions to get peripherals.
-/// Those methods should no be used from swift.
-@objc
-public protocol GSPeripheralProvider {
-    /// Gets a peripheral.
-    ///
-    /// - Parameter desc: requested peripheral. See `Peripherals` api for available descriptors instances.
-    /// - Returns: requested peripheral
-    /// - Note: This method is for Objective-C only. Swift must use `func getPeripheral:`.
-    @objc(getPeripheral:)
-    func getPeripheral(desc: ComponentDescriptor) -> Peripheral?
-
-    /// Gets a peripheral and registers an observer notified each time it changes
-    ///
-    /// - Parameters:
-    ///    - desc: requested peripheral. See `Peripherals` api for available descriptors instances.
-    ///    - observer: observer to notify when the peripheral changes
-    /// - Returns: reference to the requested peripheral
-    /// - Note: This method is for Objective-C only. Swift must use `func getPeripheral:desc:observer`.
-    @objc(getPeripheral:observer:)
-    func getPeripheralRef(desc: ComponentDescriptor, observer: @escaping (Peripheral?) -> Void) -> GSPeripheralRef
-}

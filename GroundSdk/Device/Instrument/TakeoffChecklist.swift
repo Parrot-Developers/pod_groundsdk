@@ -91,6 +91,24 @@ public class TakeoffAlarm: NSObject {
         /// Vertical TOF check
         case verticalTof
 
+        /// Motor down control mode has been triggered
+        case motorDown
+
+        /// Smartbattery is needed
+        case noSmartBattery
+
+        /// Takeoff is forbidden by Battery
+        case forbiddenByBattery
+
+        /// Autopilot configuration failed
+        case autopilotConfiguration
+
+        /// Pitot tube check.
+        case pitot
+
+        /// Autopilot not available.
+        case autopilotUnavailable
+
         /// Debug description.
         public var description: String {
             switch self {
@@ -113,6 +131,12 @@ public class TakeoffAlarm: NSObject {
             case .updateOngoing:                        return "updateOngoing"
             case .vcam:                                 return "vcam"
             case .verticalTof:                          return "verticalTof"
+            case .motorDown:                            return "motorDown"
+            case .noSmartBattery:                       return "noSmartBattery"
+            case .forbiddenByBattery:                   return "forbiddenByBattery"
+            case .autopilotConfiguration:               return "autopilotConfiguration"
+            case .pitot:                                return "pitot"
+            case .autopilotUnavailable:                 return "autopilotUnavailable"
             }
         }
 
@@ -121,7 +145,8 @@ public class TakeoffAlarm: NSObject {
             .baro, .batteryGaugeUpdateRequired, .batteryIdentification, .batteryLevel,
             .batteryPoorConnection, .batteryTooCold, .batteryTooHot, .batteryUsbPortConnection,
             .cellularModemFirmwareUpdate, .dri, .droneInclination, .gps, .gyro, .magneto,
-            .magnetoCalibration, .ultrasound, .updateOngoing, .vcam, .verticalTof]
+            .magnetoCalibration, .ultrasound, .updateOngoing, .vcam, .verticalTof, .motorDown, .noSmartBattery,
+            .forbiddenByBattery, .autopilotConfiguration, .pitot, .autopilotUnavailable]
     }
 
     /// Alarm level.

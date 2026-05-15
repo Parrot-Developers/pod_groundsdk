@@ -122,10 +122,3 @@ extension CalibratableGimbalCore {
         return self
     }
 }
-
-/// Extension of Gimbal that implements ObjC API
-extension CalibratableGimbalCore: GSCalibratableGimbal {
-    public func hasError(_ error: GimbalError) -> Bool {
-        return currentErrors.contains(error)
-    }
-}

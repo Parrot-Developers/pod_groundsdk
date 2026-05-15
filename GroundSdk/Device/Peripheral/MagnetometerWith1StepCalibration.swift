@@ -33,8 +33,6 @@ import Foundation
 /// The calibration is done on the 3 axes simultaneously: roll, pitch and yaw.
 /// The calibration progress is provided for each axis as a percentage, in range [0, 100].
 /// The magnetometer is calibrated when the calibration progress of the 3 axes has reached 100%.
-@objcMembers
-@objc(GSMagnetometer1StepCalibrationProcessState)
 public class Magnetometer1StepCalibrationProcessState: NSObject {
 
     /// Progress of calibration on roll axis, from 0 to 100.
@@ -65,7 +63,6 @@ public class Magnetometer1StepCalibrationProcessState: NSObject {
 /// ```
 /// drone.getPeripheral(Peripherals.magnetometerWith1StepCalibration)
 /// ```
-@objc(GSMagnetometerWith1StepCalibration)
 public protocol MagnetometerWith1StepCalibration: Magnetometer {
 
     /// State of the calibration process. Not `nil` if a calibration process is running, `nil` otherwise.
@@ -93,7 +90,6 @@ public protocol MagnetometerWith1StepCalibration: Magnetometer {
 
 /// :nodoc:
 /// 1-step calibration magnetometer description
-@objc(GSMagnetometerWith1StepCalibrationDesc)
 public class MagnetometerWith1StepCalibrationDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = MagnetometerWith1StepCalibration
     public let uid = PeripheralUid.magnetometerWith1StepCalibration.rawValue

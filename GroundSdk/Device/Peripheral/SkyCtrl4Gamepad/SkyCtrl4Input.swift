@@ -30,7 +30,6 @@
 import Foundation
 
 /// A physical button that can be grabbed on a `RemoteControl.Model.skyCtrl4` gamepad.
-@objc(GSSkyCtrl4Button)
 public enum SkyCtrl4Button: Int {
 
     /// Top-most button on the left of the controller front, immediately above power-on button, featuring
@@ -73,7 +72,6 @@ public enum SkyCtrl4Button: Int {
 }
 
 /// A physical axis that can be grabbed on a `RemoteControl.Model.skyCtrl4` gamepad.
-@objc(GSSkyCtrl4Axis)
 public enum SkyCtrl4Axis: Int {
     /// Horizontal (left/right) axis of the left control stick.
     /// Produces:
@@ -119,63 +117,5 @@ public enum SkyCtrl4Axis: Int {
         case .leftSlider:           return "leftSlider"
         case .rightSlider:          return "rightSlider"
         }
-    }
-}
-
-/// Wrapper around a Set of `GSSkyCtrl4Button`.
-/// This is only for Objective-C use.
-@objcMembers
-public class GSSkyCtrl4ButtonSet: NSObject {
-    let set: Set<SkyCtrl4Button>
-
-    /// Constructor.
-    ///
-    /// - Parameter buttons: list of all buttons
-    init(buttons: SkyCtrl4Button...) {
-        set = Set(buttons)
-    }
-
-    /// Swift Constructor.
-    ///
-    /// - Parameter buttonSet: set of all buttons
-    init(buttonSet: Set<SkyCtrl4Button>) {
-        set = buttonSet
-    }
-
-    /// Tells whether a given button is contained in the set.
-    ///
-    /// - Parameter button: the button
-    /// - Returns: `true` if the set contains the button
-    public func contains(_ button: SkyCtrl4Button) -> Bool {
-        return set.contains(button)
-    }
-}
-
-/// Wrapper around a Set of `GSSkyCtrl4AxisSet`.
-/// This is only for Objective-C use.
-@objcMembers
-public class GSSkyCtrl4AxisSet: NSObject {
-    let set: Set<SkyCtrl4Axis>
-
-    /// Constructor.
-    ///
-    /// - Parameter axes: list of all axes
-    init(axes: SkyCtrl4Axis...) {
-        set = Set(axes)
-    }
-
-    /// Swift Constructor.
-    ///
-    /// - Parameter axisSet: set of all axes
-    init(axisSet: Set<SkyCtrl4Axis>) {
-        set = axisSet
-    }
-
-    /// Tells whether a given axis is contained in the set.
-    ///
-    /// - Parameter axis: the axis
-    /// - Returns: `true` if the set contains the axis
-    public func contains(_ axis: SkyCtrl4Axis) -> Bool {
-        return set.contains(axis)
     }
 }

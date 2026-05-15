@@ -507,3 +507,5 @@ extension MavlinkStandard.MavlinkCommand {
         }
     }
 }
+
+// swiftlint:enable nesting

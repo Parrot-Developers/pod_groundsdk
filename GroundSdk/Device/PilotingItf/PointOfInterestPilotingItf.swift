@@ -30,7 +30,6 @@
 import Foundation
 
 /// A Point Of Interest to look at.
-@objc(GSPointOfInterest)
 public protocol PointOfInterest {
     /// Latitude of the location (in degrees) to look at.
     var latitude: Double { get }
@@ -46,7 +45,6 @@ public protocol PointOfInterest {
 }
 
 /// Point Of Interest operating mode.
-@objc(GSPointOfInterestMode)
 public enum PointOfInterestMode: Int, CustomStringConvertible {
     /// Gimbal is locked on the Point Of Interest.
     case lockedGimbal
@@ -57,18 +55,21 @@ public enum PointOfInterestMode: Int, CustomStringConvertible {
     /// Gimbal is freely controllable.
     case freeGimbal
 
+    /// Gimbal is locked on the POI once, then the piloted POI is exited
+    case lockedOnceGimbalAndExit
+
     /// Debug description.
     public var description: String {
         switch self {
-        case .lockedGimbal:     return "lockedGimbal"
-        case .lockedOnceGimbal: return "lockedOnceGimbal"
-        case .freeGimbal:       return "freeGimbal"
+        case .lockedGimbal:            return "lockedGimbal"
+        case .lockedOnceGimbal:        return "lockedOnceGimbal"
+        case .freeGimbal:              return "freeGimbal"
+        case .lockedOnceGimbalAndExit: return "lockedOnceGimbalAndExit"
         }
     }
 }
 
 /// Reasons why a poi piloting interface may be unavailable.
-@objc(GSPOIIssue)
 public enum POIIssue: Int, CustomStringConvertible {
 
     /// Drone gps is not fixed or has a poor accuracy.
@@ -114,6 +115,8 @@ public enum POIIssue: Int, CustomStringConvertible {
 ///     freely controllable by the gimbal command.
 ///   - In `.freeGimbal` mode, the gimbal initially looks at the Point Of Interest, and is then
 ///     freely controllable by the gimbal command.
+///   - In `.lockedOnceGimbalAndExit` mode, the gimbal initially looks at the Point Of Interest,
+///     and then the piloted POI is exited.
 ///
 /// This piloting interface can be retrieved by:
 /// ```
@@ -185,106 +188,8 @@ public protocol PointOfInterestPilotingItf: PilotingItf, ActivablePilotingItf {
     func set(verticalSpeed: Int)
 }
 
-// MARK: - objc compatibility
-
-/// Objective-C version of PointOfInterestPilotingItf.
-///
-/// During a piloted Point Of Interest, the drone always points towards the given Point Of Interest but can be piloted
-/// normally. However, yaw value is not settable.
-///
-/// There are two variants of piloted Point Of Interest:
-///   - In `.lockedGimbal` mode, the gimbal always looks at the Point Of Interest. Gimbal control
-///     command is ignored by the drone.
-///   - In `.lockedOnceGimbal` mode, the gimbal looks once at the Point Of Interest, and is then
-///     freely controllable by the gimbal command.
-///   - In `.freeGimbal` mode, the gimbal initially looks at the Point Of Interest, and is then
-///     freely controllable by the gimbal command.
-///
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objc
-public protocol GSPointOfInterestPilotingItf: PilotingItf, ActivablePilotingItf {
-    /// Current targeted Point Of Interest. `nil` if there's no piloted Point Of Interest in progress.
-    @objc(currentPointOfInterest)
-    var currentPointOfInterest: PointOfInterest? { get }
-
-    /// If the interface is `unavailable`, each POIIssue case can be tested.
-    ///
-    /// - Parameter issue: issue to be tested
-    /// - Returns: `true` if the issue is present, `false` otherwise
-    func availabilityIssuesContains( _ issue: POIIssue) -> Bool
-
-    /// Tells if at least one availabilityIssue is present
-    ///
-    /// - Returns: `true` if there is no availability POIIssue, `false` otherwise
-    func availabilityIssuesIsEmpty() -> Bool
-
-    /// Tells if availability is supported
-    ///
-    /// - Returns: `true` if availability is supported, `false` otherwise
-    func availabilitySupported() -> Bool
-
-    /// Starts a piloted Point Of Interest in locked gimbal mode.
-    ///
-    /// This is equivalent to calling:
-    /// ```
-    /// start(latitude, longitude, altitude, .lockedGimbal)
-    /// ```
-    ///
-    /// - Parameters:
-    ///   - latitude: latitude of the location (in degrees) to look at
-    ///   - longitude: longitude of the location (in degrees) to look at
-    ///   - altitude: altitude above take off point (in meters) to look at
-    func start(latitude: Double, longitude: Double, altitude: Double)
-
-    /// Starts a piloted Point Of Interest.
-    ///
-    /// - Parameters:
-    ///   - latitude: latitude of the location (in degrees) to look at
-    ///   - longitude: longitude of the location (in degrees) to look at
-    ///   - altitude: altitude above take off point (in meters) to look at
-    ///   - mode: point of interest mode
-    func start(latitude: Double, longitude: Double, altitude: Double, mode: PointOfInterestMode)
-
-    /// Sets the current pitch value.
-    ///
-    /// Expressed as a signed percentage of the max pitch/roll setting (`maxPitchRoll`), in range [-100, 100].
-    /// * -100 corresponds to a pitch angle of max pitch/roll towards ground (copter will fly forward)
-    /// * 100 corresponds to a pitch angle of max pitch/roll towards sky (copter will fly backward)
-    ///
-    /// - Note: This value may be clamped if necessary, in order to respect the maximum supported physical tilt of
-    /// the copter.
-    ///
-    /// - Parameter pitch: the new pitch value to set
-    @objc(setPitch:)
-    func set(pitch: Int)
-
-    /// Sets the current roll value.
-    ///
-    /// Expressed as a signed percentage of the max pitch/roll setting (`maxPitchRoll`), in range [-100, 100].
-    /// * -100 corresponds to a roll angle of max pitch/roll to the left (copter will fly left)
-    /// * 100 corresponds to a roll angle of max pitch/roll to the right (copter will fly right)
-    ///
-    /// - Note: This value may be clamped if necessary, in order to respect the maximum supported physical tilt of
-    /// the copter.
-    ///
-    /// - Parameter roll: the new roll value to set
-    @objc(setRoll:)
-    func set(roll: Int)
-
-    /// Sets the current vertical speed value.
-    ///
-    /// Expressed as a signed percentage of the max vertical speed setting (`maxVerticalSpeed`), in range [-100, 100].
-    /// * -100 corresponds to max vertical speed towards ground
-    /// * 100 corresponds to max vertical speed towards sky
-    ///
-    /// - Parameter verticalSpeed: the new vertical speed value to set
-    @objc(setVerticalSpeed:)
-    func set(verticalSpeed: Int)
-}
-
 /// :nodoc:
 /// Point Of Interest piloting interface description
-@objc(GSPointOfInterestPilotingItfs)
 public class PointOfInterestPilotingItfs: NSObject, PilotingItfClassDesc {
     public typealias ApiProtocol = PointOfInterestPilotingItf
     public let uid = PilotingItfUid.pointOfInterest.rawValue

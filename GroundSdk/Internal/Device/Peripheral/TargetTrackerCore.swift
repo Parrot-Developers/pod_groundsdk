@@ -170,19 +170,6 @@ class TargetFramingSettingCore: TargetFramingSetting, CustomStringConvertible {
     }
 }
 
-/// Internal PositionInFrameSetting implementation for objectiveC
-extension TargetFramingSettingCore: GSTargetFramingSetting {
-    public var horizontalPosition: Double {
-        return value.horizontal
-    }
-    public var verticalPosition: Double {
-        return value.vertical
-    }
-    public func setValue(horizontal: Double, vertical: Double) {
-        value = (horizontal, vertical)
-    }
-}
-
 /// Internal targetTracker peripheral implementation
 public class TargetTrackerCore: PeripheralCore, TargetTracker {
 
@@ -227,14 +214,6 @@ public class TargetTrackerCore: PeripheralCore, TargetTracker {
         targetTrackerBackend.set(targetIsController: false)
     }
 
-}
-
-/// Internal targetTracker implementation for objectiveC
-extension TargetTrackerCore: GSTargetTracker {
-
-    public var gsFraming: GSTargetFramingSetting {
-        return _framing
-    }
 }
 
 /// Backend callback methods

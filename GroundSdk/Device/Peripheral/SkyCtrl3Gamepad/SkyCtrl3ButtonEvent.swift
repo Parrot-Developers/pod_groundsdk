@@ -33,7 +33,6 @@ import Foundation
 ///
 /// The corresponding input has a button behavior, i.e. it can be either pressed or released, and an event is sent
 /// each time that state changes, along with the current state.
-@objc(GSSkyCtrl3ButtonEvent)
 public enum SkyCtrl3ButtonEvent: Int {
 
     /// Event sent when `SkyCtrl3Button.frontTopButton` is pressed or released.
@@ -108,7 +107,6 @@ public enum SkyCtrl3ButtonEvent: Int {
 }
 
 /// State of a `SkyCtrl3ButtonEvent`.
-@objc(GSSkyCtrl3ButtonEventState)
 public enum SkyCtrl3ButtonEventState: Int {
     /// Button is pressed.
     case pressed

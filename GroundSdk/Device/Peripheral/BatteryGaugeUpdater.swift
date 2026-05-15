@@ -30,7 +30,6 @@
 import Foundation
 
 /// Battery gauge updater state.
-@objc(GSBatteryGaugeUpdaterState)
 public enum BatteryGaugeUpdaterState: Int, CustomStringConvertible {
     /// Service is ready to prepare Update.
     case readyToPrepare
@@ -67,7 +66,6 @@ public enum BatteryGaugeUpdaterState: Int, CustomStringConvertible {
 }
 
 /// Battery gauge  updater unavailability reasons
-@objc(GSBatteryGaugeUpdaterUnavailabilityReasons)
 public enum BatteryGaugeUpdaterUnavailabilityReasons: Int {
     /// USB power is not provided.
     case notUsbPowered
@@ -124,34 +122,8 @@ public protocol BatteryGaugeUpdater: Peripheral {
     var state: BatteryGaugeUpdaterState { get }
 }
 
-@objc public protocol GSBatteryGaugeUpdater: Peripheral {
-
-    /// Requests preparing battery gauge update.
-    ///
-    /// - Returns: true if prepare update request is sent
-    func prepareUpdate() -> Bool
-
-    /// Requests battery gauge update.
-    ///
-    /// - Returns: true if update request is sent
-    func update() -> Bool
-
-    /// Checks is unavailability reason is present stopping the update.
-    ///
-    /// - Parameter reason : unavailability reason
-    /// - Returns: true if unavailability reason is present, false otherwise
-    func hasUnavailabilityReason(_ reason: BatteryGaugeUpdaterUnavailabilityReasons) -> Bool
-
-    /// Current progress, in percent.
-    var currentProgress: UInt { get }
-
-    /// Gives current update state.
-    var state: BatteryGaugeUpdaterState { get }
-}
-
 /// :nodoc:
 /// Battery gauge updater description
-@objc(GSBatteryGaugeUpdater)
 public class BatteryGaugeUpdaterDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = BatteryGaugeUpdater
     public let uid = PeripheralUid.batteryGaugeUpdater.rawValue

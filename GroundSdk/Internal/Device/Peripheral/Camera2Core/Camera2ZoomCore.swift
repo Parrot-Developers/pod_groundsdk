@@ -62,6 +62,12 @@ public class Camera2ZoomCore: ComponentCore, Camera2Zoom {
 
     public private(set) var maxLossLessLevel = 1.0
 
+    public private(set) var hfov: Double?
+
+    public private(set) var hfovRange: ClosedRange<Double>?
+
+    public private(set) var isLocked: Bool = false
+
     /// Range of the level.
     /// Express that the level can go from 1.0 to `maxLevel`.
     private var levelRange: ClosedRange<Double> {
@@ -71,6 +77,10 @@ public class Camera2ZoomCore: ComponentCore, Camera2Zoom {
             return 1...1
         }
     }
+
+    public private(set) var presets = [Camera2ZoomPreset: Double]()
+
+    public private(set) var ranges = [Camera2Subtype: Camera2ZoomRange]()
 
     /// Constructor.
     ///
@@ -83,14 +93,18 @@ public class Camera2ZoomCore: ComponentCore, Camera2Zoom {
     }
 
     public func control(mode: Camera2ZoomControlMode, target: Double) {
-        let clampedTarget: Double
+        let clampedTarget: Double?
         switch mode {
         case .level:
             clampedTarget = levelRange.clamp(target)
         case .velocity:
             clampedTarget = signedPercentIntervalDouble.clamp(target)
+        case .hfov:
+            clampedTarget = hfovRange?.clamp(target)
         }
-        backend.control(mode: mode, target: clampedTarget)
+        if let clampedTarget {
+            backend.control(mode: mode, target: clampedTarget)
+        }
     }
 
     public func resetLevel() {
@@ -131,6 +145,60 @@ extension Camera2ZoomCore {
     public func update(maxLossLessLevel newValue: Double) -> Camera2ZoomCore {
         if maxLossLessLevel != newValue {
             maxLossLessLevel = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes horizontal field of view
+    ///
+    /// - Parameter hfov: new horizontal field of view
+    /// - Returns: self, to allow call chaining
+    public func update(hfov newValue: Double?) -> Camera2ZoomCore {
+        if hfov != newValue {
+            hfov = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes is locked
+    ///
+    /// - Parameter isLocked: new is locked value
+    /// - Returns: self, to allow call chaining
+    public func update(isLocked newValue: Bool) -> Camera2ZoomCore {
+        if isLocked != newValue {
+            isLocked = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes presets.
+    ///
+    /// - Parameter presets: new presets
+    /// - Returns: self, to allow call chaining
+    public func update(presets newValue: [Camera2ZoomPreset: Double]) -> Camera2ZoomCore {
+        if presets != newValue {
+            presets = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes camRanges.
+    ///
+    /// - Parameter camRanges: new camRanges
+    /// - Returns: self, to allow call chaining
+    public func update(ranges newValue: [Camera2Subtype: Camera2ZoomRange]) -> Camera2ZoomCore {
+        if ranges != newValue {
+            ranges = newValue
+            if let min = ranges.values.compactMap(\.minHfov).min(),
+                let max = ranges.values.compactMap(\.maxHfov).max() {
+                hfovRange = min...max
+            } else {
+                hfovRange = nil
+            }
             markChanged()
         }
         return self

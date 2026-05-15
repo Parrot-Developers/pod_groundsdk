@@ -33,26 +33,32 @@ import Foundation
 public class SpeedometerCore: InstrumentCore, Speedometer {
 
     /// Speed on the horizontal plan relative to the ground (in m/s)
-    private (set) public var groundSpeed: Double = 0
+    private(set) public var groundSpeed: Double?
 
     /// Speed along the north axis relative to the ground (in m/s)
-    private (set) public var northSpeed: Double = 0
+    private(set) public var northSpeed: Double?
 
     /// Speed along the east axis relative to the ground (in m/s)
-    private (set) public var eastSpeed: Double = 0
+    private(set) public var eastSpeed: Double?
 
     /// Speed along the down axis relative to the ground (in m/s)
-    private (set) public var downSpeed: Double = 0
+    private(set) public var downSpeed: Double?
 
     /// Speed along the front axis relative to the ground (in m/s)
-    private (set) public var forwardSpeed: Double = 0
+    private(set) public var forwardSpeed: Double?
 
     /// Speed along the right axis relative to the ground (in m/s)
-    private (set) public var rightSpeed: Double = 0
+    private(set) public var rightSpeed: Double?
+
+    /// Whether the air speed is supported or not by the drone.
+    private(set) public var isAirSpeedSupported: Bool = false
+
+    /// Drone current speed on the horizontal plane relative to the air (in m/s)
+    private(set) public var airSpeed: Double?
 
     /// Debug description
     public override var description: String {
-        return "GroundSpeed : \(groundSpeed)"
+        return "GroundSpeed: \(String(describing: groundSpeed))"
     }
 
     /// Constructor
@@ -70,7 +76,7 @@ extension SpeedometerCore {
     /// - Parameter groundSpeed: the speed to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(groundSpeed newValue: Double) -> SpeedometerCore {
+    @discardableResult public func update(groundSpeed newValue: Double?) -> SpeedometerCore {
         if groundSpeed != newValue {
             markChanged()
             groundSpeed = newValue
@@ -78,12 +84,12 @@ extension SpeedometerCore {
         return self
     }
 
-    /// Changes the northSpeed.
+    /// Changes the north speed.
     ///
     /// - Parameter northSpeed: the speed to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(northSpeed newValue: Double) -> SpeedometerCore {
+    @discardableResult public func update(northSpeed newValue: Double?) -> SpeedometerCore {
         if northSpeed != newValue {
             markChanged()
             northSpeed = newValue
@@ -91,12 +97,12 @@ extension SpeedometerCore {
         return self
     }
 
-    /// Changes the eastSpeed.
+    /// Changes the east speed.
     ///
     /// - Parameter eastSpeed: the speed to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(eastSpeed newValue: Double) -> SpeedometerCore {
+    @discardableResult public func update(eastSpeed newValue: Double?) -> SpeedometerCore {
         if eastSpeed != newValue {
             markChanged()
             eastSpeed = newValue
@@ -104,12 +110,12 @@ extension SpeedometerCore {
         return self
     }
 
-    /// Changes the downSpeed.
+    /// Changes the down speed.
     ///
     /// - Parameter downSpeed: the speed to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(downSpeed newValue: Double) -> SpeedometerCore {
+    @discardableResult public func update(downSpeed newValue: Double?) -> SpeedometerCore {
         if downSpeed != newValue {
             markChanged()
             downSpeed = newValue
@@ -117,12 +123,12 @@ extension SpeedometerCore {
         return self
     }
 
-    /// Changes the forwardSpeed.
+    /// Changes the forward speed.
     ///
     /// - Parameter forwardSpeed: the speed to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(forwardSpeed newValue: Double) -> SpeedometerCore {
+    @discardableResult public func update(forwardSpeed newValue: Double?) -> SpeedometerCore {
         if forwardSpeed != newValue {
             markChanged()
             forwardSpeed = newValue
@@ -130,22 +136,42 @@ extension SpeedometerCore {
         return self
     }
 
-    /// Changes the rightSpeed.
+    /// Changes the right speed.
     ///
     /// - Parameter rightSpeed: the speed to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(rightSpeed newValue: Double) -> SpeedometerCore {
+    @discardableResult public func update(rightSpeed newValue: Double?) -> SpeedometerCore {
         if rightSpeed != newValue {
             markChanged()
             rightSpeed = newValue
         }
         return self
     }
-}
 
-extension SpeedometerCore: GSSpeedometer {
-    public func getGroundSpeed() -> Double {
-        return groundSpeed
+    /// Changes the is air speed supported
+    ///
+    /// - Parameter isAirSpeedSupported: whether the air speed is supported or not
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(isAirSpeedSupported newValue: Bool) -> SpeedometerCore {
+        if isAirSpeedSupported != newValue {
+            markChanged()
+            isAirSpeedSupported = newValue
+        }
+        return self
+    }
+
+    /// Changes the air speed.
+    ///
+    /// - Parameter airSpeed: the speed to set
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(airSpeed newValue: Double?) -> SpeedometerCore {
+        if airSpeed != newValue {
+            markChanged()
+            airSpeed = newValue
+        }
+        return self
     }
 }

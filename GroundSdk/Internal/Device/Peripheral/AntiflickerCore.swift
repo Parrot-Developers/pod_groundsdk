@@ -140,7 +140,7 @@ public class AntiflickerCore: PeripheralCore, Antiflicker {
     /// Actual anti-flickering value. Useful when mode is one of the automatic mode.
     public private(set) var value = AntiflickerValue.unknown
 
-    /// implementation backend
+    /// Implementation backend
     private unowned let backend: AntiflickerBackend
 
     /// Debug description
@@ -210,18 +210,5 @@ extension AntiflickerCore {
     @discardableResult public func cancelSettingsRollback() -> AntiflickerCore {
         _setting.cancelRollback { markChanged() }
         return self
-    }
-}
-
-/// Objc support
-extension AntiflickerSettingCore: GSAntiflickerSetting {
-    func isModeSupported(_ mode: AntiflickerMode) -> Bool {
-        return supportedModes.contains(mode)
-    }
-}
-
-extension AntiflickerCore: GSAntiflicker {
-    public var gsSetting: GSAntiflickerSetting {
-        return _setting
     }
 }

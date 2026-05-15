@@ -49,3 +49,11 @@ public class HttpServerDesc: NSObject, PeripheralClassDesc {
     public let uid = PeripheralUid.httpServer.rawValue
     public let parent: ComponentDescriptor? = nil
 }
+
+/// :nodoc:
+/// RemoteAntennaHttpServer description
+public class RemoteAntennaHttpServerDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = HttpServer
+    public let uid = PeripheralUid.remoteAntennaHttpServer.rawValue
+    public let parent: ComponentDescriptor? = nil
+}

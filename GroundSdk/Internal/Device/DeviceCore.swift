@@ -41,9 +41,9 @@ public protocol DeviceCoreDelegate: AnyObject {
     ///
     /// - Parameters:
     ///    - connector: connector to use to establish the connection
-    ///    - password: password to use for authentication, nil if password is not required
+    ///    - parameters: custom parameters to use to connect the device
     /// - Returns: `true` if the connection process has started
-    func connect(connector: DeviceConnector, password: String?) -> Bool
+    func connect(connector: DeviceConnector, parameters: [DeviceConnectionParameter]) -> Bool
 
     /// Disconnects the device.
     ///
@@ -209,10 +209,10 @@ public class DeviceCore: CustomStringConvertible, Equatable {
     ///
     /// - Parameters:
     ///    - connector: connector to use to connect the device
-    ///    - password: password to use to connect the device
+    ///    - parameters: custom parameters to use to connect the device
     /// - Returns: `true` if the connection process has started, `false` otherwise,
-    ///            for example if the device is no more visible.
-    func connect(connector: DeviceConnector?, password: String?) -> Bool {
+    /// for example if the device is no more visible.
+    public func connect(connector: DeviceConnector?, parameters: [DeviceConnectionParameter]) -> Bool {
         var selectedConnector: DeviceConnector?
         if let connector = connector {
             // use given connector
@@ -221,7 +221,7 @@ public class DeviceCore: CustomStringConvertible, Equatable {
             selectedConnector = stateHolder.state.bestConnector
         }
         if let selectedConnector = selectedConnector {
-            return delegate.connect(connector: selectedConnector, password: password)
+            return delegate.connect(connector: selectedConnector, parameters: parameters)
         } else {
             return false
         }
@@ -249,78 +249,5 @@ public class DeviceCore: CustomStringConvertible, Equatable {
 
     public static func == (lhs: DeviceCore, rhs: DeviceCore) -> Bool {
         return lhs.uid == rhs.uid
-    }
-}
-
-/// Extension that add components getter from id, returning the basic type
-/// This is used by Objective-C extension for components accessors
-extension DeviceCore {
-
-    /// Gets an instrument and register an observer notified each time it changes
-    ///
-    /// - Parameter uid: requested instrument uid
-    /// - Returns: requested instrument
-    func getInstrument(uid: Int) -> Instrument? {
-        return instrumentStore.get(uid: uid)
-    }
-
-    /// Gets an instrument and register an observer notified each time it changes
-    ///
-    /// - Parameters:
-    ///    - uid: requested instrument uid
-    ///    - observer: observer to notify when the instrument changes
-    /// - Returns: reference to the requested instrument
-    func getInstrument(uid: Int, observer: @escaping (Instrument?) -> Void) -> Ref<Instrument> {
-        return ComponentUidRefCore<Instrument>(store: instrumentStore, uid: uid, observer: observer)
-    }
-
-    /// Gets a piloting interface
-    ///
-    /// Return the requested piloting interface or nil if the drone doesn't have the requested piloting interface,
-    /// or if the piloting interface is not available in the current connection state.
-    ///
-    /// - Parameter uid: requested piloting interface uid
-    /// - Returns: requested piloting interface
-    func getPilotingItf(uid: Int) -> PilotingItf? {
-        return pilotingItfStore.get(uid: uid)
-    }
-
-    /// Gets a piloting interface and register an observer notified each time it changes
-    ///
-    /// If the piloting interface is present, the observer will be called immediately with. If the piloting interface is
-    /// not present, the observer won't be called until the piloting interface is added to the drone.
-    /// If the piloting interface or the drone are removed, the observer will be notified and referenced value is set to
-    /// `nil`.
-    ///
-    /// - Parameters:
-    ///    - uid: requested piloting interface uid
-    ///    - observer: observer to notify when the piloting interface changes
-    /// - Returns: reference to the requested piloting interface
-    func getPilotingItf(uid: Int, observer: @escaping (PilotingItf?) -> Void) -> Ref<PilotingItf> {
-        return ComponentUidRefCore<PilotingItf>(store: pilotingItfStore, uid: uid, observer: observer)
-    }
-
-    /// Gets a peripheral
-    ///
-    /// Return the requested peripheral or nil if the drone doesn't have the requested peripheral, or if the peripheral.
-    ///
-    /// - Parameter uid: requested peripheral uid
-    /// - Returns: requested peripheral
-    func getPeripheral(uid: Int) -> Peripheral? {
-        return peripheralStore.get(uid: uid)
-    }
-
-    /// Gets a peripheral and register an observer notified each time it changes
-    ///
-    /// If the peripheral is present, the observer will be called immediately with. If the peripheral is not present,
-    /// the observer won't be called until the peripheral is added to the drone.
-    /// If the peripheral or the drone are removed, the observer will be notified and referenced value is set to `nil`.
-    ///
-    /// - Parameters:
-    ///    - uid: requested peripheral uid
-    ///    - observer: observer to notify when the peripheral changes
-    /// - Returns: reference to the requested peripheral
-    func getPeripheral(uid: Int, observer: @escaping (Peripheral?) -> Void) -> Ref<Peripheral> {
-        return ComponentUidRefCore<Peripheral>(store: peripheralStore, uid: uid, observer: observer)
     }
 }

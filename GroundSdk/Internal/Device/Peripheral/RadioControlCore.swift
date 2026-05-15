@@ -131,13 +131,6 @@ class TransportSettingCore: TransportSetting, CustomDebugStringConvertible {
     }
 }
 
-/// Extension of TransportSettingCore that implements ObjC API.
-extension TransportSettingCore: GSTransportSetting {
-    func isTransportSupported(_ transport: LinkTransport) -> Bool {
-        return supportedTransports.contains(transport)
-    }
-}
-
 /// Internal RadioControl peripheral implementation.
 public class RadioControlCore: PeripheralCore, RadioControl {
 
@@ -172,13 +165,6 @@ public class RadioControlCore: PeripheralCore, RadioControl {
     /// - Parameter transport: new transport
     public func setLinkTransport(_ transport: LinkTransport) {
         _ = backend.set(transport: transport)
-    }
-}
-
-/// Extension of RadioControlCore that implements ObjC API.
-extension RadioControlCore: GSRadioControl {
-    public var gsTransportSetting: GSTransportSetting {
-        return _transportSetting
     }
 }
 

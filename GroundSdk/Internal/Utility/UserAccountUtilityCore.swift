@@ -78,7 +78,7 @@ class UserAccountUtilityCoreImpl: UserAccountUtilityCore {
     /// List of registered monitors for placemark.
     private var userAccountMonitors: Set<UserAccountMonitor> = []
 
-    private (set) var userAccountInfo: UserAccountInfoCore? {
+    private(set) var userAccountInfo: UserAccountInfoCore? {
         didSet {
             if userAccountInfo != oldValue {
                 // Notifies all monitors that the accountDidChange was updated

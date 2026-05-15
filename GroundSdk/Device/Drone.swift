@@ -50,8 +50,12 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
         case anafiUsa
         /// Anafi 3.
         case anafi3
-        /// Anafi 3 USA.
-        case anafi3Usa
+        /// Anafi 3 MIL.
+        case anafi3Mil
+        /// Anafi 3 GOV.
+        case anafi3Gov
+        /// Chuck 3.
+        case chuck3
 
         /// Internal unique identifier.
         public var internalId: Int {
@@ -62,7 +66,9 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
             case .anafiUa:      return 0x091b
             case .anafiUsa:     return 0x091e
             case .anafi3:       return 0x091f
-            case .anafi3Usa:    return 0x0920
+            case .anafi3Mil:    return 0x0920
+            case .anafi3Gov:    return 0x0924
+            case .chuck3:       return 0x0925
             }
         }
 
@@ -75,12 +81,15 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
             case .anafiUa:      return "anafiUa"
             case .anafiUsa:     return "anafiUsa"
             case .anafi3:       return "anafi3"
-            case .anafi3Usa:    return "anafi3Usa"
+            case .anafi3Mil:    return "anafi3Mil"
+            case .anafi3Gov:    return "anafi3Gov"
+            case .chuck3:       return "chuck3"
             }
         }
 
         /// Set containing all possible values of drone model.
-        static let allCases: Set<Model> = [.anafi4k, .anafiThermal, .anafi2, .anafiUa, .anafiUsa, .anafi3, .anafi3Usa]
+        static let allCases: Set<Model> = [.anafi4k, .anafiThermal, .anafi2, .anafiUa, .anafiUsa,
+                                           .anafi3, .anafi3Mil, .anafi3Gov, .chuck3]
     }
 
     /// Drone unique identifier, persistant between sessions.
@@ -176,7 +185,7 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
     /// - Parameter connector: connector to use to connect the drone
     /// - Returns: `true` if the connection process has started
     public func connect(connector: DeviceConnector) -> Bool {
-        return droneCore.connect(connector: connector, password: nil)
+        return droneCore.connect(connector: connector, parameters: [])
     }
 
     /// Connects the drone with a password.
@@ -186,14 +195,24 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
     ///    - password: password to connect the drone
     /// - Returns: `true` if the connection process has started
     public func connect(connector: DeviceConnector, password: String) -> Bool {
-        return droneCore.connect(connector: connector, password: password)
+        return droneCore.connect(connector: connector, parameters: [.securityKey(key: password)])
+    }
+
+    /// Connects the drone using specified device connector and custom parameters.
+    ///
+    /// - Parameters:
+    ///    - connector: connector to use to connect the drone
+    ///    - parameters: custom parameters to use to connect the drone
+    /// - Returns: `true` if the connection process has started
+    public func connect(connector: DeviceConnector, _ parameters: DeviceConnectionParameter...) -> Bool {
+        return droneCore.connect(connector: connector, parameters: parameters)
     }
 
     /// Connects the drone using the best connector.
     ///
     /// - Returns: `true` if the connection process has started, `false` otherwise.
     public func connect() -> Bool {
-        return droneCore.connect(connector: nil, password: nil)
+        return droneCore.connect(connector: nil, parameters: [])
     }
 
     /// Disconnects the drone.
@@ -295,79 +314,6 @@ extension Drone {
     }
 }
 
-/// Extension that add components getter from id, returning the basic type.
-/// This is used by Objective-C extension for components accessors.
-extension Drone {
-    /// Gets an instrument.
-    ///
-    /// - Parameter uid: requested instrument uid
-    /// - Returns: requested instrument
-    func getInstrument(uid: Int) -> Instrument? {
-        return droneCore.getInstrument(uid: uid)
-    }
-
-    /// Gets an instrument and registers an observer notified each time it changes.
-    ///
-    /// - Parameters:
-    ///    - uid: requested instrument uid
-    ///    - observer: observer to notify when the instrument changes
-    /// - Returns: reference to the requested instrument
-    func getInstrument(uid: Int, observer: @escaping (Instrument?) -> Void) -> Ref<Instrument> {
-        return droneCore.getInstrument(uid: uid, observer: observer)
-    }
-
-    /// Gets a piloting interface.
-    ///
-    /// Return sthe requested piloting interface or `nil` if the drone doesn't have the requested piloting interface,
-    /// or if the piloting interface is not available in the current connection state.
-    ///
-    /// - Parameter uid: requested piloting interface uid
-    /// - Returns: requested piloting interface
-    func getPilotingItf(uid: Int) -> PilotingItf? {
-        return droneCore.getPilotingItf(uid: uid)
-    }
-
-    /// Gets a piloting interface and registers an observer notified each time it changes.
-    ///
-    /// If the piloting interface is present, the observer will be called immediately with. If the piloting interface is
-    /// not present, the observer won't be called until the piloting interface is added to the drone.
-    /// If the piloting interface or the drone are removed, the observer will be notified and referenced value is set to
-    /// `nil`.
-    ///
-    /// - Parameters:
-    ///    - uid: requested piloting interface uid
-    ///    - observer: observer to notify when the piloting interface changes
-    /// - Returns: reference to the requested piloting interface
-    func getPilotingItf(uid: Int, observer: @escaping (PilotingItf?) -> Void) -> Ref<PilotingItf> {
-        return droneCore.getPilotingItf(uid: uid, observer: observer)
-    }
-
-    /// Gets a peripheral.
-    ///
-    /// Return the requested peripheral or `nil` if the drone doesn't have the requested peripheral
-    /// or if the peripheral is not available in the current connection state.
-    ///
-    /// - Parameter uid: requested peripheral uid
-    /// - Returns: requested peripheral
-    func getPeripheral(uid: Int) -> Peripheral? {
-        return droneCore.getPeripheral(uid: uid)
-    }
-
-    /// Gets a peripheral and registers an observer notified each time it changes.
-    ///
-    /// If the peripheral is present, the observer will be called immediately with. If the peripheral is not present,
-    /// the observer won't be called until the peripheral is added to the drone.
-    /// If the peripheral or the drone are removed, the observer will be notified and referenced value is set to `nil`.
-    ///
-    /// - Parameters:
-    ///    - uid: requested peripheral uid
-    ///    - observer: observer to notify when the peripheral changes
-    /// - Returns: reference to the requested peripheral
-    func getPeripheral(uid: Int, observer: @escaping (Peripheral?) -> Void) -> Ref<Peripheral> {
-        return droneCore.getPeripheral(uid: uid, observer: observer)
-    }
-}
-
 /// Objective-C extension adding GroundSdk swift methods that can't be automatically converted.
 /// Those methods should no be used from swift.
 public extension Drone {
@@ -428,79 +374,5 @@ public extension Drone {
         public func contains(_ model: Drone.Model) -> Bool {
             return set.contains(model)
         }
-    }
-}
-
-/// Extension that implements the InstrumentProvider protocol for the Objective-C API.
-extension Drone: GSInstrumentProvider {
-    /// Gets an instrument.
-    ///
-    /// - Parameter desc: requested instrument. See `Instruments` api for available descriptors instances.
-    /// - Returns: requested instrument
-    /// - Note: This method is for Objective-C only. Swift must use `func getInstrument:`.
-    public func getInstrument(desc: ComponentDescriptor) -> Instrument? {
-        return getInstrument(uid: desc.uid)
-    }
-
-    /// Gets an instrument and registers an observer notified each time it changes.
-    ///
-    /// - Parameters:
-    ///    - desc: requested instrument. See `Instruments` api for available descriptors instances
-    ///    - observer: observer to notify when the instrument changes
-    /// - Returns: reference to the requested instrument
-    /// - Note: This method is for Objective-C only. Swift must use `func getInstrument:desc:observer`.
-    public func getInstrumentRef(desc: ComponentDescriptor, observer: @escaping (Instrument?) -> Void)
-        -> GSInstrumentRef {
-            return GSInstrumentRef(ref: getInstrument(uid: desc.uid, observer: observer))
-    }
-}
-
-/// Extension that implements the PeripheralProvider protocol for the Objective-C API.
-extension Drone: GSPeripheralProvider {
-    /// Gets a peripheral.
-    ///
-    /// - Parameter desc: requested peripheral. See `Peripherals` api for available descriptors instances
-    /// - Returns: requested peripheral
-    /// - Note: This method is for Objective-C only. Swift must use `func getPeripheral:`.
-    public func getPeripheral(desc: ComponentDescriptor) -> Peripheral? {
-        return getPeripheral(uid: desc.uid)
-    }
-
-    /// Gets a peripheral and registers an observer notified each time it changes.
-    ///
-    /// - Parameters:
-    ///    - desc: requested peripheral. See `Peripherals` api for available descriptors instances.
-    ///    - observer: observer to notify when the peripheral changes
-    /// - Returns: reference to the requested peripheral
-    /// - Note: This method is for Objective-C only. Swift must use `func getPeripheral:desc:observer`.
-    public func getPeripheralRef(desc: ComponentDescriptor, observer: @escaping (Peripheral?) -> Void)
-        -> GSPeripheralRef {
-            return GSPeripheralRef(ref: getPeripheral(uid: desc.uid, observer: observer))
-    }
-}
-
-/// Extension that implements the PilotingItfProvider protocol for the Objective-C API.
-extension Drone: GSPilotingItfProvider {
-    /// Gets a piloting interface.
-    ///
-    /// - Parameter desc: requested piloting interface. See `PilotingItfs` api for available descriptors instances.
-    /// - Returns: requested piloting interface
-    /// - Note: This method is for Objective-C only. Swift must use `func getPilotingItf:`.
-    @objc(getPilotingItf:)
-    public func getPilotingItf(desc: ComponentDescriptor) -> PilotingItf? {
-        return getPilotingItf(uid: desc.uid)
-    }
-
-    /// Gets a piloting interface and registers an observer notified each time it changes.
-    ///
-    /// - Parameters:
-    ///    - desc: requested piloting interface. See `PilotingItfs` api for available descriptors instances.
-    ///    - observer: observer to notify when the piloting interface changes
-    /// - Returns: reference to the requested piloting interface
-    /// - Note: this method is for Objective-C only. Swift must use `func getPilotingItf:desc:observer`.
-    @objc(getPilotingItf:observer:)
-    public func getPilotingItfRef(desc: ComponentDescriptor, observer: @escaping (PilotingItf?) -> Void)
-        -> GSPilotingItfRef {
-            return GSPilotingItfRef(ref: getPilotingItf(uid: desc.uid, observer: observer))
     }
 }

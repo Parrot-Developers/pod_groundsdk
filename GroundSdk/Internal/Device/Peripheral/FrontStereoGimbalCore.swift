@@ -50,13 +50,3 @@ public class FrontStereoGimbalCore: CalibratableGimbalCore, FrontStereoGimbal {
         super.init(desc: Peripherals.frontStereoGimbal, store: store, backend: backend)
     }
 }
-
-/// Backend callback methods
-extension FrontStereoGimbalCore {
-
-}
-
-/// Extension of Gimbal that implements ObjC API
-extension FrontStereoGimbalCore: GSFrontStereoGimbal {
-
-}

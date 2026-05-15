@@ -131,15 +131,3 @@ class CameraExposureCompensationSettingCore: CameraExposureCompensationSetting, 
         return "(value: \(_value) \(supportedValues)) [\(updating)]"
     }
 }
-
-/// Objc support
-extension CameraExposureCompensationSettingCore: GSCameraExposureCompensationSetting {
-
-    /// Checks if an exposure compensation value is supported
-    ///
-    /// - Parameter value: exposure compensation value to check
-    /// - Returns: true if the exposure compensation value is supported
-    func isValueSupported(_ value: CameraEvCompensation) -> Bool {
-        return supportedValues.contains(value)
-    }
-}

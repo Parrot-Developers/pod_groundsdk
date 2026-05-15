@@ -32,12 +32,10 @@ import Foundation
 /// File replay stream interface.
 ///
 /// - Note: the stream is automatically paused when the application is put in background.
-@objc(GSFileReplay)
 public protocol FileReplay: Replay {
 }
 
 /// File replay source to stream.
-@objc(GSFileReplaySource)
 public protocol FileReplaySource {
     /// File being played back.
     var file: URL { get }
@@ -50,7 +48,6 @@ public protocol FileReplaySource {
 }
 
 /// File replay factory.
-@objc(GSFileReplayFactory)
 public class FileReplayFactory: NSObject {
 
     /// Creates a source for streaming a media resource.
@@ -59,7 +56,6 @@ public class FileReplayFactory: NSObject {
     ///    - file: url of file
     ///    - track: chosen track of file to stream
     /// - Returns: file replay source
-    @objc(videoTrackOf:track:)
     public static func videoTrackOf(file: URL, track: MediaItem.Track) -> FileReplaySource {
         return FileSourceCore(file: file, track: track)
     }
@@ -68,28 +64,7 @@ public class FileReplayFactory: NSObject {
     ///
     /// - Parameter file: url of file
     /// - Returns: file replay source
-    @objc(videoTrackOf:)
     public static func defaultVideoTrackOf(file: URL) -> FileReplaySource {
         return FileSourceCore(file: file, track: .defaultVideo)
-    }
-}
-
-/// Objective-C wrapper of Ref<FileReplay>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSFileReplayRef: NSObject {
-    /// Wrapper reference.
-    private let ref: Ref<FileReplay>
-
-    /// Referenced file replay stream.
-    public var value: FileReplay? {
-        return ref.value
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameter ref: wrapper reference
-    init(ref: Ref<FileReplay>) {
-        self.ref = ref
     }
 }

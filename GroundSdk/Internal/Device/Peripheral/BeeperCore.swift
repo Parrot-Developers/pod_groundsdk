@@ -46,7 +46,7 @@ public protocol BeeperBackend: AnyObject {
 public class BeeperCore: PeripheralCore, Beeper {
 
     /// Whther the device is currently playing an alert sound.
-    private (set) public var alertSoundPlaying = false
+    private(set) public var alertSoundPlaying = false
 
     /// Implementation backend
     private unowned let backend: BeeperBackend

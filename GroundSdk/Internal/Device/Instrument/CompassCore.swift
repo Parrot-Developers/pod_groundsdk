@@ -33,11 +33,11 @@ import Foundation
 public class CompassCore: InstrumentCore, Compass {
 
     /// Heading of the drone (in degrees), in range [0, 360[, relative to the GPS North.
-    private (set) public var heading = 0.0
+    private(set) public var heading: Double?
 
     /// Debug description
     public override var description: String {
-        return "CompassCore: heading = \(heading)"
+        return "CompassCore: heading = \(String(describing: heading))"
     }
 
     /// Constructor
@@ -57,7 +57,7 @@ extension CompassCore {
     /// - Parameter heading: the heading to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(heading newValue: Double) -> CompassCore {
+    @discardableResult public func update(heading newValue: Double?) -> CompassCore {
         if heading != newValue {
             markChanged()
             heading = newValue

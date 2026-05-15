@@ -84,6 +84,15 @@ public class DeviceState: NSObject {
         /// Connection has failed. Only in `disconnected` state.
         case failure
 
+        /// Backup link is active.
+        /// Only valid for `.connecting` and `.connected` states.
+        case backupLink
+
+        /// Connection failed due a SkyController radio issue.
+        /// Happens when the radio has not finished initializing, is currently updating, is rebooting or
+        /// is switching to a remote antenna.
+        case radioNotReady
+
         /// Debug description.
         public var description: String {
             switch self {
@@ -93,6 +102,8 @@ public class DeviceState: NSObject {
             case .refused: return "refused"
             case .badPassword: return "badPassword"
             case .failure: return "failure"
+            case .backupLink: return "backupLink"
+            case .radioNotReady: return "radioNotReady"
             }
         }
     }

@@ -54,35 +54,8 @@ public protocol PhotoProgressIndicator: Instrument {
     var remainingDistance: Double? { get }
 }
 
-/// Instrument that informs about photo progress indicator.
-///
-/// This instrument can be retrieved by:
-/// ```
-/// drone.getInstrument(Instruments.photoProgressIndicator)
-/// ```
-/// - Note: This protocol is for Objective-C only. Swift must use the protocol `PhotoProgressIndicator`.
-@objc
-public protocol GSPhotoProgressIndicator: Instrument {
-    /// Retrieves the remaining time before the next photo is taken, in seconds.
-    ///
-    /// This value is only available when the current `CameraPhotoMode` is `.timeLapse` and `CameraPhotoFunctionState`
-    /// is `.started`.
-    /// It may also be unsupported depending on the drone model and/or firmware version.
-    /// `nil` if not available.
-    func getRemainingTime() -> NSNumber?
-
-    /// Retrieves the remaining distance before the next photo is taken, in seconds.
-    ///
-    /// This value is only available when the current `CameraPhotoMode` is `.gpsLapse` and `CameraPhotoFunctionState`
-    /// is `.started`.
-    /// It may also be unsupported depending on the drone model and/or firmware version.
-    /// `nil` if not available.
-    func getRemainingDistance() -> NSNumber?
-}
-
 /// :nodoc:
 /// Instrument descriptor
-@objc(GSPhotoProgressIndicatorDesc)
 public class PhotoProgressIndicatorDesc: NSObject, InstrumentClassDesc {
     public typealias ApiProtocol = PhotoProgressIndicator
     public let uid = InstrumentUid.photoProgressIndicator.rawValue

@@ -126,7 +126,7 @@ public struct Plan: Equatable {
     /// - configs.items: a dictionary of Config representations to string indices.
     ///
     /// - Parameters:
-    ///   - plan: the plan representation to write out to `filepath`.
+    ///   - plan: the plan representation to write out to `fileUrl`.
     ///   - fileUrl: a local file URL where the output will be written.
     ///   - groundStation: the ground station id that creates the plan.
     /// - throws:
@@ -145,7 +145,7 @@ public struct Plan: Equatable {
 
     /// Generates plan file data.
     ///
-    /// cf `Plan.generate(plan:atFilepath:groundStation:)` for more information.
+    /// cf `Plan.generate(plan:at:groundStation:)` for more information.
     ///
     /// - Parameters:
     ///   - plan: the plan representation to write out to `filepath`.
@@ -241,6 +241,10 @@ extension Plan {
         public var videoResolution: Camera2RecordingResolution?
         /// The frame rate of the camera.
         public var frameRate: Camera2RecordingFramerate?
+        /// The thermal control mode of the camera
+        public var thermalControlMode: ThermalControlMode?
+        /// The radio configuration.
+        public var radioConfiguration: RadioConfiguration?
 
         /// Constructor.
         ///
@@ -251,17 +255,23 @@ extension Plan {
         ///   - photResolution: the photo resolution of the camera.
         ///   - videoResolution: the video resolution of the camera.
         ///   - frameRate: the frame rate of the camera.
+        ///   - thermalControlMode: the thermal control mode of the camera
+        ///   - radioConfiguration: the radio configuration to use.
         public init(obstacleAvoidance: Bool? = nil, evCompensation: Camera2EvCompensation? = nil,
                     whiteBalance: Camera2WhiteBalanceMode? = nil,
                     photoResolution: Camera2PhotoResolution? = nil,
                     videoResolution: Camera2RecordingResolution? = nil,
-                    frameRate: Camera2RecordingFramerate? = nil) {
+                    frameRate: Camera2RecordingFramerate? = nil,
+                    thermalControlMode: ThermalControlMode? = nil,
+                    radioConfiguration: RadioConfiguration? = nil) {
             self.obstacleAvoidance = obstacleAvoidance
             self.evCompensation = evCompensation
             self.whiteBalance = whiteBalance
             self.photoResolution = photoResolution
             self.videoResolution = videoResolution
             self.frameRate = frameRate
+            self.thermalControlMode = thermalControlMode
+            self.radioConfiguration = radioConfiguration
         }
     }
 
@@ -269,6 +279,8 @@ extension Plan {
     public struct StaticConfig: Equatable {
         /// Whether the RTH is custom.
         public var customRth: Bool?
+        /// The custom RTH location.
+        public var rthCustomHomeLocation: CLLocationCoordinate2D?
         /// The RTH type.
         public var rthType: ReturnHomeTarget?
         /// The RTH altitude (in meters).
@@ -285,11 +297,16 @@ extension Plan {
         public var customId: String?
         /// The custom title of the Plan.
         public var customTitle: String?
+        /// Whether the camera zoom is locked during flight plan or not.
+        public var cameraZoomLocked: Bool?
+        /// Whether the gimbal axes are locked during flight plan or not.
+        public var gimbalAxesLocked: Bool?
 
         /// Constructor.
         ///
         /// - Parameters:
         ///   - customRth: whether the RTH is custom.
+        ///   - rthCustomHomeLocation: the RTH custom home location.
         ///   - rthType: the RTH type.
         ///   - rthAltitude: the RTH altitude (in meters).
         ///   - rthEndAltitude: the RTH end altitude (in meters).
@@ -298,14 +315,22 @@ extension Plan {
         ///   - digitalSignature: whether to digitally sign the acquired photos or not.
         ///   - customId: The custom ID of the plan.
         ///   - customTitle: The custom title of the plan.
-        public init(customRth: Bool? = nil, rthType: ReturnHomeTarget? = nil,
-                    rthAltitude: Double? = nil, rthEndAltitude: Double? = nil,
+        ///   - cameraZoomLocked: whether the camera zoom is locked during flight plan or not.
+        ///   - gimbalAxesLocked: whether the gimbal axes are locked during flight plan or not.
+        public init(customRth: Bool? = nil,
+                    rthCustomHomeLocation: CLLocationCoordinate2D? = nil,
+                    rthType: ReturnHomeTarget? = nil,
+                    rthAltitude: Double? = nil,
+                    rthEndAltitude: Double? = nil,
                     disconnectionPolicy: FlightPlanDisconnectionPolicy? = nil,
                     rthEndingBehavior: ReturnHomeEndingBehavior? = nil,
                     digitalSignature: Camera2DigitalSignature? = .drone,
                     customId: String? = nil,
-                    customTitle: String? = nil) {
+                    customTitle: String? = nil,
+                    cameraZoomLocked: Bool? = nil,
+                    gimbalAxesLocked: Bool? = nil) {
             self.customRth = customRth
+            self.rthCustomHomeLocation = rthCustomHomeLocation
             self.rthType = rthType
             self.rthAltitude = rthAltitude
             self.rthEndAltitude = rthEndAltitude
@@ -314,6 +339,14 @@ extension Plan {
             self.digitalSignature = digitalSignature
             self.customId = customId
             self.customTitle = customTitle
+            self.cameraZoomLocked = cameraZoomLocked
+            self.gimbalAxesLocked = gimbalAxesLocked
         }
     }
+}
+
+extension CLLocationCoordinate2D: Equatable {
+    static public func == (lhs: CLLocationCoordinate2D, rhs: CLLocationCoordinate2D) -> Bool {
+        return lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude
+   }
 }

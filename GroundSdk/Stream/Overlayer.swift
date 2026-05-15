@@ -30,8 +30,7 @@
 import Foundation
 
 /// Histogram data.
-@objc(GSHistogram)
-public protocol Histogram {
+public protocol Histogram: AnyObject {
 
     /// Histogram channel red.
     var histogramRed: [Float32]? {get}
@@ -47,8 +46,7 @@ public protocol Histogram {
 }
 
 /// Overlay context data.
-@objc(GSOverlayContext)
-public protocol OverlayContext {
+public protocol OverlayContext: AnyObject {
     /// Area where the frame was rendered (including any padding introduced by scaling).
     var renderZone: CGRect {get}
 
@@ -67,6 +65,12 @@ public protocol OverlayContext {
     /// Frame metadata handle; pointer to const struct struct vmeta_frame.
     var frameMetadataHandle: UnsafeRawPointer? {get}
 
+    /// Frame metadata.
+    var frameMetadata: Vmeta_TimedMetadata? { get }
+
+    /// Current frame timestamp in microseconds.
+    var frameTimestamp: UInt64? {get}
+
     /// Histogram.
     var histogram: Histogram? {get}
 }
@@ -74,8 +78,7 @@ public protocol OverlayContext {
 /// Listener for rendering an overlay over a stream.
 ///
 /// Such a listener can be passed to a 'StreamView' by setting 'StreamView.overlayer'.
-@objc(GSOverlayer)
-public protocol Overlayer {
+public protocol Overlayer: AnyObject {
 
     /// Called to render a GL overlay over a stream frame.
     ///

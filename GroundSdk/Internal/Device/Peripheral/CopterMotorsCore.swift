@@ -58,7 +58,6 @@ public class CopterMotorsCore: PeripheralCore, CopterMotors {
     ///
     /// - Parameters:
     ///    - store: store where this peripheral will be stored
-    ///    - backend: System info backend
     public init(store: ComponentStoreCore) {
         for motor in CopterMotor.allCases {
             currentMotorErrors[motor] = .noError
@@ -127,17 +126,5 @@ extension CopterMotorsCore {
                 }
             }
             return self
-    }
-}
-
-/// Implementation of the Obj-C protocol GSCopterSystemInfo
-extension CopterMotorsCore: GSCopterMotors {
-    /// All motors currently undergoing some error.
-    public var motorsWithCurrentError: Set<Int> {
-        var set: Set<Int> = []
-        for motor in self.motorsCurrentlyInError {
-            set.insert(motor.rawValue)
-        }
-        return set
     }
 }

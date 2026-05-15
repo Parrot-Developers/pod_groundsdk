@@ -40,6 +40,7 @@ public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
         case privateMode
         case token
         case droneList
+        case cloudAntennaList
     }
 
     /// User account identifier, `nil` if none
@@ -63,6 +64,9 @@ public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
     /// List of drones linked to the account in json format
     public var droneList: String?
 
+    /// List of cloud antenna linked to the account in json format
+    public var cloudAntennaList: String?
+
     /// Private Constructor for the UserAccountInfo (only public for test)
     ///
     /// - Parameters:
@@ -73,8 +77,9 @@ public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
     ///   - privateMode: `true` to enable private mode
     ///   - token: authentication token
     ///   - droneList: user drone list, APC JSON format
+    ///   - cloudAntennaList: cloud antenna list, APC JSON format
     internal init(account: String?, changeDate: Date, dataUploadPolicy: DataUploadPolicy,
-                  oldDataPolicy: OldDataPolicy, privateMode: Bool = false, token: String?, droneList: String?) {
+                  oldDataPolicy: OldDataPolicy, privateMode: Bool = false, token: String?, droneList: String?, cloudAntennaList: String?) {
         self.account = account
         self.changeDate = changeDate
         self.dataUploadPolicy = dataUploadPolicy
@@ -82,6 +87,7 @@ public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
         self.privateMode = privateMode
         self.token = token
         self.droneList = droneList
+        self.cloudAntennaList = cloudAntennaList
     }
 
     /// Constructor for the UserAccountInfo (the change Date will be set at current Date)
@@ -93,11 +99,14 @@ public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
     ///   - privateMode: `true` to enable private mode
     ///   - token: authentication token
     ///   - droneList: user drone list, APC JSON format
+    ///   - cloudAntennaList: cloud antenna list, APC JSON format
     convenience init(account: String? = nil, dataUploadPolicy: DataUploadPolicy = .deny,
                      oldDataPolicy: OldDataPolicy = .denyUpload, privateMode: Bool = false, token: String? = nil,
-                     droneList: String? = nil) {
+                     droneList: String? = nil,
+                     cloudAntennaList: String? = nil) {
         self.init(account: account, changeDate: Date(), dataUploadPolicy: dataUploadPolicy,
-                  oldDataPolicy: oldDataPolicy, privateMode: privateMode, token: token, droneList: droneList)
+                  oldDataPolicy: oldDataPolicy, privateMode: privateMode, token: token,
+                  droneList: droneList, cloudAntennaList: cloudAntennaList)
     }
 
     /// Debug description.
@@ -107,7 +116,8 @@ public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
         ", oldDataPolicy = \(oldDataPolicy)" +
         ", privateMode = \(privateMode)" +
         ", token = \(token != nil ? token! : "nil")" +
-        ", droneList = \(droneList != nil ? droneList! : "nil")"
+        ", droneList = \(droneList != nil ? droneList! : "nil")" +
+        ", cloudAntennaList = \(cloudAntennaList != nil ? cloudAntennaList! : "nil")"
     }
 
     /// Equatable concordance
@@ -117,7 +127,8 @@ public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
             lhs.oldDataPolicy == rhs.oldDataPolicy &&
             lhs.privateMode == rhs.privateMode &&
             lhs.token == rhs.token &&
-            lhs.droneList == rhs.droneList
+            lhs.droneList == rhs.droneList &&
+            lhs.cloudAntennaList == rhs.cloudAntennaList
     }
 }
 
@@ -183,9 +194,9 @@ class UserAccountEngine: EngineBaseCore {
 extension UserAccountEngine: UserAccountBackend {
 
     func set(account: String, dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy,
-             token: String, droneList: String) {
+             token: String, droneList: String, cloudAntennaList: String) {
         update(account: account, dataUploadPolicy: dataUploadPolicy, oldDataPolicy: oldDataPolicy, token: token,
-               droneList: droneList)
+               droneList: droneList, cloudAntennaList: cloudAntennaList)
     }
 
     func set(dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy) {
@@ -204,6 +215,10 @@ extension UserAccountEngine: UserAccountBackend {
         update(droneList: droneList)
     }
 
+    func set(cloudAntennaList: String) {
+        update(cloudAntennaList: cloudAntennaList)
+    }
+
     /// Updates the user account with the given parameters.
     ///
     /// All parameters are optional and will remain unchanged if set to `nil`, except upload policy that may change
@@ -218,13 +233,14 @@ extension UserAccountEngine: UserAccountBackend {
     ///   - droneList: user drone list, APC JSON format
     private func update(account: String? = nil, dataUploadPolicy: DataUploadPolicy? = nil,
                         oldDataPolicy: OldDataPolicy? = nil, privateMode: Bool? = nil, token: String? = nil,
-                        droneList: String? = nil) {
+                        droneList: String? = nil, cloudAntennaList: String? = nil) {
         let newAccount = account ?? userAccountInfo?.account
         var newUploadPolicy = dataUploadPolicy ?? userAccountInfo?.dataUploadPolicy ?? .deny
         let newOldPolicy = oldDataPolicy ?? userAccountInfo?.oldDataPolicy ?? .denyUpload
         let newPrivateMode = privateMode ?? userAccountInfo?.privateMode ?? false
         let newToken = token ?? userAccountInfo?.token
         let newDroneList = droneList ?? userAccountInfo?.droneList
+        let newCloudAntennaList = cloudAntennaList ?? userAccountInfo?.cloudAntennaList
 
         if newPrivateMode {
             newUploadPolicy = .deny
@@ -238,7 +254,8 @@ extension UserAccountEngine: UserAccountBackend {
             || userAccountInfo?.oldDataPolicy != newOldPolicy
             || userAccountInfo?.privateMode != newPrivateMode
             || userAccountInfo?.token != newToken
-            || userAccountInfo?.droneList != newDroneList {
+            || userAccountInfo?.droneList != newDroneList
+            || userAccountInfo?.cloudAntennaList != newCloudAntennaList {
 
             let newDate = userAccountInfo?.changeDate == nil
                 || userAccountInfo?.account != newAccount
@@ -253,7 +270,8 @@ extension UserAccountEngine: UserAccountBackend {
                                                   oldDataPolicy: newOldPolicy,
                                                   privateMode: newPrivateMode,
                                                   token: newToken,
-                                                  droneList: newDroneList)
+                                                  droneList: newDroneList,
+                                                  cloudAntennaList: newCloudAntennaList)
             saveData()
         }
     }
@@ -265,6 +283,7 @@ extension UserAccountEngine: UserAccountBackend {
         // or - if the dataUploadPolicy flags changes
         // or - if the token is not nil
         // or - if the drone list is not nil
+        // or - if the cloud antenna list is not nil
         var newUploadPolicy = dataUploadPolicy
         let privateMode = userAccountInfo?.privateMode ?? false
         if privateMode {
@@ -276,7 +295,8 @@ extension UserAccountEngine: UserAccountBackend {
             || userAccountInfo?.account != nil
             || userAccountInfo?.dataUploadPolicy != newUploadPolicy
             || userAccountInfo?.token != nil
-            || userAccountInfo?.droneList != nil {
+            || userAccountInfo?.droneList != nil
+            || userAccountInfo?.cloudAntennaList != nil {
             userAccountInfo = UserAccountInfoCore(dataUploadPolicy: newUploadPolicy, privateMode: privateMode)
             saveData()
         }

@@ -100,6 +100,9 @@ extension ULogTag {
     /// Logging tag of ground sdk flightCameraRecord reporter utility (internal)
     static let flightCameraRecordStorageTag = ULogTag(name: "gsdk.core.utility.flightcamerarecord")
 
+    /// Logging tag of ground sdk system position utility (internal)
+    static let systemPositionTag = ULogTag(name: "gsdk.core.utility.systemposition")
+
     /// Logging tag of http client
     static let httpClientTag = ULogTag(name: "gsdk.core.httpclient")
 
@@ -117,6 +120,9 @@ extension ULogTag {
 
     /// Logging tag of stream in ground sdk core (internal)
     static let streamTag = ULogTag(name: "gsdk.core.stream")
+
+    /// Logging tag of ground sdk stream sharing engine (internal)
+    static let streamSharingTag = ULogTag(name: "gsdk.core.engine.streamsharing")
 
     /// Logging tag of ground sdk video stream engine (internal)
     static let videoStreamEngineTag = ULogTag(name: "gsdk.core.engine.stream")
@@ -144,4 +150,10 @@ extension ULogTag {
 
     /// Logging tag of ground sdk log collector (internal)
     static let logCollectorTag = ULogTag(name: "gsdk.core.logcollector")
+
+    /// Logging tag of ground sdk media store
+    static let mediaStoreTag = ULogTag(name: "gsdk.mediastore")
+
+    /// Logging tag of ground sdk keyManager utility (internal)
+    static let keyManagerTag = ULogTag(name: "gsdk.core.utility.keymanager")
 }

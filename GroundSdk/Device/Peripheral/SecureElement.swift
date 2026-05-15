@@ -154,3 +154,10 @@ public class SecureElementDesc: NSObject, PeripheralClassDesc {
     public let uid = PeripheralUid.secureElement.rawValue
     public let parent: ComponentDescriptor? = nil
 }
+
+/// Remote antenna secure element descriptor
+public class RemoteAntennaSecureElementDesc: NSObject, PeripheralClassDesc {
+    public typealias ApiProtocol = SecureElement
+    public let uid = PeripheralUid.remoteAntennaSecureElement.rawValue
+    public let parent: ComponentDescriptor? = nil
+}

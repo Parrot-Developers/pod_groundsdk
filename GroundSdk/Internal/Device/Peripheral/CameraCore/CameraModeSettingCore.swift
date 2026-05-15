@@ -118,10 +118,3 @@ class CameraModeSettingCore: CameraModeSetting, CustomDebugStringConvertible {
         return "mode: \(_mode) \(supportedModes) updating: [\(updating)]"
     }
 }
-
-/// Objc support
-extension CameraModeSettingCore: GSCameraModeSetting {
-    func isModeSupported(_ mode: CameraMode) -> Bool {
-        return supportedModes.contains(mode)
-    }
-}

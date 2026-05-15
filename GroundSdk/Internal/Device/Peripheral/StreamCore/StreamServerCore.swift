@@ -138,17 +138,3 @@ extension StreamServerCore {
         return self
     }
 }
-
-/// Extension that implements the StreamServer protocol for the Objective-C API
-extension StreamServerCore: GSStreamServer {
-
-    public func live(source: CameraLiveSource,
-                     observer: @escaping (_ stream: CameraLive?) -> Void) -> GSCameraLiveRef {
-        return GSCameraLiveRef(ref: live(source: source, observer: observer))
-    }
-
-    public func replay(source: MediaReplaySource, observer: @escaping (MediaReplay?) -> Void) -> GSMediaReplayRef? {
-        let ref: Ref<MediaReplay>? = replay(source: source, observer: observer)
-        return ref != nil ? GSMediaReplayRef(ref: ref!) : nil
-    }
-}

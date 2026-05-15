@@ -210,16 +210,3 @@ extension PreciseHomeCore {
         return self
     }
 }
-
-/// Objc support
-extension PreciseHomeSettingCore: GSPreciseHomeSetting {
-    func isModeSupported(_ mode: PreciseHomeMode) -> Bool {
-        return supportedModes.contains(mode)
-    }
-}
-
-extension PreciseHomeCore: GSPreciseHome {
-    public var gsSetting: GSPreciseHomeSetting {
-        return _setting
-    }
-}

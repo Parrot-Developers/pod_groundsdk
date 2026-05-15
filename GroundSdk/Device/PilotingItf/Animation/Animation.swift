@@ -30,7 +30,6 @@
 import Foundation
 
 /// Type of animation.
-@objc(GSAnimationType)
 public enum AnimationType: Int {
     /// Unidentified animation. Animation of this type cannot be cast.
     case unidentified
@@ -94,7 +93,6 @@ public enum AnimationType: Int {
 }
 
 /// Execution mode used by some animations.
-@objc(GSAnimationMode)
 public enum AnimationMode: Int {
     /// Execute animation only once.
     case once
@@ -111,7 +109,6 @@ public enum AnimationMode: Int {
 }
 
 /// Animation execution status.
-@objc(GSAnimationStatus)
 public enum AnimationStatus: Int {
     /// The drone is currently executing an animation.
     case animating
@@ -137,14 +134,12 @@ public enum AnimationStatus: Int {
 /// Each method starting with `with` in subclasses allows to customize a different animation parameter.
 /// When one of this method is called, the drone will use the provided parameter value instead of its own default,
 /// if possible.
-@objc(GSAnimationConfig)
 public protocol AnimationConfig: AnyObject {
     /// Type of the configured animation.
     var type: AnimationType { get }
 }
 
 /// Base interface for an Animation.
-@objc(GSAnimation)
 public protocol Animation: AnyObject {
     /// Animation type.
     var type: AnimationType { get }

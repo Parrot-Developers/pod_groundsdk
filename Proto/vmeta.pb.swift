@@ -135,6 +135,9 @@ public enum Vmeta_TrackingState: SwiftProtobuf.Enum {
 
   /// Searching 
   case tsSearching // = 1
+
+  /// Pause 
+  case tsPause // = 2
   case UNRECOGNIZED(Int)
 
   public init() {
@@ -145,6 +148,7 @@ public enum Vmeta_TrackingState: SwiftProtobuf.Enum {
     switch rawValue {
     case 0: self = .tsTracking
     case 1: self = .tsSearching
+    case 2: self = .tsPause
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -153,6 +157,7 @@ public enum Vmeta_TrackingState: SwiftProtobuf.Enum {
     switch self {
     case .tsTracking: return 0
     case .tsSearching: return 1
+    case .tsPause: return 2
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -166,6 +171,7 @@ extension Vmeta_TrackingState: CaseIterable {
   public static var allCases: [Vmeta_TrackingState] = [
     .tsTracking,
     .tsSearching,
+    .tsPause,
   ]
 }
 
@@ -471,10 +477,10 @@ public enum Vmeta_LinkType: SwiftProtobuf.Enum {
   /// Reserved 
   case lan // = 2
 
-  /// Wlan (Wi-Fi) interface 
+  /// Wlan (Wi-Fi or other) interface 
   case wlan // = 3
 
-  /// Cellular (4G) interface 
+  /// Cellular (4G/5G) interface 
   case cellular // = 4
   case UNRECOGNIZED(Int)
 
@@ -516,6 +522,50 @@ extension Vmeta_LinkType: CaseIterable {
     .lan,
     .wlan,
     .cellular,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public enum Vmeta_LficType: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Cursor on target LFIC 
+  case cot // = 0
+
+  /// User LFIC 
+  case user // = 1
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .cot
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .cot
+    case 1: self = .user
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .cot: return 0
+    case .user: return 1
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_LficType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_LficType] = [
+    .cot,
+    .user,
   ]
 }
 
@@ -639,6 +689,645 @@ extension Vmeta_ThermalCalibrationState: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public enum Vmeta_CameraSpectrum: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Unknown spectrum 
+  case csUnknown // = 0
+
+  /// Visible spectrum 
+  case csVisible // = 1
+
+  /// Blended spectrum 
+  case csBlended // = 2
+
+  /// Thermal spectrum 
+  case csThermal // = 3
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .csUnknown
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .csUnknown
+    case 1: self = .csVisible
+    case 2: self = .csBlended
+    case 3: self = .csThermal
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .csUnknown: return 0
+    case .csVisible: return 1
+    case .csBlended: return 2
+    case .csThermal: return 3
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_CameraSpectrum: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_CameraSpectrum] = [
+    .csUnknown,
+    .csVisible,
+    .csBlended,
+    .csThermal,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public enum Vmeta_CameraType: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Unknown camera type 
+  case ctUnknown // = 0
+
+  /// Front camera 
+  case ctFront // = 1
+
+  /// Front stereo left camera 
+  case ctFrontStereoLeft // = 2
+
+  /// Front stereo right camera 
+  case ctFrontStereoRight // = 3
+
+  /// Vertical camera 
+  case ctVertical // = 4
+
+  /// Disparity map 
+  case ctDisparity // = 5
+
+  /// Horizontal stereo left camera 
+  case ctHorizontalStereoLeft // = 6
+
+  /// Horizontal stereo right camera 
+  case ctHorizontalStereoRight // = 7
+
+  /// Down stereo left camera 
+  case ctDownStereoLeft // = 8
+
+  /// Down stereo right camera 
+  case ctDownStereoRight // = 9
+
+  /// Front stereo camera 
+  case ctFrontStereo // = 10
+
+  /// Horizontal stereo camera 
+  case ctHorizontalStereo // = 11
+
+  /// Down stereo camera 
+  case ctDownStereo // = 12
+
+  /// External camera 
+  case ctExternal // = 13
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .ctUnknown
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .ctUnknown
+    case 1: self = .ctFront
+    case 2: self = .ctFrontStereoLeft
+    case 3: self = .ctFrontStereoRight
+    case 4: self = .ctVertical
+    case 5: self = .ctDisparity
+    case 6: self = .ctHorizontalStereoLeft
+    case 7: self = .ctHorizontalStereoRight
+    case 8: self = .ctDownStereoLeft
+    case 9: self = .ctDownStereoRight
+    case 10: self = .ctFrontStereo
+    case 11: self = .ctHorizontalStereo
+    case 12: self = .ctDownStereo
+    case 13: self = .ctExternal
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .ctUnknown: return 0
+    case .ctFront: return 1
+    case .ctFrontStereoLeft: return 2
+    case .ctFrontStereoRight: return 3
+    case .ctVertical: return 4
+    case .ctDisparity: return 5
+    case .ctHorizontalStereoLeft: return 6
+    case .ctHorizontalStereoRight: return 7
+    case .ctDownStereoLeft: return 8
+    case .ctDownStereoRight: return 9
+    case .ctFrontStereo: return 10
+    case .ctHorizontalStereo: return 11
+    case .ctDownStereo: return 12
+    case .ctExternal: return 13
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_CameraType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_CameraType] = [
+    .ctUnknown,
+    .ctFront,
+    .ctFrontStereoLeft,
+    .ctFrontStereoRight,
+    .ctVertical,
+    .ctDisparity,
+    .ctHorizontalStereoLeft,
+    .ctHorizontalStereoRight,
+    .ctDownStereoLeft,
+    .ctDownStereoRight,
+    .ctFrontStereo,
+    .ctHorizontalStereo,
+    .ctDownStereo,
+    .ctExternal,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public enum Vmeta_CameraSubtype: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Unknown camera type 
+  case cstUnknown // = 0
+
+  /// Left camera 
+  case cstLeft // = 1
+
+  /// Right camera 
+  case cstRight // = 2
+
+  /// Wide camera 
+  case cstWide // = 3
+
+  /// Tele camera 
+  case cstTele // = 4
+
+  /// Disparity map camera 
+  case cstDisparity // = 5
+
+  /// DEPTH map camera 
+  case cstDepth // = 6
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .cstUnknown
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .cstUnknown
+    case 1: self = .cstLeft
+    case 2: self = .cstRight
+    case 3: self = .cstWide
+    case 4: self = .cstTele
+    case 5: self = .cstDisparity
+    case 6: self = .cstDepth
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .cstUnknown: return 0
+    case .cstLeft: return 1
+    case .cstRight: return 2
+    case .cstWide: return 3
+    case .cstTele: return 4
+    case .cstDisparity: return 5
+    case .cstDepth: return 6
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_CameraSubtype: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_CameraSubtype] = [
+    .cstUnknown,
+    .cstLeft,
+    .cstRight,
+    .cstWide,
+    .cstTele,
+    .cstDisparity,
+    .cstDepth,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public enum Vmeta_VideoMode: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Unknown video mode 
+  case vmUnknown // = 0
+
+  /// Standard video mode 
+  case vmStandard // = 1
+
+  /// Hyperlapse video mode 
+  case vmHyperlapse // = 2
+
+  /// Slow motion video mode 
+  case vmSlowmotion // = 3
+
+  /// Stream recording video mode 
+  case vmStreamrec // = 4
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .vmUnknown
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .vmUnknown
+    case 1: self = .vmStandard
+    case 2: self = .vmHyperlapse
+    case 3: self = .vmSlowmotion
+    case 4: self = .vmStreamrec
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .vmUnknown: return 0
+    case .vmStandard: return 1
+    case .vmHyperlapse: return 2
+    case .vmSlowmotion: return 3
+    case .vmStreamrec: return 4
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_VideoMode: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_VideoMode] = [
+    .vmUnknown,
+    .vmStandard,
+    .vmHyperlapse,
+    .vmSlowmotion,
+    .vmStreamrec,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public enum Vmeta_VideoStopReason: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Unknown stop reason 
+  case vsrUnknown // = 0
+
+  /// User request stop reason 
+  case vsrUser // = 1
+
+  /// Reconfigure stop reason 
+  case vsrReconfiguration // = 2
+
+  /// Poor storage performance stop reason 
+  case vsrPoorStoragePerf // = 3
+
+  /// Storage full stop reason 
+  case vsrStorageFull // = 4
+
+  /// Recovery stop reason 
+  case vsrRecovery // = 5
+
+  /// End-of-stream stop reason 
+  case vsrEndOfStream // = 6
+
+  /// Shutdown stop reason 
+  case vsrShutdown // = 7
+
+  /// Internal error stop reason 
+  case vsrInternalError // = 8
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .vsrUnknown
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .vsrUnknown
+    case 1: self = .vsrUser
+    case 2: self = .vsrReconfiguration
+    case 3: self = .vsrPoorStoragePerf
+    case 4: self = .vsrStorageFull
+    case 5: self = .vsrRecovery
+    case 6: self = .vsrEndOfStream
+    case 7: self = .vsrShutdown
+    case 8: self = .vsrInternalError
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .vsrUnknown: return 0
+    case .vsrUser: return 1
+    case .vsrReconfiguration: return 2
+    case .vsrPoorStoragePerf: return 3
+    case .vsrStorageFull: return 4
+    case .vsrRecovery: return 5
+    case .vsrEndOfStream: return 6
+    case .vsrShutdown: return 7
+    case .vsrInternalError: return 8
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_VideoStopReason: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_VideoStopReason] = [
+    .vsrUnknown,
+    .vsrUser,
+    .vsrReconfiguration,
+    .vsrPoorStoragePerf,
+    .vsrStorageFull,
+    .vsrRecovery,
+    .vsrEndOfStream,
+    .vsrShutdown,
+    .vsrInternalError,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public enum Vmeta_PhotoMode: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Unknown photo mode 
+  case unknown // = 0
+
+  /// Single photo mode 
+  case pmSingle // = 1
+
+  /// Bracketing photo mode 
+  case pmBracketing // = 2
+
+  /// Burst photo mode 
+  case pmBurst // = 3
+
+  /// Timelapse photo mode 
+  case pmTimelapse // = 4
+
+  /// GPS-lapse photo mode 
+  case pmGpslapse // = 5
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .unknown
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .unknown
+    case 1: self = .pmSingle
+    case 2: self = .pmBracketing
+    case 3: self = .pmBurst
+    case 4: self = .pmTimelapse
+    case 5: self = .pmGpslapse
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .unknown: return 0
+    case .pmSingle: return 1
+    case .pmBracketing: return 2
+    case .pmBurst: return 3
+    case .pmTimelapse: return 4
+    case .pmGpslapse: return 5
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_PhotoMode: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_PhotoMode] = [
+    .unknown,
+    .pmSingle,
+    .pmBracketing,
+    .pmBurst,
+    .pmTimelapse,
+    .pmGpslapse,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public enum Vmeta_PanoramaType: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Unknown panorama type 
+  case ptUnknown // = 0
+
+  /// No panorama 
+  case ptNone // = 1
+
+  /// Horizontal 180 panorama type 
+  case ptHorizontal180 // = 2
+
+  /// Vertical 180 panorama type 
+  case ptVertical180 // = 3
+
+  /// Spherical panorama type 
+  case ptSpherical // = 4
+
+  /// Super wide panorama type 
+  case ptSuperWide // = 5
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .ptUnknown
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .ptUnknown
+    case 1: self = .ptNone
+    case 2: self = .ptHorizontal180
+    case 3: self = .ptVertical180
+    case 4: self = .ptSpherical
+    case 5: self = .ptSuperWide
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .ptUnknown: return 0
+    case .ptNone: return 1
+    case .ptHorizontal180: return 2
+    case .ptVertical180: return 3
+    case .ptSpherical: return 4
+    case .ptSuperWide: return 5
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_PanoramaType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_PanoramaType] = [
+    .ptUnknown,
+    .ptNone,
+    .ptHorizontal180,
+    .ptVertical180,
+    .ptSpherical,
+    .ptSuperWide,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public enum Vmeta_DynamicRange: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Unknown dynamic range 
+  case drUnknown // = 0
+
+  /// Standard dynamic range 
+  case drSdr // = 1
+
+  /// High dynamic range: Parrot 8bit HDR 
+  case drHdr8 // = 2
+
+  /// High dynamic range: standard 10bit HDR10
+  /// (Rec. ITU-R BT.2020 color primaries,
+  /// SMPTE ST 2084 perceptual quantization transfer function
+  /// and SMPTE ST 2086 metadata) 
+  case drHdr10 // = 3
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .drUnknown
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .drUnknown
+    case 1: self = .drSdr
+    case 2: self = .drHdr8
+    case 3: self = .drHdr10
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .drUnknown: return 0
+    case .drSdr: return 1
+    case .drHdr8: return 2
+    case .drHdr10: return 3
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_DynamicRange: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_DynamicRange] = [
+    .drUnknown,
+    .drSdr,
+    .drHdr8,
+    .drHdr10,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public enum Vmeta_ToneMapping: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
+
+  /// Unknown tone mapping 
+  case tmUnknown // = 0
+
+  /// Standard tone mapping 
+  case tmStandard // = 1
+
+  /// Parrot P-log tone mapping 
+  case tmPLog // = 2
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .tmUnknown
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .tmUnknown
+    case 1: self = .tmStandard
+    case 2: self = .tmPLog
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .tmUnknown: return 0
+    case .tmStandard: return 1
+    case .tmPLog: return 2
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Vmeta_ToneMapping: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Vmeta_ToneMapping] = [
+    .tmUnknown,
+    .tmStandard,
+    .tmPLog,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 /// Unit quaternion 
 public struct Vmeta_Quaternion {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -652,6 +1341,26 @@ public struct Vmeta_Quaternion {
   public var y: Float = 0
 
   public var z: Float = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+/// Euler angles 
+public struct Vmeta_Euler {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Same as psi 
+  public var yaw: Float = 0
+
+  /// Same as theta 
+  public var pitch: Float = 0
+
+  /// Same as phi 
+  public var roll: Float = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -738,6 +1447,27 @@ public struct Vmeta_NED {
   public init() {}
 }
 
+/// Rectangle (float) for normalized coordinates [0.0 .. 1.0] 
+public struct Vmeta_Rectf {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Position [0; 1] in picture 
+  public var x: Float = 0
+
+  public var y: Float = 0
+
+  /// Size [0; 1] in picture 
+  public var width: Float = 0
+
+  public var height: Float = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 /// Bounding box for tracking and proposal 
 public struct Vmeta_BoundingBox {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -775,18 +1505,190 @@ public struct Vmeta_ThermalSpot {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Position [0; 1] in picture 
+  /// Position [0; 1] in picture (-1 means unknown) 
   public var x: Float = 0
 
   public var y: Float = 0
 
-  /// Temperature, in either Kelvin for radiometric sensors,
-  /// or raw sensor unit for non-radiometric sensors 
+  /// Temperature in Kelvin for radiometric sensors (-1 means unknown) 
   public var temp: Float = 0
+
+  /// Temperature in raw sensor unit (unsigned 16-bit value;
+  /// -1 means unknown) 
+  public var value: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+}
+
+/// Photo metadata 
+public struct Vmeta_PhotoMetadata {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Exposure program 
+  public var exposureProgram: UInt32 {
+    get {return _storage._exposureProgram}
+    set {_uniqueStorage()._exposureProgram = newValue}
+  }
+
+  /// ISO speed 
+  public var isoSpeed: UInt32 {
+    get {return _storage._isoSpeed}
+    set {_uniqueStorage()._isoSpeed = newValue}
+  }
+
+  /// Exposure bias value (APEX) 
+  public var exposureBiasValue: Double {
+    get {return _storage._exposureBiasValue}
+    set {_uniqueStorage()._exposureBiasValue = newValue}
+  }
+
+  /// Metering mode 
+  public var meteringMode: UInt32 {
+    get {return _storage._meteringMode}
+    set {_uniqueStorage()._meteringMode = newValue}
+  }
+
+  /// Light source 
+  public var lightSource: UInt32 {
+    get {return _storage._lightSource}
+    set {_uniqueStorage()._lightSource = newValue}
+  }
+
+  /// Exposure mode 
+  public var exposureMode: UInt32 {
+    get {return _storage._exposureMode}
+    set {_uniqueStorage()._exposureMode = newValue}
+  }
+
+  /// White balance mode 
+  public var whiteBalance: UInt32 {
+    get {return _storage._whiteBalance}
+    set {_uniqueStorage()._whiteBalance = newValue}
+  }
+
+  /// Focal length (mm) 
+  public var focalLength: Double {
+    get {return _storage._focalLength}
+    set {_uniqueStorage()._focalLength = newValue}
+  }
+
+  /// Focal length in 35mm film (mm) 
+  public var focalLengthIn35MmFilm: Double {
+    get {return _storage._focalLengthIn35MmFilm}
+    set {_uniqueStorage()._focalLengthIn35MmFilm = newValue}
+  }
+
+  /// F-number 
+  public var fNumber: Float {
+    get {return _storage._fNumber}
+    set {_uniqueStorage()._fNumber = newValue}
+  }
+
+  /// Contrast processing 
+  public var contrast: UInt32 {
+    get {return _storage._contrast}
+    set {_uniqueStorage()._contrast = newValue}
+  }
+
+  /// Saturation processing 
+  public var saturation: UInt32 {
+    get {return _storage._saturation}
+    set {_uniqueStorage()._saturation = newValue}
+  }
+
+  /// Sharpness processing 
+  public var sharpness: UInt32 {
+    get {return _storage._sharpness}
+    set {_uniqueStorage()._sharpness = newValue}
+  }
+
+  /// Black level 
+  public var rawBlackLevel: UInt32 {
+    get {return _storage._rawBlackLevel}
+    set {_uniqueStorage()._rawBlackLevel = newValue}
+  }
+
+  /// White level 
+  public var rawWhiteLevel: UInt32 {
+    get {return _storage._rawWhiteLevel}
+    set {_uniqueStorage()._rawWhiteLevel = newValue}
+  }
+
+  /// Calibration illuminant 1 
+  public var calibrationIlluminant1: UInt32 {
+    get {return _storage._calibrationIlluminant1}
+    set {_uniqueStorage()._calibrationIlluminant1 = newValue}
+  }
+
+  /// ColorMatrix1: A 3x3 matrix defining the transformation from
+  /// CIE XYZ (D50) to the sensor's raw color space.
+  /// Matrix 1 (Tungsten/2850K): Optimized for warm light
+  /// and indoor scenes. 
+  public var colorMatrix1: [Double] {
+    get {return _storage._colorMatrix1}
+    set {_uniqueStorage()._colorMatrix1 = newValue}
+  }
+
+  /// Pixel X dimension 
+  public var pixelXDimension: Int32 {
+    get {return _storage._pixelXDimension}
+    set {_uniqueStorage()._pixelXDimension = newValue}
+  }
+
+  /// Pixel Y dimension 
+  public var pixelYDimension: Int32 {
+    get {return _storage._pixelYDimension}
+    set {_uniqueStorage()._pixelYDimension = newValue}
+  }
+
+  /// Focal plane X resolution 
+  public var focalPlaneXResolution: Double {
+    get {return _storage._focalPlaneXResolution}
+    set {_uniqueStorage()._focalPlaneXResolution = newValue}
+  }
+
+  /// Focal plane Y resolution 
+  public var focalPlaneYResolution: Double {
+    get {return _storage._focalPlaneYResolution}
+    set {_uniqueStorage()._focalPlaneYResolution = newValue}
+  }
+
+  /// Lens ID 
+  public var lensID: UInt32 {
+    get {return _storage._lensID}
+    set {_uniqueStorage()._lensID = newValue}
+  }
+
+  /// Unique media identifier of the photo; a media is a single or a group
+  /// of resources [1:N] (optional, can be 0) 
+  public var mediaID: UInt32 {
+    get {return _storage._mediaID}
+    set {_uniqueStorage()._mediaID = newValue}
+  }
+
+  /// Resource index of the photo in the media ID; a resource is a media
+  /// file named using a pattern and a supported extension
+  /// (optional, can be 0) 
+  public var resourceIndex: UInt32 {
+    get {return _storage._resourceIndex}
+    set {_uniqueStorage()._resourceIndex = newValue}
+  }
+
+  /// Sequence number in a group of photos (optional, can be 0) 
+  public var sequenceNumber: UInt32 {
+    get {return _storage._sequenceNumber}
+    set {_uniqueStorage()._sequenceNumber = newValue}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 public struct Vmeta_DroneMetadata {
@@ -818,6 +1720,12 @@ public struct Vmeta_DroneMetadata {
   public var groundDistance: Double {
     get {return _storage._groundDistance}
     set {_uniqueStorage()._groundDistance = newValue}
+  }
+
+  /// Altitude above take off (m) 
+  public var altitudeAto: Double {
+    get {return _storage._altitudeAto}
+    set {_uniqueStorage()._altitudeAto = newValue}
   }
 
   /// Estimated position of the drone in NED frame (m).
@@ -902,6 +1810,13 @@ public struct Vmeta_CameraMetadata {
     set {_uniqueStorage()._timestamp = newValue}
   }
 
+  /// Camera serial number; when not empty, this value overrides the one
+  /// from session metadata 
+  public var serialNumber: String {
+    get {return _storage._serialNumber}
+    set {_uniqueStorage()._serialNumber = newValue}
+  }
+
   /// Frame capture UTC timestamp (us since the Epoch) 
   public var utcTimestamp: UInt64 {
     get {return _storage._utcTimestamp}
@@ -925,7 +1840,7 @@ public struct Vmeta_CameraMetadata {
   /// Clears the value of `baseQuat`. Subsequent reads from it will return its default value.
   public mutating func clearBaseQuat() {_uniqueStorage()._baseQuat = nil}
 
-  /// Frame view quaternion 
+  /// Frame view quaternion in the global frame of reference (NED) 
   public var quat: Vmeta_Quaternion {
     get {return _storage._quat ?? Vmeta_Quaternion()}
     set {_uniqueStorage()._quat = newValue}
@@ -934,6 +1849,16 @@ public struct Vmeta_CameraMetadata {
   public var hasQuat: Bool {return _storage._quat != nil}
   /// Clears the value of `quat`. Subsequent reads from it will return its default value.
   public mutating func clearQuat() {_uniqueStorage()._quat = nil}
+
+  /// Frame view quaternion in the local frame of reference 
+  public var localQuat: Vmeta_Quaternion {
+    get {return _storage._localQuat ?? Vmeta_Quaternion()}
+    set {_uniqueStorage()._localQuat = newValue}
+  }
+  /// Returns true if `localQuat` has been explicitly set.
+  public var hasLocalQuat: Bool {return _storage._localQuat != nil}
+  /// Clears the value of `localQuat`. Subsequent reads from it will return its default value.
+  public mutating func clearLocalQuat() {_uniqueStorage()._localQuat = nil}
 
   /// Estimated position of the camera in the local frame (m).
   /// The local frame is not NED: X and Y axis are arbitrary, but the Z
@@ -1007,6 +1932,28 @@ public struct Vmeta_CameraMetadata {
   public var vfov: Float {
     get {return _storage._vfov}
     set {_uniqueStorage()._vfov = newValue}
+  }
+
+  /// Camera zoom level 
+  public var zoomLevel: Float {
+    get {return _storage._zoomLevel}
+    set {_uniqueStorage()._zoomLevel = newValue}
+  }
+
+  /// Camera spectrum; when not CS_UNKNOWN, this value overrides the one
+  /// from session metadata (e.g. in streamed video where thermal/visible
+  /// switches can occur) 
+  public var spectrum: Vmeta_CameraSpectrum {
+    get {return _storage._spectrum}
+    set {_uniqueStorage()._spectrum = newValue}
+  }
+
+  /// Camera subtype; when not CS_UNKNOWN, this value overrides the one
+  /// from session metadata  (e.g. in video where wide/tele zoom switches
+  /// can occur) 
+  public var subtype: Vmeta_CameraSubtype {
+    get {return _storage._subtype}
+    set {_uniqueStorage()._subtype = newValue}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -1247,45 +2194,56 @@ public struct Vmeta_ThermalMetadata {
   // methods supported on all messages.
 
   /// Thermal calibration state 
-  public var calibrationState: Vmeta_ThermalCalibrationState = .tcsDone
+  public var calibrationState: Vmeta_ThermalCalibrationState {
+    get {return _storage._calibrationState}
+    set {_uniqueStorage()._calibrationState = newValue}
+  }
 
   /// Minimum temperature spot 
   public var min: Vmeta_ThermalSpot {
-    get {return _min ?? Vmeta_ThermalSpot()}
-    set {_min = newValue}
+    get {return _storage._min ?? Vmeta_ThermalSpot()}
+    set {_uniqueStorage()._min = newValue}
   }
   /// Returns true if `min` has been explicitly set.
-  public var hasMin: Bool {return self._min != nil}
+  public var hasMin: Bool {return _storage._min != nil}
   /// Clears the value of `min`. Subsequent reads from it will return its default value.
-  public mutating func clearMin() {self._min = nil}
+  public mutating func clearMin() {_uniqueStorage()._min = nil}
 
   /// Maximum temperature spot 
   public var max: Vmeta_ThermalSpot {
-    get {return _max ?? Vmeta_ThermalSpot()}
-    set {_max = newValue}
+    get {return _storage._max ?? Vmeta_ThermalSpot()}
+    set {_uniqueStorage()._max = newValue}
   }
   /// Returns true if `max` has been explicitly set.
-  public var hasMax: Bool {return self._max != nil}
+  public var hasMax: Bool {return _storage._max != nil}
   /// Clears the value of `max`. Subsequent reads from it will return its default value.
-  public mutating func clearMax() {self._max = nil}
+  public mutating func clearMax() {_uniqueStorage()._max = nil}
 
   /// Probe temperature spot 
   public var probe: Vmeta_ThermalSpot {
-    get {return _probe ?? Vmeta_ThermalSpot()}
-    set {_probe = newValue}
+    get {return _storage._probe ?? Vmeta_ThermalSpot()}
+    set {_uniqueStorage()._probe = newValue}
   }
   /// Returns true if `probe` has been explicitly set.
-  public var hasProbe: Bool {return self._probe != nil}
+  public var hasProbe: Bool {return _storage._probe != nil}
   /// Clears the value of `probe`. Subsequent reads from it will return its default value.
-  public mutating func clearProbe() {self._probe = nil}
+  public mutating func clearProbe() {_uniqueStorage()._probe = nil}
+
+  /// Thermal mask 
+  public var mask: Vmeta_Rectf {
+    get {return _storage._mask ?? Vmeta_Rectf()}
+    set {_uniqueStorage()._mask = newValue}
+  }
+  /// Returns true if `mask` has been explicitly set.
+  public var hasMask: Bool {return _storage._mask != nil}
+  /// Clears the value of `mask`. Subsequent reads from it will return its default value.
+  public mutating func clearMask() {_uniqueStorage()._mask = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
-  fileprivate var _min: Vmeta_ThermalSpot? = nil
-  fileprivate var _max: Vmeta_ThermalSpot? = nil
-  fileprivate var _probe: Vmeta_ThermalSpot? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 public struct Vmeta_LFICMetadata {
@@ -1311,11 +2269,389 @@ public struct Vmeta_LFICMetadata {
   /// Grid precision used for calculation (m) 
   public var gridPrecision: Double = 0
 
+  /// Type of the LFIC 
+  public var type: Vmeta_LficType = .cot
+
+  /// Horizontal tangantial location accuracy (m), zero means unknown 
+  public var horizontalTangentialAccuracy: Float = 0
+
+  /// Horizontal radial location accuracy (m), zero means unknown 
+  public var horizontalRadialAccuracy: Float = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _location: Vmeta_Location? = nil
+}
+
+public struct Vmeta_UserMetadata {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Jenkins's one_at_a_time hash of the unique identifier of the
+  /// metadata producer; should be for example the UID of an
+  /// Air SDK mission (e.g. "com.parrot.missions.samples.hello") 
+  public var uidHash: UInt32 = 0
+
+  /// Associated frame capture timestamp (us, monotonic)
+  /// note: may be different from the timestamp in CameraMetadata 
+  public var timestamp: UInt64 = 0
+
+  /// User-defined metadata payload 
+  public var data: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Vmeta_CameraModel {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: Vmeta_CameraModel.OneOf_ID? = nil
+
+  public var perspective: Vmeta_CameraModel.PerspectiveCameraModel {
+    get {
+      if case .perspective(let v)? = id {return v}
+      return Vmeta_CameraModel.PerspectiveCameraModel()
+    }
+    set {id = .perspective(newValue)}
+  }
+
+  public var fisheye: Vmeta_CameraModel.FisheyeCameraModel {
+    get {
+      if case .fisheye(let v)? = id {return v}
+      return Vmeta_CameraModel.FisheyeCameraModel()
+    }
+    set {id = .fisheye(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_ID: Equatable {
+    case perspective(Vmeta_CameraModel.PerspectiveCameraModel)
+    case fisheye(Vmeta_CameraModel.FisheyeCameraModel)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: Vmeta_CameraModel.OneOf_ID, rhs: Vmeta_CameraModel.OneOf_ID) -> Bool {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch (lhs, rhs) {
+      case (.perspective, .perspective): return {
+        guard case .perspective(let l) = lhs, case .perspective(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      case (.fisheye, .fisheye): return {
+        guard case .fisheye(let l) = lhs, case .fisheye(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      default: return false
+      }
+    }
+  #endif
+  }
+
+  /// Perspective camera parameters 
+  public struct PerspectiveCameraModel {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var distorsion: Vmeta_CameraModel.PerspectiveCameraModel.Distorsion {
+      get {return _distorsion ?? Vmeta_CameraModel.PerspectiveCameraModel.Distorsion()}
+      set {_distorsion = newValue}
+    }
+    /// Returns true if `distorsion` has been explicitly set.
+    public var hasDistorsion: Bool {return self._distorsion != nil}
+    /// Clears the value of `distorsion`. Subsequent reads from it will return its default value.
+    public mutating func clearDistorsion() {self._distorsion = nil}
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    /// Perspective distortion parameters 
+    public struct Distorsion {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var r1: Float = 0
+
+      public var r2: Float = 0
+
+      public var r3: Float = 0
+
+      public var t1: Float = 0
+
+      public var t2: Float = 0
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public init() {}
+
+    fileprivate var _distorsion: Vmeta_CameraModel.PerspectiveCameraModel.Distorsion? = nil
+  }
+
+  /// Fisheye camera parameters 
+  public struct FisheyeCameraModel {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var affineMatrix: Vmeta_CameraModel.FisheyeCameraModel.AffineMatrix {
+      get {return _affineMatrix ?? Vmeta_CameraModel.FisheyeCameraModel.AffineMatrix()}
+      set {_affineMatrix = newValue}
+    }
+    /// Returns true if `affineMatrix` has been explicitly set.
+    public var hasAffineMatrix: Bool {return self._affineMatrix != nil}
+    /// Clears the value of `affineMatrix`. Subsequent reads from it will return its default value.
+    public mutating func clearAffineMatrix() {self._affineMatrix = nil}
+
+    public var polynomial: Vmeta_CameraModel.FisheyeCameraModel.Polynomial {
+      get {return _polynomial ?? Vmeta_CameraModel.FisheyeCameraModel.Polynomial()}
+      set {_polynomial = newValue}
+    }
+    /// Returns true if `polynomial` has been explicitly set.
+    public var hasPolynomial: Bool {return self._polynomial != nil}
+    /// Clears the value of `polynomial`. Subsequent reads from it will return its default value.
+    public mutating func clearPolynomial() {self._polynomial = nil}
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    /// Fisheye affine matrix coefficients 
+    public struct AffineMatrix {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var c: Float = 0
+
+      public var d: Float = 0
+
+      public var e: Float = 0
+
+      public var f: Float = 0
+
+      /// If symmetric affine matrix should be used 
+      public var symmetric: SwiftProtobuf.Google_Protobuf_BoolValue {
+        get {return _symmetric ?? SwiftProtobuf.Google_Protobuf_BoolValue()}
+        set {_symmetric = newValue}
+      }
+      /// Returns true if `symmetric` has been explicitly set.
+      public var hasSymmetric: Bool {return self._symmetric != nil}
+      /// Clears the value of `symmetric`. Subsequent reads from it will return its default value.
+      public mutating func clearSymmetric() {self._symmetric = nil}
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+
+      fileprivate var _symmetric: SwiftProtobuf.Google_Protobuf_BoolValue? = nil
+    }
+
+    /// Fisheye polynomial coefficients (note: p0 = 0 and p1 = 1) 
+    public struct Polynomial {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var p2: Float = 0
+
+      public var p3: Float = 0
+
+      public var p4: Float = 0
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public init() {}
+
+    fileprivate var _affineMatrix: Vmeta_CameraModel.FisheyeCameraModel.AffineMatrix? = nil
+    fileprivate var _polynomial: Vmeta_CameraModel.FisheyeCameraModel.Polynomial? = nil
+  }
+
+  public init() {}
+}
+
+public struct Vmeta_Overlay {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: Vmeta_Overlay.OneOf_ID? = nil
+
+  public var headerFooter: Vmeta_Overlay.HeaderFooter {
+    get {
+      if case .headerFooter(let v)? = id {return v}
+      return Vmeta_Overlay.HeaderFooter()
+    }
+    set {id = .headerFooter(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_ID: Equatable {
+    case headerFooter(Vmeta_Overlay.HeaderFooter)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: Vmeta_Overlay.OneOf_ID, rhs: Vmeta_Overlay.OneOf_ID) -> Bool {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch (lhs, rhs) {
+      case (.headerFooter, .headerFooter): return {
+        guard case .headerFooter(let l) = lhs, case .headerFooter(let r) = rhs else { preconditionFailure() }
+        return l == r
+      }()
+      }
+    }
+  #endif
+  }
+
+  /// Header-footer overlay type 
+  public struct HeaderFooter {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    /// Header height in percentage of the image 
+    public var headerHeight: Float = 0
+
+    /// Footer height in percentage of the image 
+    public var footerHeight: Float = 0
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public init() {}
+  }
+
+  public init() {}
+}
+
+public struct Vmeta_ThermalAlignment {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Visible camera orientation relative to the thermal camera,
+  /// order is yaw, pitch, roll 
+  public var rotation: Vmeta_Euler {
+    get {return _rotation ?? Vmeta_Euler()}
+    set {_rotation = newValue}
+  }
+  /// Returns true if `rotation` has been explicitly set.
+  public var hasRotation: Bool {return self._rotation != nil}
+  /// Clears the value of `rotation`. Subsequent reads from it will return its default value.
+  public mutating func clearRotation() {self._rotation = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _rotation: Vmeta_Euler? = nil
+}
+
+public struct Vmeta_ThermalConversion {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Camera temperature conversion responsivity parameter 
+  public var r: Float = 0
+
+  /// Camera temperature conversion B parameter 
+  public var b: Float = 0
+
+  /// Camera temperature conversion fit parameter 
+  public var f: Float = 0
+
+  /// Camera temperature conversion offset parameter 
+  public var o: Float = 0
+
+  /// Window transmission (0.0 .. 1.0) 
+  public var tauWin: Float = 0
+
+  /// Window temperature (in Celsius degrees) 
+  public var tWin: Float = 0
+
+  /// Scene background temperature (in Celsius degrees) 
+  public var tBg: Float = 0
+
+  /// Scene emissivity (0.0 .. 1.0) 
+  public var emissivity: Float = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Vmeta_ThermalSessionMetadata {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Thermal metadata version 
+  public var metaversion: UInt32 {
+    get {return _storage._metaversion}
+    set {_uniqueStorage()._metaversion = newValue}
+  }
+
+  /// Camera serial number 
+  public var cameraSerialNumber: String {
+    get {return _storage._cameraSerialNumber}
+    set {_uniqueStorage()._cameraSerialNumber = newValue}
+  }
+
+  /// Camera alignment parameters 
+  public var alignment: Vmeta_ThermalAlignment {
+    get {return _storage._alignment ?? Vmeta_ThermalAlignment()}
+    set {_uniqueStorage()._alignment = newValue}
+  }
+  /// Returns true if `alignment` has been explicitly set.
+  public var hasAlignment: Bool {return _storage._alignment != nil}
+  /// Clears the value of `alignment`. Subsequent reads from it will return its default value.
+  public mutating func clearAlignment() {_uniqueStorage()._alignment = nil}
+
+  /// Camera temperature conversion parameters (low gain) 
+  public var convLow: Vmeta_ThermalConversion {
+    get {return _storage._convLow ?? Vmeta_ThermalConversion()}
+    set {_uniqueStorage()._convLow = newValue}
+  }
+  /// Returns true if `convLow` has been explicitly set.
+  public var hasConvLow: Bool {return _storage._convLow != nil}
+  /// Clears the value of `convLow`. Subsequent reads from it will return its default value.
+  public mutating func clearConvLow() {_uniqueStorage()._convLow = nil}
+
+  /// Camera temperature conversion parameters (high gain) 
+  public var convHigh: Vmeta_ThermalConversion {
+    get {return _storage._convHigh ?? Vmeta_ThermalConversion()}
+    set {_uniqueStorage()._convHigh = newValue}
+  }
+  /// Returns true if `convHigh` has been explicitly set.
+  public var hasConvHigh: Bool {return _storage._convHigh != nil}
+  /// Clears the value of `convHigh`. Subsequent reads from it will return its default value.
+  public mutating func clearConvHigh() {_uniqueStorage()._convHigh = nil}
+
+  /// Camera scale factor 
+  public var scaleFactor: Double {
+    get {return _storage._scaleFactor}
+    set {_uniqueStorage()._scaleFactor = newValue}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 public struct Vmeta_TimedMetadata {
@@ -1390,14 +2726,26 @@ public struct Vmeta_TimedMetadata {
   public mutating func clearThermal() {_uniqueStorage()._thermal = nil}
 
   /// Location From Image Coordinates (LFIC) metadata 
-  public var lfic: Vmeta_LFICMetadata {
-    get {return _storage._lfic ?? Vmeta_LFICMetadata()}
+  public var lfic: [Vmeta_LFICMetadata] {
+    get {return _storage._lfic}
     set {_uniqueStorage()._lfic = newValue}
   }
-  /// Returns true if `lfic` has been explicitly set.
-  public var hasLfic: Bool {return _storage._lfic != nil}
-  /// Clears the value of `lfic`. Subsequent reads from it will return its default value.
-  public mutating func clearLfic() {_uniqueStorage()._lfic = nil}
+
+  /// User defined metadata 
+  public var user: [Vmeta_UserMetadata] {
+    get {return _storage._user}
+    set {_uniqueStorage()._user = newValue}
+  }
+
+  /// Photo-specific metadata 
+  public var photo: Vmeta_PhotoMetadata {
+    get {return _storage._photo ?? Vmeta_PhotoMetadata()}
+    set {_uniqueStorage()._photo = newValue}
+  }
+  /// Returns true if `photo` has been explicitly set.
+  public var hasPhoto: Bool {return _storage._photo != nil}
+  /// Clears the value of `photo`. Subsequent reads from it will return its default value.
+  public mutating func clearPhoto() {_uniqueStorage()._photo = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1406,36 +2754,303 @@ public struct Vmeta_TimedMetadata {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-#if swift(>=5.5) && canImport(_Concurrency)
-extension Vmeta_TrackingClass: @unchecked Sendable {}
-extension Vmeta_TrackingState: @unchecked Sendable {}
-extension Vmeta_FlyingState: @unchecked Sendable {}
-extension Vmeta_PilotingMode: @unchecked Sendable {}
-extension Vmeta_Animation: @unchecked Sendable {}
-extension Vmeta_LinkType: @unchecked Sendable {}
-extension Vmeta_LinkStatus: @unchecked Sendable {}
-extension Vmeta_ThermalCalibrationState: @unchecked Sendable {}
-extension Vmeta_Quaternion: @unchecked Sendable {}
-extension Vmeta_Location: @unchecked Sendable {}
-extension Vmeta_Vector2: @unchecked Sendable {}
-extension Vmeta_Vector3: @unchecked Sendable {}
-extension Vmeta_NED: @unchecked Sendable {}
-extension Vmeta_BoundingBox: @unchecked Sendable {}
-extension Vmeta_ThermalSpot: @unchecked Sendable {}
-extension Vmeta_DroneMetadata: @unchecked Sendable {}
-extension Vmeta_CameraMetadata: @unchecked Sendable {}
-extension Vmeta_TrackingProposalMetadata: @unchecked Sendable {}
-extension Vmeta_TrackingMetadata: @unchecked Sendable {}
-extension Vmeta_AutomationMetadata: @unchecked Sendable {}
-extension Vmeta_WifiLinkMetadata: @unchecked Sendable {}
-extension Vmeta_StarfishLinkInfo: @unchecked Sendable {}
-extension Vmeta_StarfishLinkMetadata: @unchecked Sendable {}
-extension Vmeta_LinkMetadata: @unchecked Sendable {}
-extension Vmeta_LinkMetadata.OneOf_Protocol: @unchecked Sendable {}
-extension Vmeta_ThermalMetadata: @unchecked Sendable {}
-extension Vmeta_LFICMetadata: @unchecked Sendable {}
-extension Vmeta_TimedMetadata: @unchecked Sendable {}
-#endif  // swift(>=5.5) && canImport(_Concurrency)
+public struct Vmeta_SessionMetadata {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Friendly name (generally the same as the wifi SSID) 
+  public var friendlyName: String {
+    get {return _storage._friendlyName}
+    set {_uniqueStorage()._friendlyName = newValue}
+  }
+
+  /// Product maker (brand name, eg. "Parrot") 
+  public var maker: String {
+    get {return _storage._maker}
+    set {_uniqueStorage()._maker = newValue}
+  }
+
+  /// Product model (commercial name, eg. "ANAFI Ai") 
+  public var model: String {
+    get {return _storage._model}
+    set {_uniqueStorage()._model = newValue}
+  }
+
+  /// Model ID (ARSDK 16-bit model ID in hex ASCII, eg. "091a") 
+  public var modelID: String {
+    get {return _storage._modelID}
+    set {_uniqueStorage()._modelID = newValue}
+  }
+
+  /// Product serial number (18 chars string for Parrot products) 
+  public var serialNumber: String {
+    get {return _storage._serialNumber}
+    set {_uniqueStorage()._serialNumber = newValue}
+  }
+
+  /// Software version (usually "<software_name> A.B.C"
+  /// with A=major, B=minor, C=build) 
+  public var softwareVersion: String {
+    get {return _storage._softwareVersion}
+    set {_uniqueStorage()._softwareVersion = newValue}
+  }
+
+  /// Software build ID (internal unique build identifier) 
+  public var buildID: String {
+    get {return _storage._buildID}
+    set {_uniqueStorage()._buildID = newValue}
+  }
+
+  /// Video title 
+  public var title: String {
+    get {return _storage._title}
+    set {_uniqueStorage()._title = newValue}
+  }
+
+  /// Video comment 
+  public var comment: String {
+    get {return _storage._comment}
+    set {_uniqueStorage()._comment = newValue}
+  }
+
+  /// Video copyright 
+  public var copyright: String {
+    get {return _storage._copyright}
+    set {_uniqueStorage()._copyright = newValue}
+  }
+
+  /// Media date and time in seconds since the Epoch
+  /// (record only, unused on live streaming) 
+  public var mediaDate: UInt64 {
+    get {return _storage._mediaDate}
+    set {_uniqueStorage()._mediaDate = newValue}
+  }
+
+  /// Media date GMT offset in seconds east (eg. GMT-6 is -21600)
+  /// (record only, unused on live streaming) 
+  public var mediaDateGmtoff: Int32 {
+    get {return _storage._mediaDateGmtoff}
+    set {_uniqueStorage()._mediaDateGmtoff = newValue}
+  }
+
+  /// Boot date and time in seconds since the Epoch 
+  public var bootDate: UInt64 {
+    get {return _storage._bootDate}
+    set {_uniqueStorage()._bootDate = newValue}
+  }
+
+  /// Boot date GMT offset in seconds east (eg. GMT-6 is -21600) 
+  public var bootDateGmtoff: Int32 {
+    get {return _storage._bootDateGmtoff}
+    set {_uniqueStorage()._bootDateGmtoff = newValue}
+  }
+
+  /// Boot UUID (32-chars hex string representing a 128bits value) 
+  public var bootID: String {
+    get {return _storage._bootID}
+    set {_uniqueStorage()._bootID = newValue}
+  }
+
+  /// Flight date and time in seconds since the Epoch 
+  public var flightDate: UInt64 {
+    get {return _storage._flightDate}
+    set {_uniqueStorage()._flightDate = newValue}
+  }
+
+  /// Flight date GMT offset in seconds east (eg. GMT-6 is -21600) 
+  public var flightDateGmtoff: Int32 {
+    get {return _storage._flightDateGmtoff}
+    set {_uniqueStorage()._flightDateGmtoff = newValue}
+  }
+
+  /// Flight UUID (32-chars hex string representing a 128bits value) 
+  public var flightID: String {
+    get {return _storage._flightID}
+    set {_uniqueStorage()._flightID = newValue}
+  }
+
+  /// Application-defined custom ID 
+  public var customID: String {
+    get {return _storage._customID}
+    set {_uniqueStorage()._customID = newValue}
+  }
+
+  /// Takeoff location 
+  public var takeoffLocation: Vmeta_Location {
+    get {return _storage._takeoffLocation ?? Vmeta_Location()}
+    set {_uniqueStorage()._takeoffLocation = newValue}
+  }
+  /// Returns true if `takeoffLocation` has been explicitly set.
+  public var hasTakeoffLocation: Bool {return _storage._takeoffLocation != nil}
+  /// Clears the value of `takeoffLocation`. Subsequent reads from it will return its default value.
+  public mutating func clearTakeoffLocation() {_uniqueStorage()._takeoffLocation = nil}
+
+  /// Picture field of view in rad 
+  public var pictureFov: Vmeta_Vector2 {
+    get {return _storage._pictureFov ?? Vmeta_Vector2()}
+    set {_uniqueStorage()._pictureFov = newValue}
+  }
+  /// Returns true if `pictureFov` has been explicitly set.
+  public var hasPictureFov: Bool {return _storage._pictureFov != nil}
+  /// Clears the value of `pictureFov`. Subsequent reads from it will return its default value.
+  public mutating func clearPictureFov() {_uniqueStorage()._pictureFov = nil}
+
+  /// Thermal camera metadata 
+  public var thermal: Vmeta_ThermalSessionMetadata {
+    get {return _storage._thermal ?? Vmeta_ThermalSessionMetadata()}
+    set {_uniqueStorage()._thermal = newValue}
+  }
+  /// Returns true if `thermal` has been explicitly set.
+  public var hasThermal: Bool {return _storage._thermal != nil}
+  /// Clears the value of `thermal`. Subsequent reads from it will return its default value.
+  public mutating func clearThermal() {_uniqueStorage()._thermal = nil}
+
+  /// Default media flag (only used in SDP) 
+  public var defaultMedia: Bool {
+    get {return _storage._defaultMedia}
+    set {_uniqueStorage()._defaultMedia = newValue}
+  }
+
+  /// Camera type 
+  public var cameraType: Vmeta_CameraType {
+    get {return _storage._cameraType}
+    set {_uniqueStorage()._cameraType = newValue}
+  }
+
+  /// Camera subtype 
+  public var cameraSubtype: Vmeta_CameraSubtype {
+    get {return _storage._cameraSubtype}
+    set {_uniqueStorage()._cameraSubtype = newValue}
+  }
+
+  /// Camera spectrum 
+  public var cameraSpectrum: Vmeta_CameraSpectrum {
+    get {return _storage._cameraSpectrum}
+    set {_uniqueStorage()._cameraSpectrum = newValue}
+  }
+
+  /// Camera serial number (18 chars string for Parrot products) 
+  public var cameraSerialNumber: String {
+    get {return _storage._cameraSerialNumber}
+    set {_uniqueStorage()._cameraSerialNumber = newValue}
+  }
+
+  /// Camera model 
+  public var cameraModel: Vmeta_CameraModel {
+    get {return _storage._cameraModel ?? Vmeta_CameraModel()}
+    set {_uniqueStorage()._cameraModel = newValue}
+  }
+  /// Returns true if `cameraModel` has been explicitly set.
+  public var hasCameraModel: Bool {return _storage._cameraModel != nil}
+  /// Clears the value of `cameraModel`. Subsequent reads from it will return its default value.
+  public mutating func clearCameraModel() {_uniqueStorage()._cameraModel = nil}
+
+  /// Overlay 
+  public var overlay: Vmeta_Overlay {
+    get {return _storage._overlay ?? Vmeta_Overlay()}
+    set {_uniqueStorage()._overlay = newValue}
+  }
+  /// Returns true if `overlay` has been explicitly set.
+  public var hasOverlay: Bool {return _storage._overlay != nil}
+  /// Clears the value of `overlay`. Subsequent reads from it will return its default value.
+  public mutating func clearOverlay() {_uniqueStorage()._overlay = nil}
+
+  /// Camera principal point.
+  /// Normalized coordinates in picture [0; 1] for video;
+  /// In mm for photo 
+  public var principalPoint: Vmeta_Vector2 {
+    get {return _storage._principalPoint ?? Vmeta_Vector2()}
+    set {_uniqueStorage()._principalPoint = newValue}
+  }
+  /// Returns true if `principalPoint` has been explicitly set.
+  public var hasPrincipalPoint: Bool {return _storage._principalPoint != nil}
+  /// Clears the value of `principalPoint`. Subsequent reads from it will return its default value.
+  public mutating func clearPrincipalPoint() {_uniqueStorage()._principalPoint = nil}
+
+  /// Video mode 
+  public var videoMode: Vmeta_VideoMode {
+    get {return _storage._videoMode}
+    set {_uniqueStorage()._videoMode = newValue}
+  }
+
+  /// Video stop reason 
+  public var videoStopReason: Vmeta_VideoStopReason {
+    get {return _storage._videoStopReason}
+    set {_uniqueStorage()._videoStopReason = newValue}
+  }
+
+  /// Photo mode 
+  public var photoMode: Vmeta_PhotoMode {
+    get {return _storage._photoMode}
+    set {_uniqueStorage()._photoMode = newValue}
+  }
+
+  /// Panorama type 
+  public var panoramaType: Vmeta_PanoramaType {
+    get {return _storage._panoramaType}
+    set {_uniqueStorage()._panoramaType = newValue}
+  }
+
+  /// Expected number of photos in the sequence 
+  public var photoCount: UInt32 {
+    get {return _storage._photoCount}
+    set {_uniqueStorage()._photoCount = newValue}
+  }
+
+  /// Common name of the drone certificate used to sign the picture file 
+  public var secureCn: String {
+    get {return _storage._secureCn}
+    set {_uniqueStorage()._secureCn = newValue}
+  }
+
+  /// Image dynamic range 
+  public var dynamicRange: Vmeta_DynamicRange {
+    get {return _storage._dynamicRange}
+    set {_uniqueStorage()._dynamicRange = newValue}
+  }
+
+  /// Image tone mapping 
+  public var toneMapping: Vmeta_ToneMapping {
+    get {return _storage._toneMapping}
+    set {_uniqueStorage()._toneMapping = newValue}
+  }
+
+  /// Capture timestamp of the first frame (optional, can be 0; can be used
+  /// for example on raw video to compute the frame capture timestamps) 
+  public var firstFrameCaptureTs: UInt64 {
+    get {return _storage._firstFrameCaptureTs}
+    set {_uniqueStorage()._firstFrameCaptureTs = newValue}
+  }
+
+  /// Sample index of the first frame (optional, can be 0; can be used
+  /// for example on raw video to compute the frame capture timestamps) 
+  public var firstFrameSampleIndex: UInt64 {
+    get {return _storage._firstFrameSampleIndex}
+    set {_uniqueStorage()._firstFrameSampleIndex = newValue}
+  }
+
+  /// Unique media identifier of the video; a media is a single or a group
+  /// of resources [1:N] (optional, can be 0) 
+  public var mediaID: UInt32 {
+    get {return _storage._mediaID}
+    set {_uniqueStorage()._mediaID = newValue}
+  }
+
+  /// Resource index of the video in the media ID; a resource is a media
+  /// file named using a pattern and a supported extension
+  /// (optional, can be 0) 
+  public var resourceIndex: UInt32 {
+    get {return _storage._resourceIndex}
+    set {_uniqueStorage()._resourceIndex = newValue}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
@@ -1458,6 +3073,7 @@ extension Vmeta_TrackingState: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "TS_TRACKING"),
     1: .same(proto: "TS_SEARCHING"),
+    2: .same(proto: "TS_PAUSE"),
   ]
 }
 
@@ -1518,6 +3134,13 @@ extension Vmeta_LinkType: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Vmeta_LficType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "LFIC_TYPE_COT"),
+    1: .same(proto: "LFIC_TYPE_USER"),
+  ]
+}
+
 extension Vmeta_LinkStatus: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "LINK_STATUS_DOWN"),
@@ -1534,6 +3157,109 @@ extension Vmeta_ThermalCalibrationState: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "TCS_DONE"),
     1: .same(proto: "TCS_REQUESTED"),
     2: .same(proto: "TCS_IN_PROGRESS"),
+  ]
+}
+
+extension Vmeta_CameraSpectrum: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "CS_UNKNOWN"),
+    1: .same(proto: "CS_VISIBLE"),
+    2: .same(proto: "CS_BLENDED"),
+    3: .same(proto: "CS_THERMAL"),
+  ]
+}
+
+extension Vmeta_CameraType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "CT_UNKNOWN"),
+    1: .same(proto: "CT_FRONT"),
+    2: .same(proto: "CT_FRONT_STEREO_LEFT"),
+    3: .same(proto: "CT_FRONT_STEREO_RIGHT"),
+    4: .same(proto: "CT_VERTICAL"),
+    5: .same(proto: "CT_DISPARITY"),
+    6: .same(proto: "CT_HORIZONTAL_STEREO_LEFT"),
+    7: .same(proto: "CT_HORIZONTAL_STEREO_RIGHT"),
+    8: .same(proto: "CT_DOWN_STEREO_LEFT"),
+    9: .same(proto: "CT_DOWN_STEREO_RIGHT"),
+    10: .same(proto: "CT_FRONT_STEREO"),
+    11: .same(proto: "CT_HORIZONTAL_STEREO"),
+    12: .same(proto: "CT_DOWN_STEREO"),
+    13: .same(proto: "CT_EXTERNAL"),
+  ]
+}
+
+extension Vmeta_CameraSubtype: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "CST_UNKNOWN"),
+    1: .same(proto: "CST_LEFT"),
+    2: .same(proto: "CST_RIGHT"),
+    3: .same(proto: "CST_WIDE"),
+    4: .same(proto: "CST_TELE"),
+    5: .same(proto: "CST_DISPARITY"),
+    6: .same(proto: "CST_DEPTH"),
+  ]
+}
+
+extension Vmeta_VideoMode: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "VM_UNKNOWN"),
+    1: .same(proto: "VM_STANDARD"),
+    2: .same(proto: "VM_HYPERLAPSE"),
+    3: .same(proto: "VM_SLOWMOTION"),
+    4: .same(proto: "VM_STREAMREC"),
+  ]
+}
+
+extension Vmeta_VideoStopReason: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "VSR_UNKNOWN"),
+    1: .same(proto: "VSR_USER"),
+    2: .same(proto: "VSR_RECONFIGURATION"),
+    3: .same(proto: "VSR_POOR_STORAGE_PERF"),
+    4: .same(proto: "VSR_STORAGE_FULL"),
+    5: .same(proto: "VSR_RECOVERY"),
+    6: .same(proto: "VSR_END_OF_STREAM"),
+    7: .same(proto: "VSR_SHUTDOWN"),
+    8: .same(proto: "VSR_INTERNAL_ERROR"),
+  ]
+}
+
+extension Vmeta_PhotoMode: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "PHOTO_MODE_UNKNOWN"),
+    1: .same(proto: "PM_SINGLE"),
+    2: .same(proto: "PM_BRACKETING"),
+    3: .same(proto: "PM_BURST"),
+    4: .same(proto: "PM_TIMELAPSE"),
+    5: .same(proto: "PM_GPSLAPSE"),
+  ]
+}
+
+extension Vmeta_PanoramaType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "PT_UNKNOWN"),
+    1: .same(proto: "PT_NONE"),
+    2: .same(proto: "PT_HORIZONTAL_180"),
+    3: .same(proto: "PT_VERTICAL_180"),
+    4: .same(proto: "PT_SPHERICAL"),
+    5: .same(proto: "PT_SUPER_WIDE"),
+  ]
+}
+
+extension Vmeta_DynamicRange: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "DR_UNKNOWN"),
+    1: .same(proto: "DR_SDR"),
+    2: .same(proto: "DR_HDR8"),
+    3: .same(proto: "DR_HDR10"),
+  ]
+}
+
+extension Vmeta_ToneMapping: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "TM_UNKNOWN"),
+    1: .same(proto: "TM_STANDARD"),
+    2: .same(proto: "TM_P_LOG"),
   ]
 }
 
@@ -1582,6 +3308,50 @@ extension Vmeta_Quaternion: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if lhs.x != rhs.x {return false}
     if lhs.y != rhs.y {return false}
     if lhs.z != rhs.z {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_Euler: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Euler"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "yaw"),
+    2: .same(proto: "pitch"),
+    3: .same(proto: "roll"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularFloatField(value: &self.yaw) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.pitch) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.roll) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.yaw != 0 {
+      try visitor.visitSingularFloatField(value: self.yaw, fieldNumber: 1)
+    }
+    if self.pitch != 0 {
+      try visitor.visitSingularFloatField(value: self.pitch, fieldNumber: 2)
+    }
+    if self.roll != 0 {
+      try visitor.visitSingularFloatField(value: self.roll, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_Euler, rhs: Vmeta_Euler) -> Bool {
+    if lhs.yaw != rhs.yaw {return false}
+    if lhs.pitch != rhs.pitch {return false}
+    if lhs.roll != rhs.roll {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1781,6 +3551,56 @@ extension Vmeta_NED: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
   }
 }
 
+extension Vmeta_Rectf: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Rectf"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "x"),
+    2: .same(proto: "y"),
+    3: .same(proto: "width"),
+    4: .same(proto: "height"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularFloatField(value: &self.x) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.y) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.width) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.height) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.x != 0 {
+      try visitor.visitSingularFloatField(value: self.x, fieldNumber: 1)
+    }
+    if self.y != 0 {
+      try visitor.visitSingularFloatField(value: self.y, fieldNumber: 2)
+    }
+    if self.width != 0 {
+      try visitor.visitSingularFloatField(value: self.width, fieldNumber: 3)
+    }
+    if self.height != 0 {
+      try visitor.visitSingularFloatField(value: self.height, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_Rectf, rhs: Vmeta_Rectf) -> Bool {
+    if lhs.x != rhs.x {return false}
+    if lhs.y != rhs.y {return false}
+    if lhs.width != rhs.width {return false}
+    if lhs.height != rhs.height {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Vmeta_BoundingBox: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".BoundingBox"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -1855,6 +3675,7 @@ extension Vmeta_ThermalSpot: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     1: .same(proto: "x"),
     2: .same(proto: "y"),
     3: .same(proto: "temp"),
+    4: .same(proto: "value"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1866,6 +3687,7 @@ extension Vmeta_ThermalSpot: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 1: try { try decoder.decodeSingularFloatField(value: &self.x) }()
       case 2: try { try decoder.decodeSingularFloatField(value: &self.y) }()
       case 3: try { try decoder.decodeSingularFloatField(value: &self.temp) }()
+      case 4: try { try decoder.decodeSingularInt32Field(value: &self.value) }()
       default: break
       }
     }
@@ -1881,6 +3703,9 @@ extension Vmeta_ThermalSpot: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if self.temp != 0 {
       try visitor.visitSingularFloatField(value: self.temp, fieldNumber: 3)
     }
+    if self.value != 0 {
+      try visitor.visitSingularInt32Field(value: self.value, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1888,6 +3713,263 @@ extension Vmeta_ThermalSpot: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.x != rhs.x {return false}
     if lhs.y != rhs.y {return false}
     if lhs.temp != rhs.temp {return false}
+    if lhs.value != rhs.value {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_PhotoMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PhotoMetadata"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "exposure_program"),
+    2: .standard(proto: "iso_speed"),
+    3: .standard(proto: "exposure_bias_value"),
+    4: .standard(proto: "metering_mode"),
+    5: .standard(proto: "light_source"),
+    6: .standard(proto: "exposure_mode"),
+    7: .standard(proto: "white_balance"),
+    8: .standard(proto: "focal_length"),
+    9: .standard(proto: "focal_length_in_35mm_film"),
+    10: .standard(proto: "f_number"),
+    11: .same(proto: "contrast"),
+    12: .same(proto: "saturation"),
+    13: .same(proto: "sharpness"),
+    14: .standard(proto: "raw_black_level"),
+    15: .standard(proto: "raw_white_level"),
+    16: .standard(proto: "calibration_illuminant_1"),
+    17: .standard(proto: "color_matrix_1"),
+    18: .standard(proto: "pixel_x_dimension"),
+    19: .standard(proto: "pixel_y_dimension"),
+    20: .standard(proto: "focal_plane_x_resolution"),
+    21: .standard(proto: "focal_plane_y_resolution"),
+    22: .standard(proto: "lens_id"),
+    23: .standard(proto: "media_id"),
+    24: .standard(proto: "resource_index"),
+    25: .standard(proto: "sequence_number"),
+  ]
+
+  fileprivate class _StorageClass {
+    var _exposureProgram: UInt32 = 0
+    var _isoSpeed: UInt32 = 0
+    var _exposureBiasValue: Double = 0
+    var _meteringMode: UInt32 = 0
+    var _lightSource: UInt32 = 0
+    var _exposureMode: UInt32 = 0
+    var _whiteBalance: UInt32 = 0
+    var _focalLength: Double = 0
+    var _focalLengthIn35MmFilm: Double = 0
+    var _fNumber: Float = 0
+    var _contrast: UInt32 = 0
+    var _saturation: UInt32 = 0
+    var _sharpness: UInt32 = 0
+    var _rawBlackLevel: UInt32 = 0
+    var _rawWhiteLevel: UInt32 = 0
+    var _calibrationIlluminant1: UInt32 = 0
+    var _colorMatrix1: [Double] = []
+    var _pixelXDimension: Int32 = 0
+    var _pixelYDimension: Int32 = 0
+    var _focalPlaneXResolution: Double = 0
+    var _focalPlaneYResolution: Double = 0
+    var _lensID: UInt32 = 0
+    var _mediaID: UInt32 = 0
+    var _resourceIndex: UInt32 = 0
+    var _sequenceNumber: UInt32 = 0
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _exposureProgram = source._exposureProgram
+      _isoSpeed = source._isoSpeed
+      _exposureBiasValue = source._exposureBiasValue
+      _meteringMode = source._meteringMode
+      _lightSource = source._lightSource
+      _exposureMode = source._exposureMode
+      _whiteBalance = source._whiteBalance
+      _focalLength = source._focalLength
+      _focalLengthIn35MmFilm = source._focalLengthIn35MmFilm
+      _fNumber = source._fNumber
+      _contrast = source._contrast
+      _saturation = source._saturation
+      _sharpness = source._sharpness
+      _rawBlackLevel = source._rawBlackLevel
+      _rawWhiteLevel = source._rawWhiteLevel
+      _calibrationIlluminant1 = source._calibrationIlluminant1
+      _colorMatrix1 = source._colorMatrix1
+      _pixelXDimension = source._pixelXDimension
+      _pixelYDimension = source._pixelYDimension
+      _focalPlaneXResolution = source._focalPlaneXResolution
+      _focalPlaneYResolution = source._focalPlaneYResolution
+      _lensID = source._lensID
+      _mediaID = source._mediaID
+      _resourceIndex = source._resourceIndex
+      _sequenceNumber = source._sequenceNumber
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularUInt32Field(value: &_storage._exposureProgram) }()
+        case 2: try { try decoder.decodeSingularUInt32Field(value: &_storage._isoSpeed) }()
+        case 3: try { try decoder.decodeSingularDoubleField(value: &_storage._exposureBiasValue) }()
+        case 4: try { try decoder.decodeSingularUInt32Field(value: &_storage._meteringMode) }()
+        case 5: try { try decoder.decodeSingularUInt32Field(value: &_storage._lightSource) }()
+        case 6: try { try decoder.decodeSingularUInt32Field(value: &_storage._exposureMode) }()
+        case 7: try { try decoder.decodeSingularUInt32Field(value: &_storage._whiteBalance) }()
+        case 8: try { try decoder.decodeSingularDoubleField(value: &_storage._focalLength) }()
+        case 9: try { try decoder.decodeSingularDoubleField(value: &_storage._focalLengthIn35MmFilm) }()
+        case 10: try { try decoder.decodeSingularFloatField(value: &_storage._fNumber) }()
+        case 11: try { try decoder.decodeSingularUInt32Field(value: &_storage._contrast) }()
+        case 12: try { try decoder.decodeSingularUInt32Field(value: &_storage._saturation) }()
+        case 13: try { try decoder.decodeSingularUInt32Field(value: &_storage._sharpness) }()
+        case 14: try { try decoder.decodeSingularUInt32Field(value: &_storage._rawBlackLevel) }()
+        case 15: try { try decoder.decodeSingularUInt32Field(value: &_storage._rawWhiteLevel) }()
+        case 16: try { try decoder.decodeSingularUInt32Field(value: &_storage._calibrationIlluminant1) }()
+        case 17: try { try decoder.decodeRepeatedDoubleField(value: &_storage._colorMatrix1) }()
+        case 18: try { try decoder.decodeSingularInt32Field(value: &_storage._pixelXDimension) }()
+        case 19: try { try decoder.decodeSingularInt32Field(value: &_storage._pixelYDimension) }()
+        case 20: try { try decoder.decodeSingularDoubleField(value: &_storage._focalPlaneXResolution) }()
+        case 21: try { try decoder.decodeSingularDoubleField(value: &_storage._focalPlaneYResolution) }()
+        case 22: try { try decoder.decodeSingularUInt32Field(value: &_storage._lensID) }()
+        case 23: try { try decoder.decodeSingularUInt32Field(value: &_storage._mediaID) }()
+        case 24: try { try decoder.decodeSingularUInt32Field(value: &_storage._resourceIndex) }()
+        case 25: try { try decoder.decodeSingularUInt32Field(value: &_storage._sequenceNumber) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      if _storage._exposureProgram != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._exposureProgram, fieldNumber: 1)
+      }
+      if _storage._isoSpeed != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._isoSpeed, fieldNumber: 2)
+      }
+      if _storage._exposureBiasValue != 0 {
+        try visitor.visitSingularDoubleField(value: _storage._exposureBiasValue, fieldNumber: 3)
+      }
+      if _storage._meteringMode != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._meteringMode, fieldNumber: 4)
+      }
+      if _storage._lightSource != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._lightSource, fieldNumber: 5)
+      }
+      if _storage._exposureMode != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._exposureMode, fieldNumber: 6)
+      }
+      if _storage._whiteBalance != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._whiteBalance, fieldNumber: 7)
+      }
+      if _storage._focalLength != 0 {
+        try visitor.visitSingularDoubleField(value: _storage._focalLength, fieldNumber: 8)
+      }
+      if _storage._focalLengthIn35MmFilm != 0 {
+        try visitor.visitSingularDoubleField(value: _storage._focalLengthIn35MmFilm, fieldNumber: 9)
+      }
+      if _storage._fNumber != 0 {
+        try visitor.visitSingularFloatField(value: _storage._fNumber, fieldNumber: 10)
+      }
+      if _storage._contrast != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._contrast, fieldNumber: 11)
+      }
+      if _storage._saturation != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._saturation, fieldNumber: 12)
+      }
+      if _storage._sharpness != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._sharpness, fieldNumber: 13)
+      }
+      if _storage._rawBlackLevel != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._rawBlackLevel, fieldNumber: 14)
+      }
+      if _storage._rawWhiteLevel != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._rawWhiteLevel, fieldNumber: 15)
+      }
+      if _storage._calibrationIlluminant1 != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._calibrationIlluminant1, fieldNumber: 16)
+      }
+      if !_storage._colorMatrix1.isEmpty {
+        try visitor.visitPackedDoubleField(value: _storage._colorMatrix1, fieldNumber: 17)
+      }
+      if _storage._pixelXDimension != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._pixelXDimension, fieldNumber: 18)
+      }
+      if _storage._pixelYDimension != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._pixelYDimension, fieldNumber: 19)
+      }
+      if _storage._focalPlaneXResolution != 0 {
+        try visitor.visitSingularDoubleField(value: _storage._focalPlaneXResolution, fieldNumber: 20)
+      }
+      if _storage._focalPlaneYResolution != 0 {
+        try visitor.visitSingularDoubleField(value: _storage._focalPlaneYResolution, fieldNumber: 21)
+      }
+      if _storage._lensID != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._lensID, fieldNumber: 22)
+      }
+      if _storage._mediaID != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._mediaID, fieldNumber: 23)
+      }
+      if _storage._resourceIndex != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._resourceIndex, fieldNumber: 24)
+      }
+      if _storage._sequenceNumber != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._sequenceNumber, fieldNumber: 25)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_PhotoMetadata, rhs: Vmeta_PhotoMetadata) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._exposureProgram != rhs_storage._exposureProgram {return false}
+        if _storage._isoSpeed != rhs_storage._isoSpeed {return false}
+        if _storage._exposureBiasValue != rhs_storage._exposureBiasValue {return false}
+        if _storage._meteringMode != rhs_storage._meteringMode {return false}
+        if _storage._lightSource != rhs_storage._lightSource {return false}
+        if _storage._exposureMode != rhs_storage._exposureMode {return false}
+        if _storage._whiteBalance != rhs_storage._whiteBalance {return false}
+        if _storage._focalLength != rhs_storage._focalLength {return false}
+        if _storage._focalLengthIn35MmFilm != rhs_storage._focalLengthIn35MmFilm {return false}
+        if _storage._fNumber != rhs_storage._fNumber {return false}
+        if _storage._contrast != rhs_storage._contrast {return false}
+        if _storage._saturation != rhs_storage._saturation {return false}
+        if _storage._sharpness != rhs_storage._sharpness {return false}
+        if _storage._rawBlackLevel != rhs_storage._rawBlackLevel {return false}
+        if _storage._rawWhiteLevel != rhs_storage._rawWhiteLevel {return false}
+        if _storage._calibrationIlluminant1 != rhs_storage._calibrationIlluminant1 {return false}
+        if _storage._colorMatrix1 != rhs_storage._colorMatrix1 {return false}
+        if _storage._pixelXDimension != rhs_storage._pixelXDimension {return false}
+        if _storage._pixelYDimension != rhs_storage._pixelYDimension {return false}
+        if _storage._focalPlaneXResolution != rhs_storage._focalPlaneXResolution {return false}
+        if _storage._focalPlaneYResolution != rhs_storage._focalPlaneYResolution {return false}
+        if _storage._lensID != rhs_storage._lensID {return false}
+        if _storage._mediaID != rhs_storage._mediaID {return false}
+        if _storage._resourceIndex != rhs_storage._resourceIndex {return false}
+        if _storage._sequenceNumber != rhs_storage._sequenceNumber {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1899,6 +3981,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     1: .same(proto: "quat"),
     2: .same(proto: "location"),
     3: .standard(proto: "ground_distance"),
+    13: .standard(proto: "altitude_ato"),
     9: .same(proto: "position"),
     10: .standard(proto: "local_position"),
     4: .same(proto: "speed"),
@@ -1912,6 +3995,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     var _quat: Vmeta_Quaternion? = nil
     var _location: Vmeta_Location? = nil
     var _groundDistance: Double = 0
+    var _altitudeAto: Double = 0
     var _position: Vmeta_NED? = nil
     var _localPosition: Vmeta_Vector3? = nil
     var _speed: Vmeta_NED? = nil
@@ -1928,6 +4012,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       _quat = source._quat
       _location = source._location
       _groundDistance = source._groundDistance
+      _altitudeAto = source._altitudeAto
       _position = source._position
       _localPosition = source._localPosition
       _speed = source._speed
@@ -1963,6 +4048,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         case 10: try { try decoder.decodeSingularMessageField(value: &_storage._localPosition) }()
         case 11: try { try decoder.decodeSingularBoolField(value: &_storage._animationInProgress) }()
         case 12: try { try decoder.decodeSingularEnumField(value: &_storage._pilotingMode) }()
+        case 13: try { try decoder.decodeSingularDoubleField(value: &_storage._altitudeAto) }()
         default: break
         }
       }
@@ -2005,6 +4091,9 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       if _storage._pilotingMode != .pmUnknown {
         try visitor.visitSingularEnumField(value: _storage._pilotingMode, fieldNumber: 12)
       }
+      if _storage._altitudeAto != 0 {
+        try visitor.visitSingularDoubleField(value: _storage._altitudeAto, fieldNumber: 13)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -2017,6 +4106,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         if _storage._quat != rhs_storage._quat {return false}
         if _storage._location != rhs_storage._location {return false}
         if _storage._groundDistance != rhs_storage._groundDistance {return false}
+        if _storage._altitudeAto != rhs_storage._altitudeAto {return false}
         if _storage._position != rhs_storage._position {return false}
         if _storage._localPosition != rhs_storage._localPosition {return false}
         if _storage._speed != rhs_storage._speed {return false}
@@ -2037,10 +4127,12 @@ extension Vmeta_CameraMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   public static let protoMessageName: String = _protobuf_package + ".CameraMetadata"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "timestamp"),
+    19: .standard(proto: "serial_number"),
     10: .standard(proto: "utc_timestamp"),
     11: .standard(proto: "utc_timestamp_accuracy"),
     2: .standard(proto: "base_quat"),
     3: .same(proto: "quat"),
+    15: .standard(proto: "local_quat"),
     12: .standard(proto: "local_position"),
     13: .same(proto: "location"),
     14: .standard(proto: "principal_point"),
@@ -2050,14 +4142,19 @@ extension Vmeta_CameraMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     7: .standard(proto: "awb_b_gain"),
     8: .same(proto: "hfov"),
     9: .same(proto: "vfov"),
+    16: .standard(proto: "zoom_level"),
+    17: .same(proto: "spectrum"),
+    18: .same(proto: "subtype"),
   ]
 
   fileprivate class _StorageClass {
     var _timestamp: UInt64 = 0
+    var _serialNumber: String = String()
     var _utcTimestamp: UInt64 = 0
     var _utcTimestampAccuracy: UInt32 = 0
     var _baseQuat: Vmeta_Quaternion? = nil
     var _quat: Vmeta_Quaternion? = nil
+    var _localQuat: Vmeta_Quaternion? = nil
     var _localPosition: Vmeta_Vector3? = nil
     var _location: Vmeta_Location? = nil
     var _principalPoint: Vmeta_Vector2? = nil
@@ -2067,6 +4164,9 @@ extension Vmeta_CameraMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     var _awbBGain: Float = 0
     var _hfov: Float = 0
     var _vfov: Float = 0
+    var _zoomLevel: Float = 0
+    var _spectrum: Vmeta_CameraSpectrum = .csUnknown
+    var _subtype: Vmeta_CameraSubtype = .cstUnknown
 
     static let defaultInstance = _StorageClass()
 
@@ -2074,10 +4174,12 @@ extension Vmeta_CameraMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
 
     init(copying source: _StorageClass) {
       _timestamp = source._timestamp
+      _serialNumber = source._serialNumber
       _utcTimestamp = source._utcTimestamp
       _utcTimestampAccuracy = source._utcTimestampAccuracy
       _baseQuat = source._baseQuat
       _quat = source._quat
+      _localQuat = source._localQuat
       _localPosition = source._localPosition
       _location = source._location
       _principalPoint = source._principalPoint
@@ -2087,6 +4189,9 @@ extension Vmeta_CameraMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       _awbBGain = source._awbBGain
       _hfov = source._hfov
       _vfov = source._vfov
+      _zoomLevel = source._zoomLevel
+      _spectrum = source._spectrum
+      _subtype = source._subtype
     }
   }
 
@@ -2119,6 +4224,11 @@ extension Vmeta_CameraMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
         case 12: try { try decoder.decodeSingularMessageField(value: &_storage._localPosition) }()
         case 13: try { try decoder.decodeSingularMessageField(value: &_storage._location) }()
         case 14: try { try decoder.decodeSingularMessageField(value: &_storage._principalPoint) }()
+        case 15: try { try decoder.decodeSingularMessageField(value: &_storage._localQuat) }()
+        case 16: try { try decoder.decodeSingularFloatField(value: &_storage._zoomLevel) }()
+        case 17: try { try decoder.decodeSingularEnumField(value: &_storage._spectrum) }()
+        case 18: try { try decoder.decodeSingularEnumField(value: &_storage._subtype) }()
+        case 19: try { try decoder.decodeSingularStringField(value: &_storage._serialNumber) }()
         default: break
         }
       }
@@ -2173,6 +4283,21 @@ extension Vmeta_CameraMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       try { if let v = _storage._principalPoint {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
       } }()
+      try { if let v = _storage._localQuat {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
+      } }()
+      if _storage._zoomLevel != 0 {
+        try visitor.visitSingularFloatField(value: _storage._zoomLevel, fieldNumber: 16)
+      }
+      if _storage._spectrum != .csUnknown {
+        try visitor.visitSingularEnumField(value: _storage._spectrum, fieldNumber: 17)
+      }
+      if _storage._subtype != .cstUnknown {
+        try visitor.visitSingularEnumField(value: _storage._subtype, fieldNumber: 18)
+      }
+      if !_storage._serialNumber.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._serialNumber, fieldNumber: 19)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -2183,10 +4308,12 @@ extension Vmeta_CameraMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
         let _storage = _args.0
         let rhs_storage = _args.1
         if _storage._timestamp != rhs_storage._timestamp {return false}
+        if _storage._serialNumber != rhs_storage._serialNumber {return false}
         if _storage._utcTimestamp != rhs_storage._utcTimestamp {return false}
         if _storage._utcTimestampAccuracy != rhs_storage._utcTimestampAccuracy {return false}
         if _storage._baseQuat != rhs_storage._baseQuat {return false}
         if _storage._quat != rhs_storage._quat {return false}
+        if _storage._localQuat != rhs_storage._localQuat {return false}
         if _storage._localPosition != rhs_storage._localPosition {return false}
         if _storage._location != rhs_storage._location {return false}
         if _storage._principalPoint != rhs_storage._principalPoint {return false}
@@ -2196,6 +4323,9 @@ extension Vmeta_CameraMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
         if _storage._awbBGain != rhs_storage._awbBGain {return false}
         if _storage._hfov != rhs_storage._hfov {return false}
         if _storage._vfov != rhs_storage._vfov {return false}
+        if _storage._zoomLevel != rhs_storage._zoomLevel {return false}
+        if _storage._spectrum != rhs_storage._spectrum {return false}
+        if _storage._subtype != rhs_storage._subtype {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -2620,48 +4750,94 @@ extension Vmeta_ThermalMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     2: .same(proto: "min"),
     3: .same(proto: "max"),
     4: .same(proto: "probe"),
+    5: .same(proto: "mask"),
   ]
 
+  fileprivate class _StorageClass {
+    var _calibrationState: Vmeta_ThermalCalibrationState = .tcsDone
+    var _min: Vmeta_ThermalSpot? = nil
+    var _max: Vmeta_ThermalSpot? = nil
+    var _probe: Vmeta_ThermalSpot? = nil
+    var _mask: Vmeta_Rectf? = nil
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _calibrationState = source._calibrationState
+      _min = source._min
+      _max = source._max
+      _probe = source._probe
+      _mask = source._mask
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self.calibrationState) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._min) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._max) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._probe) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularEnumField(value: &_storage._calibrationState) }()
+        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._min) }()
+        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._max) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._probe) }()
+        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._mask) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if self.calibrationState != .tcsDone {
-      try visitor.visitSingularEnumField(value: self.calibrationState, fieldNumber: 1)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if _storage._calibrationState != .tcsDone {
+        try visitor.visitSingularEnumField(value: _storage._calibrationState, fieldNumber: 1)
+      }
+      try { if let v = _storage._min {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      } }()
+      try { if let v = _storage._max {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      } }()
+      try { if let v = _storage._probe {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      } }()
+      try { if let v = _storage._mask {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+      } }()
     }
-    try { if let v = self._min {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    try { if let v = self._max {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    } }()
-    try { if let v = self._probe {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Vmeta_ThermalMetadata, rhs: Vmeta_ThermalMetadata) -> Bool {
-    if lhs.calibrationState != rhs.calibrationState {return false}
-    if lhs._min != rhs._min {return false}
-    if lhs._max != rhs._max {return false}
-    if lhs._probe != rhs._probe {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._calibrationState != rhs_storage._calibrationState {return false}
+        if _storage._min != rhs_storage._min {return false}
+        if _storage._max != rhs_storage._max {return false}
+        if _storage._probe != rhs_storage._probe {return false}
+        if _storage._mask != rhs_storage._mask {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2674,6 +4850,9 @@ extension Vmeta_LFICMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     2: .same(proto: "y"),
     3: .same(proto: "location"),
     4: .standard(proto: "grid_precision"),
+    5: .same(proto: "type"),
+    6: .standard(proto: "horizontal_tangential_accuracy"),
+    7: .standard(proto: "horizontal_radial_accuracy"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2686,6 +4865,9 @@ extension Vmeta_LFICMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       case 2: try { try decoder.decodeSingularFloatField(value: &self.y) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._location) }()
       case 4: try { try decoder.decodeSingularDoubleField(value: &self.gridPrecision) }()
+      case 5: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      case 6: try { try decoder.decodeSingularFloatField(value: &self.horizontalTangentialAccuracy) }()
+      case 7: try { try decoder.decodeSingularFloatField(value: &self.horizontalRadialAccuracy) }()
       default: break
       }
     }
@@ -2708,6 +4890,15 @@ extension Vmeta_LFICMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if self.gridPrecision != 0 {
       try visitor.visitSingularDoubleField(value: self.gridPrecision, fieldNumber: 4)
     }
+    if self.type != .cot {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 5)
+    }
+    if self.horizontalTangentialAccuracy != 0 {
+      try visitor.visitSingularFloatField(value: self.horizontalTangentialAccuracy, fieldNumber: 6)
+    }
+    if self.horizontalRadialAccuracy != 0 {
+      try visitor.visitSingularFloatField(value: self.horizontalRadialAccuracy, fieldNumber: 7)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2716,6 +4907,665 @@ extension Vmeta_LFICMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     if lhs.y != rhs.y {return false}
     if lhs._location != rhs._location {return false}
     if lhs.gridPrecision != rhs.gridPrecision {return false}
+    if lhs.type != rhs.type {return false}
+    if lhs.horizontalTangentialAccuracy != rhs.horizontalTangentialAccuracy {return false}
+    if lhs.horizontalRadialAccuracy != rhs.horizontalRadialAccuracy {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_UserMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".UserMetadata"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "uid_hash"),
+    2: .same(proto: "timestamp"),
+    3: .same(proto: "data"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.uidHash) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.timestamp) }()
+      case 3: try { try decoder.decodeSingularBytesField(value: &self.data) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.uidHash != 0 {
+      try visitor.visitSingularUInt32Field(value: self.uidHash, fieldNumber: 1)
+    }
+    if self.timestamp != 0 {
+      try visitor.visitSingularUInt64Field(value: self.timestamp, fieldNumber: 2)
+    }
+    if !self.data.isEmpty {
+      try visitor.visitSingularBytesField(value: self.data, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_UserMetadata, rhs: Vmeta_UserMetadata) -> Bool {
+    if lhs.uidHash != rhs.uidHash {return false}
+    if lhs.timestamp != rhs.timestamp {return false}
+    if lhs.data != rhs.data {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_CameraModel: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".CameraModel"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "perspective"),
+    2: .same(proto: "fisheye"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Vmeta_CameraModel.PerspectiveCameraModel?
+        var hadOneofValue = false
+        if let current = self.id {
+          hadOneofValue = true
+          if case .perspective(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.id = .perspective(v)
+        }
+      }()
+      case 2: try {
+        var v: Vmeta_CameraModel.FisheyeCameraModel?
+        var hadOneofValue = false
+        if let current = self.id {
+          hadOneofValue = true
+          if case .fisheye(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.id = .fisheye(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.id {
+    case .perspective?: try {
+      guard case .perspective(let v)? = self.id else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .fisheye?: try {
+      guard case .fisheye(let v)? = self.id else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_CameraModel, rhs: Vmeta_CameraModel) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_CameraModel.PerspectiveCameraModel: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Vmeta_CameraModel.protoMessageName + ".PerspectiveCameraModel"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "distorsion"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._distorsion) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._distorsion {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_CameraModel.PerspectiveCameraModel, rhs: Vmeta_CameraModel.PerspectiveCameraModel) -> Bool {
+    if lhs._distorsion != rhs._distorsion {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_CameraModel.PerspectiveCameraModel.Distorsion: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Vmeta_CameraModel.PerspectiveCameraModel.protoMessageName + ".Distorsion"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "r1"),
+    2: .same(proto: "r2"),
+    3: .same(proto: "r3"),
+    4: .same(proto: "t1"),
+    5: .same(proto: "t2"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularFloatField(value: &self.r1) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.r2) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.r3) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.t1) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.t2) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.r1 != 0 {
+      try visitor.visitSingularFloatField(value: self.r1, fieldNumber: 1)
+    }
+    if self.r2 != 0 {
+      try visitor.visitSingularFloatField(value: self.r2, fieldNumber: 2)
+    }
+    if self.r3 != 0 {
+      try visitor.visitSingularFloatField(value: self.r3, fieldNumber: 3)
+    }
+    if self.t1 != 0 {
+      try visitor.visitSingularFloatField(value: self.t1, fieldNumber: 4)
+    }
+    if self.t2 != 0 {
+      try visitor.visitSingularFloatField(value: self.t2, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_CameraModel.PerspectiveCameraModel.Distorsion, rhs: Vmeta_CameraModel.PerspectiveCameraModel.Distorsion) -> Bool {
+    if lhs.r1 != rhs.r1 {return false}
+    if lhs.r2 != rhs.r2 {return false}
+    if lhs.r3 != rhs.r3 {return false}
+    if lhs.t1 != rhs.t1 {return false}
+    if lhs.t2 != rhs.t2 {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_CameraModel.FisheyeCameraModel: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Vmeta_CameraModel.protoMessageName + ".FisheyeCameraModel"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "affine_matrix"),
+    2: .same(proto: "polynomial"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._affineMatrix) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._polynomial) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._affineMatrix {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._polynomial {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_CameraModel.FisheyeCameraModel, rhs: Vmeta_CameraModel.FisheyeCameraModel) -> Bool {
+    if lhs._affineMatrix != rhs._affineMatrix {return false}
+    if lhs._polynomial != rhs._polynomial {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_CameraModel.FisheyeCameraModel.AffineMatrix: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Vmeta_CameraModel.FisheyeCameraModel.protoMessageName + ".AffineMatrix"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "c"),
+    2: .same(proto: "d"),
+    3: .same(proto: "e"),
+    4: .same(proto: "f"),
+    5: .same(proto: "symmetric"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularFloatField(value: &self.c) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.d) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.e) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.f) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._symmetric) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.c != 0 {
+      try visitor.visitSingularFloatField(value: self.c, fieldNumber: 1)
+    }
+    if self.d != 0 {
+      try visitor.visitSingularFloatField(value: self.d, fieldNumber: 2)
+    }
+    if self.e != 0 {
+      try visitor.visitSingularFloatField(value: self.e, fieldNumber: 3)
+    }
+    if self.f != 0 {
+      try visitor.visitSingularFloatField(value: self.f, fieldNumber: 4)
+    }
+    try { if let v = self._symmetric {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_CameraModel.FisheyeCameraModel.AffineMatrix, rhs: Vmeta_CameraModel.FisheyeCameraModel.AffineMatrix) -> Bool {
+    if lhs.c != rhs.c {return false}
+    if lhs.d != rhs.d {return false}
+    if lhs.e != rhs.e {return false}
+    if lhs.f != rhs.f {return false}
+    if lhs._symmetric != rhs._symmetric {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_CameraModel.FisheyeCameraModel.Polynomial: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Vmeta_CameraModel.FisheyeCameraModel.protoMessageName + ".Polynomial"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "p2"),
+    2: .same(proto: "p3"),
+    3: .same(proto: "p4"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularFloatField(value: &self.p2) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.p3) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.p4) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.p2 != 0 {
+      try visitor.visitSingularFloatField(value: self.p2, fieldNumber: 1)
+    }
+    if self.p3 != 0 {
+      try visitor.visitSingularFloatField(value: self.p3, fieldNumber: 2)
+    }
+    if self.p4 != 0 {
+      try visitor.visitSingularFloatField(value: self.p4, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_CameraModel.FisheyeCameraModel.Polynomial, rhs: Vmeta_CameraModel.FisheyeCameraModel.Polynomial) -> Bool {
+    if lhs.p2 != rhs.p2 {return false}
+    if lhs.p3 != rhs.p3 {return false}
+    if lhs.p4 != rhs.p4 {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_Overlay: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Overlay"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "header_footer"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Vmeta_Overlay.HeaderFooter?
+        var hadOneofValue = false
+        if let current = self.id {
+          hadOneofValue = true
+          if case .headerFooter(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.id = .headerFooter(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if case .headerFooter(let v)? = self.id {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_Overlay, rhs: Vmeta_Overlay) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_Overlay.HeaderFooter: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Vmeta_Overlay.protoMessageName + ".HeaderFooter"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "header_height"),
+    2: .standard(proto: "footer_height"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularFloatField(value: &self.headerHeight) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.footerHeight) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.headerHeight != 0 {
+      try visitor.visitSingularFloatField(value: self.headerHeight, fieldNumber: 1)
+    }
+    if self.footerHeight != 0 {
+      try visitor.visitSingularFloatField(value: self.footerHeight, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_Overlay.HeaderFooter, rhs: Vmeta_Overlay.HeaderFooter) -> Bool {
+    if lhs.headerHeight != rhs.headerHeight {return false}
+    if lhs.footerHeight != rhs.footerHeight {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_ThermalAlignment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ThermalAlignment"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "rotation"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._rotation) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._rotation {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_ThermalAlignment, rhs: Vmeta_ThermalAlignment) -> Bool {
+    if lhs._rotation != rhs._rotation {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_ThermalConversion: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ThermalConversion"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "r"),
+    2: .same(proto: "b"),
+    3: .same(proto: "f"),
+    4: .same(proto: "o"),
+    5: .standard(proto: "tau_win"),
+    6: .standard(proto: "t_win"),
+    7: .standard(proto: "t_bg"),
+    8: .same(proto: "emissivity"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularFloatField(value: &self.r) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.b) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.f) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.o) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.tauWin) }()
+      case 6: try { try decoder.decodeSingularFloatField(value: &self.tWin) }()
+      case 7: try { try decoder.decodeSingularFloatField(value: &self.tBg) }()
+      case 8: try { try decoder.decodeSingularFloatField(value: &self.emissivity) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.r != 0 {
+      try visitor.visitSingularFloatField(value: self.r, fieldNumber: 1)
+    }
+    if self.b != 0 {
+      try visitor.visitSingularFloatField(value: self.b, fieldNumber: 2)
+    }
+    if self.f != 0 {
+      try visitor.visitSingularFloatField(value: self.f, fieldNumber: 3)
+    }
+    if self.o != 0 {
+      try visitor.visitSingularFloatField(value: self.o, fieldNumber: 4)
+    }
+    if self.tauWin != 0 {
+      try visitor.visitSingularFloatField(value: self.tauWin, fieldNumber: 5)
+    }
+    if self.tWin != 0 {
+      try visitor.visitSingularFloatField(value: self.tWin, fieldNumber: 6)
+    }
+    if self.tBg != 0 {
+      try visitor.visitSingularFloatField(value: self.tBg, fieldNumber: 7)
+    }
+    if self.emissivity != 0 {
+      try visitor.visitSingularFloatField(value: self.emissivity, fieldNumber: 8)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_ThermalConversion, rhs: Vmeta_ThermalConversion) -> Bool {
+    if lhs.r != rhs.r {return false}
+    if lhs.b != rhs.b {return false}
+    if lhs.f != rhs.f {return false}
+    if lhs.o != rhs.o {return false}
+    if lhs.tauWin != rhs.tauWin {return false}
+    if lhs.tWin != rhs.tWin {return false}
+    if lhs.tBg != rhs.tBg {return false}
+    if lhs.emissivity != rhs.emissivity {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_ThermalSessionMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ThermalSessionMetadata"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "metaversion"),
+    2: .standard(proto: "camera_serial_number"),
+    3: .same(proto: "alignment"),
+    4: .standard(proto: "conv_low"),
+    5: .standard(proto: "conv_high"),
+    6: .standard(proto: "scale_factor"),
+  ]
+
+  fileprivate class _StorageClass {
+    var _metaversion: UInt32 = 0
+    var _cameraSerialNumber: String = String()
+    var _alignment: Vmeta_ThermalAlignment? = nil
+    var _convLow: Vmeta_ThermalConversion? = nil
+    var _convHigh: Vmeta_ThermalConversion? = nil
+    var _scaleFactor: Double = 0
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _metaversion = source._metaversion
+      _cameraSerialNumber = source._cameraSerialNumber
+      _alignment = source._alignment
+      _convLow = source._convLow
+      _convHigh = source._convHigh
+      _scaleFactor = source._scaleFactor
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularUInt32Field(value: &_storage._metaversion) }()
+        case 2: try { try decoder.decodeSingularStringField(value: &_storage._cameraSerialNumber) }()
+        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._alignment) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._convLow) }()
+        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._convHigh) }()
+        case 6: try { try decoder.decodeSingularDoubleField(value: &_storage._scaleFactor) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if _storage._metaversion != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._metaversion, fieldNumber: 1)
+      }
+      if !_storage._cameraSerialNumber.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._cameraSerialNumber, fieldNumber: 2)
+      }
+      try { if let v = _storage._alignment {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      } }()
+      try { if let v = _storage._convLow {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      } }()
+      try { if let v = _storage._convHigh {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+      } }()
+      if _storage._scaleFactor != 0 {
+        try visitor.visitSingularDoubleField(value: _storage._scaleFactor, fieldNumber: 6)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_ThermalSessionMetadata, rhs: Vmeta_ThermalSessionMetadata) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._metaversion != rhs_storage._metaversion {return false}
+        if _storage._cameraSerialNumber != rhs_storage._cameraSerialNumber {return false}
+        if _storage._alignment != rhs_storage._alignment {return false}
+        if _storage._convLow != rhs_storage._convLow {return false}
+        if _storage._convHigh != rhs_storage._convHigh {return false}
+        if _storage._scaleFactor != rhs_storage._scaleFactor {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2732,6 +5582,8 @@ extension Vmeta_TimedMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     6: .same(proto: "automation"),
     7: .same(proto: "thermal"),
     8: .same(proto: "lfic"),
+    9: .same(proto: "user"),
+    10: .same(proto: "photo"),
   ]
 
   fileprivate class _StorageClass {
@@ -2742,7 +5594,9 @@ extension Vmeta_TimedMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     var _proposal: Vmeta_TrackingProposalMetadata? = nil
     var _automation: Vmeta_AutomationMetadata? = nil
     var _thermal: Vmeta_ThermalMetadata? = nil
-    var _lfic: Vmeta_LFICMetadata? = nil
+    var _lfic: [Vmeta_LFICMetadata] = []
+    var _user: [Vmeta_UserMetadata] = []
+    var _photo: Vmeta_PhotoMetadata? = nil
 
     static let defaultInstance = _StorageClass()
 
@@ -2757,6 +5611,8 @@ extension Vmeta_TimedMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       _automation = source._automation
       _thermal = source._thermal
       _lfic = source._lfic
+      _user = source._user
+      _photo = source._photo
     }
   }
 
@@ -2782,7 +5638,9 @@ extension Vmeta_TimedMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         case 5: try { try decoder.decodeSingularMessageField(value: &_storage._proposal) }()
         case 6: try { try decoder.decodeSingularMessageField(value: &_storage._automation) }()
         case 7: try { try decoder.decodeSingularMessageField(value: &_storage._thermal) }()
-        case 8: try { try decoder.decodeSingularMessageField(value: &_storage._lfic) }()
+        case 8: try { try decoder.decodeRepeatedMessageField(value: &_storage._lfic) }()
+        case 9: try { try decoder.decodeRepeatedMessageField(value: &_storage._user) }()
+        case 10: try { try decoder.decodeSingularMessageField(value: &_storage._photo) }()
         default: break
         }
       }
@@ -2816,8 +5674,14 @@ extension Vmeta_TimedMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       try { if let v = _storage._thermal {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
       } }()
-      try { if let v = _storage._lfic {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+      if !_storage._lfic.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._lfic, fieldNumber: 8)
+      }
+      if !_storage._user.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._user, fieldNumber: 9)
+      }
+      try { if let v = _storage._photo {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
       } }()
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -2836,6 +5700,404 @@ extension Vmeta_TimedMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         if _storage._automation != rhs_storage._automation {return false}
         if _storage._thermal != rhs_storage._thermal {return false}
         if _storage._lfic != rhs_storage._lfic {return false}
+        if _storage._user != rhs_storage._user {return false}
+        if _storage._photo != rhs_storage._photo {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmeta_SessionMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SessionMetadata"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "friendly_name"),
+    2: .same(proto: "maker"),
+    3: .same(proto: "model"),
+    4: .standard(proto: "model_id"),
+    5: .standard(proto: "serial_number"),
+    6: .standard(proto: "software_version"),
+    7: .standard(proto: "build_id"),
+    8: .same(proto: "title"),
+    9: .same(proto: "comment"),
+    10: .same(proto: "copyright"),
+    11: .standard(proto: "media_date"),
+    12: .standard(proto: "media_date_gmtoff"),
+    13: .standard(proto: "boot_date"),
+    14: .standard(proto: "boot_date_gmtoff"),
+    15: .standard(proto: "boot_id"),
+    16: .standard(proto: "flight_date"),
+    17: .standard(proto: "flight_date_gmtoff"),
+    18: .standard(proto: "flight_id"),
+    19: .standard(proto: "custom_id"),
+    20: .standard(proto: "takeoff_location"),
+    21: .standard(proto: "picture_fov"),
+    22: .same(proto: "thermal"),
+    23: .standard(proto: "default_media"),
+    24: .standard(proto: "camera_type"),
+    36: .standard(proto: "camera_subtype"),
+    25: .standard(proto: "camera_spectrum"),
+    26: .standard(proto: "camera_serial_number"),
+    27: .standard(proto: "camera_model"),
+    38: .same(proto: "overlay"),
+    28: .standard(proto: "principal_point"),
+    29: .standard(proto: "video_mode"),
+    30: .standard(proto: "video_stop_reason"),
+    39: .standard(proto: "photo_mode"),
+    40: .standard(proto: "panorama_type"),
+    41: .standard(proto: "photo_count"),
+    42: .standard(proto: "secure_cn"),
+    31: .standard(proto: "dynamic_range"),
+    32: .standard(proto: "tone_mapping"),
+    33: .standard(proto: "first_frame_capture_ts"),
+    37: .standard(proto: "first_frame_sample_index"),
+    34: .standard(proto: "media_id"),
+    35: .standard(proto: "resource_index"),
+  ]
+
+  fileprivate class _StorageClass {
+    var _friendlyName: String = String()
+    var _maker: String = String()
+    var _model: String = String()
+    var _modelID: String = String()
+    var _serialNumber: String = String()
+    var _softwareVersion: String = String()
+    var _buildID: String = String()
+    var _title: String = String()
+    var _comment: String = String()
+    var _copyright: String = String()
+    var _mediaDate: UInt64 = 0
+    var _mediaDateGmtoff: Int32 = 0
+    var _bootDate: UInt64 = 0
+    var _bootDateGmtoff: Int32 = 0
+    var _bootID: String = String()
+    var _flightDate: UInt64 = 0
+    var _flightDateGmtoff: Int32 = 0
+    var _flightID: String = String()
+    var _customID: String = String()
+    var _takeoffLocation: Vmeta_Location? = nil
+    var _pictureFov: Vmeta_Vector2? = nil
+    var _thermal: Vmeta_ThermalSessionMetadata? = nil
+    var _defaultMedia: Bool = false
+    var _cameraType: Vmeta_CameraType = .ctUnknown
+    var _cameraSubtype: Vmeta_CameraSubtype = .cstUnknown
+    var _cameraSpectrum: Vmeta_CameraSpectrum = .csUnknown
+    var _cameraSerialNumber: String = String()
+    var _cameraModel: Vmeta_CameraModel? = nil
+    var _overlay: Vmeta_Overlay? = nil
+    var _principalPoint: Vmeta_Vector2? = nil
+    var _videoMode: Vmeta_VideoMode = .vmUnknown
+    var _videoStopReason: Vmeta_VideoStopReason = .vsrUnknown
+    var _photoMode: Vmeta_PhotoMode = .unknown
+    var _panoramaType: Vmeta_PanoramaType = .ptUnknown
+    var _photoCount: UInt32 = 0
+    var _secureCn: String = String()
+    var _dynamicRange: Vmeta_DynamicRange = .drUnknown
+    var _toneMapping: Vmeta_ToneMapping = .tmUnknown
+    var _firstFrameCaptureTs: UInt64 = 0
+    var _firstFrameSampleIndex: UInt64 = 0
+    var _mediaID: UInt32 = 0
+    var _resourceIndex: UInt32 = 0
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _friendlyName = source._friendlyName
+      _maker = source._maker
+      _model = source._model
+      _modelID = source._modelID
+      _serialNumber = source._serialNumber
+      _softwareVersion = source._softwareVersion
+      _buildID = source._buildID
+      _title = source._title
+      _comment = source._comment
+      _copyright = source._copyright
+      _mediaDate = source._mediaDate
+      _mediaDateGmtoff = source._mediaDateGmtoff
+      _bootDate = source._bootDate
+      _bootDateGmtoff = source._bootDateGmtoff
+      _bootID = source._bootID
+      _flightDate = source._flightDate
+      _flightDateGmtoff = source._flightDateGmtoff
+      _flightID = source._flightID
+      _customID = source._customID
+      _takeoffLocation = source._takeoffLocation
+      _pictureFov = source._pictureFov
+      _thermal = source._thermal
+      _defaultMedia = source._defaultMedia
+      _cameraType = source._cameraType
+      _cameraSubtype = source._cameraSubtype
+      _cameraSpectrum = source._cameraSpectrum
+      _cameraSerialNumber = source._cameraSerialNumber
+      _cameraModel = source._cameraModel
+      _overlay = source._overlay
+      _principalPoint = source._principalPoint
+      _videoMode = source._videoMode
+      _videoStopReason = source._videoStopReason
+      _photoMode = source._photoMode
+      _panoramaType = source._panoramaType
+      _photoCount = source._photoCount
+      _secureCn = source._secureCn
+      _dynamicRange = source._dynamicRange
+      _toneMapping = source._toneMapping
+      _firstFrameCaptureTs = source._firstFrameCaptureTs
+      _firstFrameSampleIndex = source._firstFrameSampleIndex
+      _mediaID = source._mediaID
+      _resourceIndex = source._resourceIndex
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._friendlyName) }()
+        case 2: try { try decoder.decodeSingularStringField(value: &_storage._maker) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._model) }()
+        case 4: try { try decoder.decodeSingularStringField(value: &_storage._modelID) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._serialNumber) }()
+        case 6: try { try decoder.decodeSingularStringField(value: &_storage._softwareVersion) }()
+        case 7: try { try decoder.decodeSingularStringField(value: &_storage._buildID) }()
+        case 8: try { try decoder.decodeSingularStringField(value: &_storage._title) }()
+        case 9: try { try decoder.decodeSingularStringField(value: &_storage._comment) }()
+        case 10: try { try decoder.decodeSingularStringField(value: &_storage._copyright) }()
+        case 11: try { try decoder.decodeSingularUInt64Field(value: &_storage._mediaDate) }()
+        case 12: try { try decoder.decodeSingularInt32Field(value: &_storage._mediaDateGmtoff) }()
+        case 13: try { try decoder.decodeSingularUInt64Field(value: &_storage._bootDate) }()
+        case 14: try { try decoder.decodeSingularInt32Field(value: &_storage._bootDateGmtoff) }()
+        case 15: try { try decoder.decodeSingularStringField(value: &_storage._bootID) }()
+        case 16: try { try decoder.decodeSingularUInt64Field(value: &_storage._flightDate) }()
+        case 17: try { try decoder.decodeSingularInt32Field(value: &_storage._flightDateGmtoff) }()
+        case 18: try { try decoder.decodeSingularStringField(value: &_storage._flightID) }()
+        case 19: try { try decoder.decodeSingularStringField(value: &_storage._customID) }()
+        case 20: try { try decoder.decodeSingularMessageField(value: &_storage._takeoffLocation) }()
+        case 21: try { try decoder.decodeSingularMessageField(value: &_storage._pictureFov) }()
+        case 22: try { try decoder.decodeSingularMessageField(value: &_storage._thermal) }()
+        case 23: try { try decoder.decodeSingularBoolField(value: &_storage._defaultMedia) }()
+        case 24: try { try decoder.decodeSingularEnumField(value: &_storage._cameraType) }()
+        case 25: try { try decoder.decodeSingularEnumField(value: &_storage._cameraSpectrum) }()
+        case 26: try { try decoder.decodeSingularStringField(value: &_storage._cameraSerialNumber) }()
+        case 27: try { try decoder.decodeSingularMessageField(value: &_storage._cameraModel) }()
+        case 28: try { try decoder.decodeSingularMessageField(value: &_storage._principalPoint) }()
+        case 29: try { try decoder.decodeSingularEnumField(value: &_storage._videoMode) }()
+        case 30: try { try decoder.decodeSingularEnumField(value: &_storage._videoStopReason) }()
+        case 31: try { try decoder.decodeSingularEnumField(value: &_storage._dynamicRange) }()
+        case 32: try { try decoder.decodeSingularEnumField(value: &_storage._toneMapping) }()
+        case 33: try { try decoder.decodeSingularUInt64Field(value: &_storage._firstFrameCaptureTs) }()
+        case 34: try { try decoder.decodeSingularUInt32Field(value: &_storage._mediaID) }()
+        case 35: try { try decoder.decodeSingularUInt32Field(value: &_storage._resourceIndex) }()
+        case 36: try { try decoder.decodeSingularEnumField(value: &_storage._cameraSubtype) }()
+        case 37: try { try decoder.decodeSingularUInt64Field(value: &_storage._firstFrameSampleIndex) }()
+        case 38: try { try decoder.decodeSingularMessageField(value: &_storage._overlay) }()
+        case 39: try { try decoder.decodeSingularEnumField(value: &_storage._photoMode) }()
+        case 40: try { try decoder.decodeSingularEnumField(value: &_storage._panoramaType) }()
+        case 41: try { try decoder.decodeSingularUInt32Field(value: &_storage._photoCount) }()
+        case 42: try { try decoder.decodeSingularStringField(value: &_storage._secureCn) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._friendlyName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._friendlyName, fieldNumber: 1)
+      }
+      if !_storage._maker.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._maker, fieldNumber: 2)
+      }
+      if !_storage._model.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._model, fieldNumber: 3)
+      }
+      if !_storage._modelID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._modelID, fieldNumber: 4)
+      }
+      if !_storage._serialNumber.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._serialNumber, fieldNumber: 5)
+      }
+      if !_storage._softwareVersion.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._softwareVersion, fieldNumber: 6)
+      }
+      if !_storage._buildID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._buildID, fieldNumber: 7)
+      }
+      if !_storage._title.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._title, fieldNumber: 8)
+      }
+      if !_storage._comment.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._comment, fieldNumber: 9)
+      }
+      if !_storage._copyright.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._copyright, fieldNumber: 10)
+      }
+      if _storage._mediaDate != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._mediaDate, fieldNumber: 11)
+      }
+      if _storage._mediaDateGmtoff != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._mediaDateGmtoff, fieldNumber: 12)
+      }
+      if _storage._bootDate != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._bootDate, fieldNumber: 13)
+      }
+      if _storage._bootDateGmtoff != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._bootDateGmtoff, fieldNumber: 14)
+      }
+      if !_storage._bootID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._bootID, fieldNumber: 15)
+      }
+      if _storage._flightDate != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._flightDate, fieldNumber: 16)
+      }
+      if _storage._flightDateGmtoff != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._flightDateGmtoff, fieldNumber: 17)
+      }
+      if !_storage._flightID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._flightID, fieldNumber: 18)
+      }
+      if !_storage._customID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._customID, fieldNumber: 19)
+      }
+      try { if let v = _storage._takeoffLocation {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
+      } }()
+      try { if let v = _storage._pictureFov {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
+      } }()
+      try { if let v = _storage._thermal {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
+      } }()
+      if _storage._defaultMedia != false {
+        try visitor.visitSingularBoolField(value: _storage._defaultMedia, fieldNumber: 23)
+      }
+      if _storage._cameraType != .ctUnknown {
+        try visitor.visitSingularEnumField(value: _storage._cameraType, fieldNumber: 24)
+      }
+      if _storage._cameraSpectrum != .csUnknown {
+        try visitor.visitSingularEnumField(value: _storage._cameraSpectrum, fieldNumber: 25)
+      }
+      if !_storage._cameraSerialNumber.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._cameraSerialNumber, fieldNumber: 26)
+      }
+      try { if let v = _storage._cameraModel {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 27)
+      } }()
+      try { if let v = _storage._principalPoint {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 28)
+      } }()
+      if _storage._videoMode != .vmUnknown {
+        try visitor.visitSingularEnumField(value: _storage._videoMode, fieldNumber: 29)
+      }
+      if _storage._videoStopReason != .vsrUnknown {
+        try visitor.visitSingularEnumField(value: _storage._videoStopReason, fieldNumber: 30)
+      }
+      if _storage._dynamicRange != .drUnknown {
+        try visitor.visitSingularEnumField(value: _storage._dynamicRange, fieldNumber: 31)
+      }
+      if _storage._toneMapping != .tmUnknown {
+        try visitor.visitSingularEnumField(value: _storage._toneMapping, fieldNumber: 32)
+      }
+      if _storage._firstFrameCaptureTs != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._firstFrameCaptureTs, fieldNumber: 33)
+      }
+      if _storage._mediaID != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._mediaID, fieldNumber: 34)
+      }
+      if _storage._resourceIndex != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._resourceIndex, fieldNumber: 35)
+      }
+      if _storage._cameraSubtype != .cstUnknown {
+        try visitor.visitSingularEnumField(value: _storage._cameraSubtype, fieldNumber: 36)
+      }
+      if _storage._firstFrameSampleIndex != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._firstFrameSampleIndex, fieldNumber: 37)
+      }
+      try { if let v = _storage._overlay {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 38)
+      } }()
+      if _storage._photoMode != .unknown {
+        try visitor.visitSingularEnumField(value: _storage._photoMode, fieldNumber: 39)
+      }
+      if _storage._panoramaType != .ptUnknown {
+        try visitor.visitSingularEnumField(value: _storage._panoramaType, fieldNumber: 40)
+      }
+      if _storage._photoCount != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._photoCount, fieldNumber: 41)
+      }
+      if !_storage._secureCn.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._secureCn, fieldNumber: 42)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmeta_SessionMetadata, rhs: Vmeta_SessionMetadata) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._friendlyName != rhs_storage._friendlyName {return false}
+        if _storage._maker != rhs_storage._maker {return false}
+        if _storage._model != rhs_storage._model {return false}
+        if _storage._modelID != rhs_storage._modelID {return false}
+        if _storage._serialNumber != rhs_storage._serialNumber {return false}
+        if _storage._softwareVersion != rhs_storage._softwareVersion {return false}
+        if _storage._buildID != rhs_storage._buildID {return false}
+        if _storage._title != rhs_storage._title {return false}
+        if _storage._comment != rhs_storage._comment {return false}
+        if _storage._copyright != rhs_storage._copyright {return false}
+        if _storage._mediaDate != rhs_storage._mediaDate {return false}
+        if _storage._mediaDateGmtoff != rhs_storage._mediaDateGmtoff {return false}
+        if _storage._bootDate != rhs_storage._bootDate {return false}
+        if _storage._bootDateGmtoff != rhs_storage._bootDateGmtoff {return false}
+        if _storage._bootID != rhs_storage._bootID {return false}
+        if _storage._flightDate != rhs_storage._flightDate {return false}
+        if _storage._flightDateGmtoff != rhs_storage._flightDateGmtoff {return false}
+        if _storage._flightID != rhs_storage._flightID {return false}
+        if _storage._customID != rhs_storage._customID {return false}
+        if _storage._takeoffLocation != rhs_storage._takeoffLocation {return false}
+        if _storage._pictureFov != rhs_storage._pictureFov {return false}
+        if _storage._thermal != rhs_storage._thermal {return false}
+        if _storage._defaultMedia != rhs_storage._defaultMedia {return false}
+        if _storage._cameraType != rhs_storage._cameraType {return false}
+        if _storage._cameraSubtype != rhs_storage._cameraSubtype {return false}
+        if _storage._cameraSpectrum != rhs_storage._cameraSpectrum {return false}
+        if _storage._cameraSerialNumber != rhs_storage._cameraSerialNumber {return false}
+        if _storage._cameraModel != rhs_storage._cameraModel {return false}
+        if _storage._overlay != rhs_storage._overlay {return false}
+        if _storage._principalPoint != rhs_storage._principalPoint {return false}
+        if _storage._videoMode != rhs_storage._videoMode {return false}
+        if _storage._videoStopReason != rhs_storage._videoStopReason {return false}
+        if _storage._photoMode != rhs_storage._photoMode {return false}
+        if _storage._panoramaType != rhs_storage._panoramaType {return false}
+        if _storage._photoCount != rhs_storage._photoCount {return false}
+        if _storage._secureCn != rhs_storage._secureCn {return false}
+        if _storage._dynamicRange != rhs_storage._dynamicRange {return false}
+        if _storage._toneMapping != rhs_storage._toneMapping {return false}
+        if _storage._firstFrameCaptureTs != rhs_storage._firstFrameCaptureTs {return false}
+        if _storage._firstFrameSampleIndex != rhs_storage._firstFrameSampleIndex {return false}
+        if _storage._mediaID != rhs_storage._mediaID {return false}
+        if _storage._resourceIndex != rhs_storage._resourceIndex {return false}
         return true
       }
       if !storagesAreEqual {return false}

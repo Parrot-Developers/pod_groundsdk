@@ -194,9 +194,3 @@ extension LookAtPilotingItfCore {
         return self
     }
 }
-
-extension LookAtModeSettingCore: GSLookAtModeSetting {
-    func modeIsSupported(_ mode: LookAtMode) -> Bool {
-        return supportedModes.contains(mode)
-    }
-}

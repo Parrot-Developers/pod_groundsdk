@@ -31,7 +31,6 @@ import Foundation
 
 /// Activable piloting interface state.
 /// There is only one piloting interface active at a time on a drone.
-@objc(GSActivablePilotingItfState)
 public enum ActivablePilotingItfState: Int, CustomStringConvertible {
     /// Piloting interface is available and is not the active one.
     case idle
@@ -51,7 +50,6 @@ public enum ActivablePilotingItfState: Int, CustomStringConvertible {
 }
 
 /// Base protocol for the piloting interfaces components that can be activated or deactivated.
-@objc(GSActivablePilotingItf)
 public protocol ActivablePilotingItf: AnyObject {
     /// Piloting interface state. There is only one piloting interface active at a time on a drone.
     var state: ActivablePilotingItfState { get }

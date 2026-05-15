@@ -50,115 +50,20 @@ public protocol NetworkControlBackend: AnyObject {
     func set(directConnectionMode: NetworkDirectConnectionMode) -> Bool
 }
 
-/// Network routing policy setting implementation.
-class NetworkControlRoutingSettingCore: NetworkControlRoutingSetting, CustomDebugStringConvertible {
-
-    /// Delegate called when the setting value is changed by setting properties.
-    private unowned let didChangeDelegate: SettingChangeDelegate
-
-    /// Timeout object.
-    ///
-    /// Visibility is internal for testing purposes.
-    let timeout = SettingTimeout()
-
-    /// Tells if the setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { return timeout.isScheduled }
-
-    /// Supported policies.
-    private(set) var supportedPolicies: Set<NetworkControlRoutingPolicy> = []
-
-    /// Routing policy.
-    var policy: NetworkControlRoutingPolicy {
-        get {
-            return _policy
-        }
-        set {
-            if _policy != newValue && supportedPolicies.contains(newValue) {
-                if backend(newValue) {
-                    let oldValue = _policy
-                    // value sent to the backend, update setting value and mark it updating
-                    _policy = newValue
-                    timeout.schedule(timeout: 10) { [weak self] in
-                        if let `self` = self, self.update(policy: oldValue) {
-                            self.didChangeDelegate.userDidChangeSetting()
-                        }
-                    }
-                    didChangeDelegate.userDidChangeSetting()
-                }
-            }
-        }
-    }
-    /// Routing policy.
-    private var _policy: NetworkControlRoutingPolicy = .automatic
-
-    /// Closure to call to change the value.
-    private let backend: ((NetworkControlRoutingPolicy) -> Bool)
-
-    /// Constructor.
-    ///
-    /// - Parameters:
-    ///   - didChangeDelegate: delegate called when the setting value is changed by setting properties
-    ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (NetworkControlRoutingPolicy) -> Bool) {
-        self.didChangeDelegate = didChangeDelegate
-        self.backend = backend
-    }
-
-    /// Updates supported policies.
-    ///
-    /// - Parameter supportedPolicies: new supported policies
-    /// - Returns: true if supported policies changed, false otherwise
-    func update(supportedPolicies newSupportedPolicies: Set<NetworkControlRoutingPolicy>) -> Bool {
-        if supportedPolicies != newSupportedPolicies {
-            supportedPolicies = newSupportedPolicies
-            return true
-        }
-        return false
-    }
-
-    /// Updates routing policy.
-    ///
-    /// - Parameter policy: new routing policy
-    /// - Returns: true if the setting has been changed, false otherwise
-    func update(policy newPolicy: NetworkControlRoutingPolicy) -> Bool {
-        if updating || _policy != newPolicy {
-            _policy = newPolicy
-            timeout.cancel()
-            return true
-        }
-        return false
-    }
-
-    /// Cancels any pending rollback.
-    ///
-    /// - Parameter completionClosure: block that will be called if a rollback was pending
-    func cancelRollback(completionClosure: () -> Void) {
-        if timeout.isScheduled {
-            timeout.cancel()
-            completionClosure()
-        }
-    }
-
-    /// Debug description.
-    var debugDescription: String {
-        return "policy: \(_policy) supportedPolicies: \(supportedPolicies) updating: \(updating)"
-    }
-}
-
 /// Network link details implementation.
 public class NetworkControlLinkInfoCore: NetworkControlLinkInfo, Equatable, CustomDebugStringConvertible {
 
     /// Link type.
-    private (set) public var type: NetworkControlLinkType
+    private(set) public var type: NetworkControlLinkType
 
     /// Link status.
-    private (set) public var status: NetworkControlLinkStatus
+    private(set) public var status: NetworkControlLinkStatus
 
     /// Link error or `nil`.
-    private (set) public var error: NetworkControlLinkError?
+    private(set) public var error: NetworkControlLinkError?
 
     /// Link quality.
-    private (set) public var quality: Int?
+    private(set) public var quality: Int?
 
     /// Constructor.
     ///
@@ -189,113 +94,17 @@ public class NetworkControlLinkInfoCore: NetworkControlLinkInfo, Equatable, Cust
     }
 }
 
-/// Direct connection setting implementation.
-class NetworkDirectConnectionSettingCore: NetworkDirectConnectionSetting, CustomDebugStringConvertible {
-
-    /// Delegate called when the setting value is changed by setting properties.
-    private unowned let didChangeDelegate: SettingChangeDelegate
-
-    /// Timeout object.
-    ///
-    /// Visibility is internal for testing purposes.
-    let timeout = SettingTimeout()
-
-    /// Tells if the setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { return timeout.isScheduled }
-
-    /// Supported direct connection modes.
-    private(set) var supportedModes: Set<NetworkDirectConnectionMode> = []
-
-    /// Direct connection mode.
-    var mode: NetworkDirectConnectionMode {
-        get {
-            return _mode
-        }
-        set {
-            if _mode != newValue && supportedModes.contains(newValue) {
-                if backend(newValue) {
-                    let oldValue = _mode
-                    // value sent to the backend, update setting value and mark it updating
-                    _mode = newValue
-                    timeout.schedule { [weak self] in
-                        if let `self` = self, self.update(mode: oldValue) {
-                            self.didChangeDelegate.userDidChangeSetting()
-                        }
-                    }
-                    didChangeDelegate.userDidChangeSetting()
-                }
-            }
-        }
-    }
-
-    /// Direct connection mode.
-    private var _mode: NetworkDirectConnectionMode = .legacy
-
-    /// Closure to call to change the value.
-    private let backend: ((NetworkDirectConnectionMode) -> Bool)
-
-    /// Constructor.
-    ///
-    /// - Parameters:
-    ///   - didChangeDelegate: delegate called when the setting value is changed by setting properties
-    ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (NetworkDirectConnectionMode) -> Bool) {
-        self.didChangeDelegate = didChangeDelegate
-        self.backend = backend
-    }
-
-    /// Updates supported modes.
-    ///
-    /// - Parameter supportedModes: new supported policies
-    /// - Returns: true if supported modes changed, false otherwise
-    func update(supportedModes newSupportedModes: Set<NetworkDirectConnectionMode>) -> Bool {
-        if supportedModes != newSupportedModes {
-            supportedModes = newSupportedModes
-            return true
-        }
-        return false
-    }
-
-    /// Updates direct connection mode.
-    ///
-    /// - Parameter mode: new mode
-    /// - Returns: true if the setting has been changed, false otherwise
-    func update(mode newMode: NetworkDirectConnectionMode) -> Bool {
-        if updating || _mode != newMode {
-            _mode = newMode
-            timeout.cancel()
-            return true
-        }
-        return false
-    }
-
-    /// Cancels any pending rollback.
-    ///
-    /// - Parameter completionClosure: block that will be called if a rollback was pending
-    func cancelRollback(completionClosure: () -> Void) {
-        if timeout.isScheduled {
-            timeout.cancel()
-            completionClosure()
-        }
-    }
-
-    /// Debug description.
-    var debugDescription: String {
-        return "mode: \(_mode) supportedModes: \(supportedModes) updating: \(updating)"
-    }
-}
-
 /// Internal NetworkControl peripheral implementation.
 public class NetworkControlCore: PeripheralCore, NetworkControl {
 
     /// Network routing policy setting.
-    public var routingPolicy: NetworkControlRoutingSetting { _routingPolicy }
+    public var routingPolicy: EnumSetting<NetworkControlRoutingPolicy> { _routingPolicy }
 
     /// Network routing policy setting.
-    private var _routingPolicy: NetworkControlRoutingSettingCore!
+    private var _routingPolicy: EnumSettingCore<NetworkControlRoutingPolicy>!
 
     /// Current link.
-    private (set) public var currentLink: NetworkControlLinkType?
+    private(set) public var currentLink: NetworkControlLinkType?
 
     /// Available links.
     public var links: [NetworkControlLinkInfo] { _links }
@@ -313,10 +122,10 @@ public class NetworkControlCore: PeripheralCore, NetworkControl {
     private var _maxCellularBitrate: IntSettingCore!
 
     /// Direct connection mode setting.
-    public var directConnection: NetworkDirectConnectionSetting { _directConnection }
+    public var directConnection: EnumSetting<NetworkDirectConnectionMode> { _directConnection }
 
     /// Direct connection mode setting.
-    private var _directConnection: NetworkDirectConnectionSettingCore!
+    private var _directConnection: EnumSettingCore<NetworkDirectConnectionMode>!
 
     /// Implementation backend.
     private unowned let backend: NetworkControlBackend
@@ -330,7 +139,7 @@ public class NetworkControlCore: PeripheralCore, NetworkControl {
         self.backend = backend
         super.init(desc: Peripherals.networkControl, store: store)
 
-        _routingPolicy = NetworkControlRoutingSettingCore(didChangeDelegate: self) { [unowned self] policy in
+        _routingPolicy = EnumSettingCore(defaultValue: .automatic, didChangeDelegate: self) { [unowned self] policy in
             self.backend.set(policy: policy)
         }
 
@@ -338,7 +147,7 @@ public class NetworkControlCore: PeripheralCore, NetworkControl {
             self.backend.set(maxCellularBitrate: bitrate)
         }
 
-        _directConnection = NetworkDirectConnectionSettingCore(didChangeDelegate: self) { [unowned self] mode in
+        _directConnection = EnumSettingCore(defaultValue: .legacy, didChangeDelegate: self) { [unowned self] mode in
             self.backend.set(directConnectionMode: mode)
         }
     }
@@ -353,7 +162,7 @@ extension NetworkControlCore {
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult
     public func update(supportedPolicies newSupportedPolicies: Set<NetworkControlRoutingPolicy>) -> NetworkControlCore {
-        if _routingPolicy.update(supportedPolicies: newSupportedPolicies) {
+        if _routingPolicy.update(supportedValues: newSupportedPolicies) {
             markChanged()
         }
         return self
@@ -366,7 +175,7 @@ extension NetworkControlCore {
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult
     public func update(policy newPolicy: NetworkControlRoutingPolicy) -> NetworkControlCore {
-        if _routingPolicy.update(policy: newPolicy) {
+        if _routingPolicy.update(value: newPolicy) {
             markChanged()
         }
         return self
@@ -441,7 +250,7 @@ extension NetworkControlCore {
     @discardableResult
     public func update(supportedDirectConnectionModes newSupportedModes: Set<NetworkDirectConnectionMode>)
     -> NetworkControlCore {
-        if _directConnection.update(supportedModes: newSupportedModes) {
+        if _directConnection.update(supportedValues: newSupportedModes) {
             markChanged()
         }
         return self
@@ -454,7 +263,7 @@ extension NetworkControlCore {
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult
     public func update(directConnectionMode newMode: NetworkDirectConnectionMode) -> NetworkControlCore {
-        if _directConnection.update(mode: newMode) {
+        if _directConnection.update(value: newMode) {
             markChanged()
         }
         return self

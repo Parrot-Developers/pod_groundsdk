@@ -33,7 +33,7 @@ import CoreLocation
 /// Core implementation of the ReverseGeocoder facility
 class ReverseGeocoderCore: FacilityCore, ReverseGeocoder {
 
-    private (set) public var placemark: CLPlacemark?
+    private(set) public var placemark: CLPlacemark?
 
     override var description: String {
         return "ReverseGeocoder: \(String(describing: placemark))"

@@ -46,16 +46,8 @@ import Foundation
 public protocol ThermalCamera: Camera, Peripheral {
 }
 
-// MARK: - objc compatibility
-
-/// Thermal camera peripheral.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSThermalCamera: GSCamera, Peripheral {
-}
-
 /// :nodoc:
 /// Thermal camera description
-@objc(GSThermalCameraDesc)
 public class ThermalCameraDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = ThermalCamera
     public let uid = PeripheralUid.thermalCamera.rawValue

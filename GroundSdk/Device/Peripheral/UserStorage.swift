@@ -30,7 +30,6 @@
 import Foundation
 
 /// Formatting type of the formatting process.
-@objc(GSFormattingType)
 public enum FormattingType: Int, CustomStringConvertible {
     /// Full formatting type, that includes low level format operation which can take a lot of time but optimizes
     /// performance.
@@ -48,7 +47,6 @@ public enum FormattingType: Int, CustomStringConvertible {
 }
 
 /// Formatting step of the formatting process.
-@objc(GSFormattingStep)
 public enum FormattingStep: Int, Codable {
     /// The drone is currently partitioning the media.
     case partitioning
@@ -68,8 +66,6 @@ public enum FormattingStep: Int, Codable {
 }
 
 /// Progress state of the formatting process.
-@objcMembers
-@objc(GSFormattingState)
 public class FormattingState: NSObject {
 
     /// Retrieves the current formatting step.
@@ -86,7 +82,6 @@ public class FormattingState: NSObject {
 }
 
 /// Physical state of the user storage.
-@objc(GSUserStoragePhysicalState)
 public enum UserStoragePhysicalState: Int, CustomStringConvertible {
 
     /// No media detected.
@@ -117,7 +112,6 @@ public enum UserStoragePhysicalState: Int, CustomStringConvertible {
 }
 
 /// File system state of the user storage.
-@objc(GSUserStorageFileSystemState)
 public enum UserStorageFileSystemState: Int, CustomStringConvertible {
     /// Media is being mounted.
     case mounting
@@ -196,7 +190,6 @@ public enum UserStorageFileSystemState: Int, CustomStringConvertible {
 }
 
 /// Password usage when transmitting password to unlock file system
-@objc(GSPasswordUsage)
 public enum PasswordUsage: Int, Codable {
     /// Send password for record requirement.
     case record
@@ -213,7 +206,6 @@ public enum PasswordUsage: Int, Codable {
 }
 
 /// Information about the media storage.
-@objc(GSUserStorageMediaInfo)
 public protocol UserStorageMediaInfo: AnyObject {
     /// The name of the media.
     var name: String { get }
@@ -290,124 +282,6 @@ public protocol UserStorage: Peripheral {
 
     /// sdcard uuid.
     var uuid: String? { get }
-
-    /// Requests a format with encryption of the media. The formatted media will get a default name.
-    ///
-    /// Should be called only when `canFormat` is `true`.
-    /// - Note: If you want to set a name, use `formatWithEncryption(password:formattingType:newMediaName:)`.
-    ///
-    /// When formatting starts, the current state becomes `.formatting`.
-    ///
-    /// The formatting result is indicated with the transient state `.formattingSucceeded`,
-    /// `.formattingFailed`, or `.formattingDenied`.
-    ///
-    /// - Parameters:
-    ///     - password: password used for encryption
-    ///     - formattingType: type of formatting
-    /// - Returns: `true` if the format has been asked, `false` otherwise
-    func formatWithEncryption(password: String, formattingType: FormattingType) -> Bool
-
-    /// Requests a format with encryption of the media. The formatted media will get a default name.
-    ///
-    /// Should be called only when `canFormat` is `true`.
-    ///
-    /// When formatting starts, the current state becomes `.formatting`.
-    ///
-    /// The formatting result is indicated with the transient state `.formattingSucceeded`,
-    /// `.formattingFailed`, or `.formattingDenied`.
-    ///
-    /// - Parameters:
-    ///     - password: password used for encryption
-    ///     - formattingType: type of formatting
-    ///     - newMediaName: the new name that should be given to the media. If you pass an empty string, the
-    ///                           a default name will be assigned.
-    /// - Returns: `true` if the format has been asked, `false` otherwise
-    func formatWithEncryption(password: String, formattingType: FormattingType, newMediaName: String) -> Bool
-
-    /// Sends the password to the drone to access an encypted sd card.
-    ///
-    /// - Parameters:
-    ///     - password: password used to access encrypted card
-    ///     - usage: password usage
-    /// - Returns: `true` if the password has been sent, `false` otherwise
-    func sendPassword(password: String, usage: PasswordUsage) -> Bool
-}
-
-// MARK: - objc compatibility
-
-/// User storage.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSUserStorage {
-    /// Information about the current media.
-    ///
-    /// `nil` if current media is not available.
-    var mediaInfo: UserStorageMediaInfo? { get }
-
-    /// Current physical state of user storage.
-    var physicalState: UserStoragePhysicalState { get }
-
-    /// Current file system state of user storage.
-    var fileSystemState: UserStorageFileSystemState { get }
-
-    /// Available free space on current media, in Bytes. Negative value if not known.
-    var availableSpace: Int64 { get }
-
-    /// Current ability to format the media.
-    /// 'true' if the media can be formatted, otherwise 'false'
-    var canFormat: Bool { get }
-
-    /// Formatting state.
-    var formattingState: FormattingState? { get }
-
-    /// Tells whether a sd card encryption is supported.
-    /// 'true' if the media can be encrypted, otherwise 'false'
-    var isEncryptionSupported: Bool { get }
-
-    /// sdcard uuid.
-    var uuid: String? { get }
-
-    /// Tells whether check error is supported.
-    /// 'true' if the media can be encrypted, otherwise 'false'
-    var isCheckingErrorSupported: Bool { get }
-
-    /// Tells whether media failed being checked without error
-    var gsHasCheckError: Bool { get }
-
-    /// Tells whether a formattingType is supported.
-    ///
-    /// - Parameter formattingType: mode to check
-    /// - Returns: `true` if the formatting type is supported
-    func isFormattingTypeSupported(_ formattingType: FormattingType) -> Bool
-
-    /// Requests a format of the media.
-    ///
-    /// Should be called only when `canFormat` is `true`.
-    ///
-    /// When formatting starts, the current state becomes `.formatting`.
-    ///
-    /// The formatting result is indicated with the transient state `.formattingSucceeded`,
-    /// `.formattingFailed`, or `.formattingDenied`.
-    ///
-    /// - Parameters:
-    ///     - formattingType: type of formatting
-    ///     - newMediaName: the new name that should be given to the media. If you pass an empty string, the
-    ///                           a default name will be assigned.
-    /// - Returns: `true` if the format has been asked, `false` otherwise
-    func format(formattingType: FormattingType, newMediaName: String) -> Bool
-
-    /// Requests a format of the media. The formatted media will get a default name.
-    ///
-    /// Should be called only when `canFormat` is `true`.
-    /// - Note: If you want to set a name, use `format(newMediaName:)`.
-    ///
-    /// When formatting starts, the current state becomes `.formatting`.
-    ///
-    /// The formatting result is indicated with the transient state `.formattingSucceeded`,
-    /// `.formattingFailed`, or `.formattingDenied`.
-    ///
-    /// - Parameter formattingType: type of formatting for the current media
-    /// - Returns: `true` if the format has been asked, `false` otherwise
-    func format(formattingType: FormattingType) -> Bool
 
     /// Requests a format with encryption of the media. The formatted media will get a default name.
     ///

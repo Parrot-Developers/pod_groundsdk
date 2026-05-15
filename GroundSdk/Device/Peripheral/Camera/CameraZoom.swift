@@ -30,7 +30,6 @@
 import Foundation
 
 /// Way of controlling the zoom.
-@objc(GSCameraZoomControlMode)
 public enum CameraZoomControlMode: Int, CustomStringConvertible {
     /// Control the zoom giving level targets.
     case level
@@ -50,7 +49,6 @@ public enum CameraZoomControlMode: Int, CustomStringConvertible {
 ///
 /// Zoom level can be changed either by giving a desired level (`set(level:)`)
 /// or by giving a desired zoom change velocity (`set(velocity:)`).
-@objc(GSCameraZoom)
 public protocol CameraZoom: AnyObject {
     /// Max zoom speed setting.
     var maxSpeed: DoubleSetting { get }

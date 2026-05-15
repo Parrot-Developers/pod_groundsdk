@@ -123,12 +123,6 @@ class PilotingBehaviourSettingCore: PilotingBehaviourSetting, CustomDebugStringC
     }
 }
 
-extension PilotingBehaviourSettingCore: GSPilotingBehaviourSetting {
-    func isSupportedBehaviour(_ behaviour: PilotingBehaviour) -> Bool {
-        return supportedBehaviours.contains(behaviour)
-    }
-}
-
 /// Internal Piloting Control peripheral implementation
 public class PilotingControlCore: PeripheralCore, PilotingControl {
 
@@ -163,13 +157,6 @@ public class PilotingControlCore: PeripheralCore, PilotingControl {
     /// - Parameter source: new source
     public func setPilotingBehaviour(_ behaviour: PilotingBehaviour) {
         _ = backend.set(behaviour: behaviour)
-    }
-}
-
-/// Extension of PilotingControlCore that implements ObjC API
-extension PilotingControlCore: GSPilotingControl {
-    public var gsBehaviourSetting: GSPilotingBehaviourSetting {
-        return _behaviourSetting
     }
 }
 

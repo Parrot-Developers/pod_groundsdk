@@ -31,30 +31,27 @@ import Foundation
 
 /// Leds peripheral interface.
 ///
-/// This peripheral allows changing LEDs state.
+/// This peripheral allows changing LEDs and infrared LEDs state.
 ///
 /// This peripheral can be retrieved by:
 /// ```
 /// device.getPeripheral(Peripherals.leds)
 /// ```
 public protocol Leds: Peripheral {
-    /// Switch state setting
-    var state: BoolSetting? { get }
+    /// Standard leds state setting
+    var standard: BoolSetting? { get }
+
+    /// Infrared leds state setting
+    var infrared: BoolSetting? { get }
+
+    /// ToF leds state setting
+    var tof: BoolSetting? { get }
 }
 
 /// :nodoc:
 /// Leds description
-@objc(GSLedsDesc)
 public class LedsDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = Leds
     public let uid = PeripheralUid.leds.rawValue
     public let parent: ComponentDescriptor? = nil
-}
-
-/// Peripheral managing leds.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSLeds {
-    /// Switch state setting
-    @objc(state)
-    var state: BoolSetting? { get }
 }

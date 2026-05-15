@@ -54,26 +54,3 @@ public protocol PilotingItfProvider {
     func getPilotingItf<Desc: PilotingItfClassDesc>(_ desc: Desc,
                                observer: @escaping Ref<Desc.ApiProtocol>.Observer) -> Ref<Desc.ApiProtocol>
 }
-
-/// Protocol that provides functions to get piloting interfaces.
-/// Those methods should no be used from swift
-@objc
-public protocol GSPilotingItfProvider {
-    /// Gets a piloting interface.
-    ///
-    /// - Parameter desc: requested piloting interface. See `PilotingItfs` api for available descriptors instances.
-    /// - Returns: requested piloting interface
-    /// - Note: This method is for Objective-C only. Swift must use `func getPilotingItf:`
-    @objc(getPilotingItf:)
-    func getPilotingItf(desc: ComponentDescriptor) -> PilotingItf?
-
-    /// Gets a piloting interface and registers an observer notified each time it changes.
-    ///
-    /// - Parameters:
-    ///    - desc: requested piloting interface. See `PilotingItfs` api for available descriptors instances.
-    ///    - observer: observer to notify when the piloting interface changes
-    /// - Returns: reference to the requested piloting interface
-    /// - Note: This method is for Objective-C only. Swift must use `func getPilotingItf:desc:observer`.
-    @objc(getPilotingItf:observer:)
-    func getPilotingItfRef(desc: ComponentDescriptor, observer: @escaping (PilotingItf?) -> Void) -> GSPilotingItfRef
-}

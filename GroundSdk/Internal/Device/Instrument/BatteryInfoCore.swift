@@ -34,19 +34,19 @@ public class BatteryInfoCore: InstrumentCore, BatteryInfo {
 
     /// Device's current battery charge level, as an integer percentage of full charge.
     /// From 100 to 0.
-    private (set) public var batteryLevel = 0
+    private(set) public var batteryLevel = 0
 
     /// Tells whether the device is currently charging.
     ///
     /// `true` if the device is charging, `false` otherwise
-    private (set) public var isCharging = false
+    private(set) public var isCharging = false
 
     /// Device's current battery state of health, as an integer percentage of full health.
     /// From 100 to 0.
-    private (set) public var batteryHealth: Int?
+    private(set) public var batteryHealth: Int?
 
     /// Device's current battery cycle count
-    private (set) public var cycleCount: Int?
+    private(set) public var cycleCount: Int?
 
     /// Backstore for deprecated battery serial
     private var deprecatedSerial: String?
@@ -70,6 +70,12 @@ public class BatteryInfoCore: InstrumentCore, BatteryInfo {
 
     /// Battery components' versions
     public private(set) var version: BatteryVersion?
+
+    /// Whether battery charge level is reliable.
+    public private(set) var isChargeLevelReliable: Bool?
+
+    /// Battery cell configuration.
+    public private(set) var cellConfiguration: BatteryCellConfiguration?
 
     /// Debug description
     public override var description: String {
@@ -173,7 +179,7 @@ extension BatteryInfoCore {
     /// - Parameter temperature: the battery temperature to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(temperature newValue: UInt) -> BatteryInfoCore {
+    @discardableResult public func update(temperature newValue: UInt?) -> BatteryInfoCore {
         if temperature != newValue {
             temperature = newValue
             markChanged()
@@ -186,7 +192,7 @@ extension BatteryInfoCore {
     /// - Parameter capacity: the battery capacity to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(capacity newValue: BatteryCapacity) -> BatteryInfoCore {
+    @discardableResult public func update(capacity newValue: BatteryCapacity?) -> BatteryInfoCore {
         if capacity != newValue {
             capacity = newValue
             markChanged()
@@ -199,7 +205,6 @@ extension BatteryInfoCore {
     /// - Parameters:
     ///   - cellVoltage: the battery cell voltage to set
     ///   - index: the index of the cell
-    ///
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(cellVoltage: UInt, at index: Int) -> BatteryInfoCore {
@@ -212,10 +217,23 @@ extension BatteryInfoCore {
         return self
     }
 
+    /// Updates voltage of all cells with the same value.
+    ///
+    /// - Parameter cellVoltages: voltage to set for all cells
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(cellVoltages newValue: UInt?) -> BatteryInfoCore {
+        let newCellVoltages = Array(repeating: newValue, count: cellVoltages.count)
+        if cellVoltages != newCellVoltages {
+            cellVoltages = newCellVoltages
+            markChanged()
+        }
+        return self
+    }
+
     /// Changes battery version.
     ///
-    /// - Parameters:
-    ///   - version: the battery version to set
+    /// - Parameter version: the battery version to set
     ///
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
@@ -226,17 +244,32 @@ extension BatteryInfoCore {
         }
         return self
     }
-}
 
-// MARK: Objective-C API
-
-extension BatteryInfoCore: GSBatteryInfo {
-
-    public var gsBatteryHealth: NSNumber? {
-
-        if let batteryHealth = self.batteryHealth {
-            return NSNumber(value: batteryHealth)
+    /// Changes battery reliability.
+    ///
+    /// - Parameter isChargeLevelReliable: whether the charge level is reliable or not
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(isChargeLevelReliable newValue: Bool?) -> BatteryInfoCore {
+        if isChargeLevelReliable != newValue {
+            isChargeLevelReliable = newValue
+            markChanged()
         }
-        return nil
+        return self
+    }
+
+    /// Changes battery configuration.
+    ///
+    /// - Parameter configuration: the battery configuration
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(cellConfiguration newValue: BatteryCellConfiguration?) -> BatteryInfoCore {
+        if cellConfiguration != newValue {
+            cellConfiguration = newValue
+            markChanged()
+        }
+        return self
     }
 }

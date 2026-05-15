@@ -36,23 +36,23 @@ import CoreLocation
 /// ```
 /// drone.getInstrument(Instruments.gps)
 /// ```
-@objc(GSGps)
 public protocol Gps: Instrument {
 
     /// Fix status, `true` if GPS of the drone has fixed.
-    var fixed: Bool { get }
+    /// `nil` if this information is unavailable.
+    var fixed: Bool? { get }
 
     /// Last known GPS location if available, `nil` otherwise.
+    /// Altitude can be 0 if unknown.
     var lastKnownLocation: CLLocation? { get }
 
-    /// Number of satellites used to compute the location,
-    /// 0 if not known.
-    var satelliteCount: Int { get }
+    /// Number of satellites used to compute the location.
+    /// `nil` if this information is unavailable.
+    var satelliteCount: Int? { get }
 }
 
 /// :nodoc:
 /// Instrument descriptor
-@objc(GSGpsDesc)
 public class GpsDesc: NSObject, InstrumentClassDesc {
     public typealias ApiProtocol = Gps
     public let uid = InstrumentUid.gps.rawValue

@@ -391,14 +391,3 @@ extension FlightPlanPilotingItfCore {
         return self
     }
 }
-
-/// Extension of FlightPlanPilotingItfCore that adds support of the ObjC API
-extension FlightPlanPilotingItfCore: GSFlightPlanPilotingItf {
-    public var gsLatestMissionItemExecuted: UInt {
-        return latestMissionItemExecuted ?? 0
-    }
-
-    public func hasUnavailabilityReason(_ reason: FlightPlanUnavailabilityReason) -> Bool {
-        return unavailabilityReasons.contains(reason)
-    }
-}

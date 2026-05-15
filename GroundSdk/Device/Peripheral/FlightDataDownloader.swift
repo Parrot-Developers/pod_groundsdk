@@ -30,7 +30,6 @@
 import Foundation
 
 /// Completion status of a flight data (PUD) download.
-@objc(GSFlightDataDownloadCompletionStatus)
 public enum FlightDataDownloadCompletionStatus: Int, CustomStringConvertible {
     /// Download is not complete yet. Flight data (PUD) download may still be ongoing or not even started yet.
     case none
@@ -61,8 +60,6 @@ public enum FlightDataDownloadCompletionStatus: Int, CustomStringConvertible {
 /// State of the flight data (PUD) downloader.
 /// Informs about latest count of successfully downloaded flight data files, as well as the completion status of the
 /// flight data files (PUDs) download.
-@objcMembers
-@objc(GSFlightDataDownloaderState)
 public class FlightDataDownloaderState: NSObject {
     /// Current completion status of the flight data (PUD) downloader.
     ///
@@ -96,7 +93,6 @@ public class FlightDataDownloaderState: NSObject {
 /// ```
 /// device.getPeripheral(Peripherals.flightDataDownloader)
 /// ```
-@objc(GSFlightDataDownloader)
 public protocol FlightDataDownloader: Peripheral {
     /// Current download state.
     var state: FlightDataDownloaderState { get }
@@ -107,7 +103,6 @@ public protocol FlightDataDownloader: Peripheral {
 
 /// :nodoc:
 /// FlightDataDownloader description
-@objc(GSFlightDataDownloaderDesc)
 public class FlightDataDownloaderDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = FlightDataDownloader
     public let uid = PeripheralUid.flightDataDownloader.rawValue

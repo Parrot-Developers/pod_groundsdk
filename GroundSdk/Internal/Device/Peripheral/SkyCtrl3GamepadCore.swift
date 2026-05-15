@@ -76,7 +76,6 @@ public protocol SkyCtrl3GamepadBackend: AnyObject {
 }
 
 /// Internal SkyCtrl3Gamepad peripheral implementation
-@objcMembers // objc compatibility only for testing purpose
 public class SkyCtrl3GamepadCore: PeripheralCore, SkyCtrl3Gamepad {
     /// Struct that contains an axis interpolator and associate it with an axis and a drone model.
     public struct AxisInterpolatorEntry {
@@ -191,9 +190,10 @@ public class SkyCtrl3GamepadCore: PeripheralCore, SkyCtrl3Gamepad {
     }
 
     public func grab(buttons: Set<SkyCtrl3Button>, axes: Set<SkyCtrl3Axis>) {
-        if buttons != grabbedButtons || axes != grabbedAxes {
-            backend.grab(buttons: buttons, axes: axes)
-        }
+        // do not check buttons and axes against grabbedButtons and grabbedAxes, as those may not yet be updated with
+        // the previous grab request.
+        // this avoids a bug where calling `.grab(newValues); .grab(oldValues);' would only send the newValues grab.
+        backend.grab(buttons: buttons, axes: axes)
     }
 
     public func mapping(forModel droneModel: Drone.Model) -> Set<SkyCtrl3MappingEntry>? {
@@ -204,7 +204,6 @@ public class SkyCtrl3GamepadCore: PeripheralCore, SkyCtrl3Gamepad {
         return (supportedDroneModels.contains(droneModel)) ? mappings[droneModel] ?? [] : nil
     }
 
-    @objc(registerMappingEntry:)
     public func register(mappingEntry: SkyCtrl3MappingEntry) {
         // if the drone model of the mapping entry is supported and the mappings does not contain the entry
         if supportedDroneModels.contains(mappingEntry.droneModel) &&
@@ -217,7 +216,6 @@ public class SkyCtrl3GamepadCore: PeripheralCore, SkyCtrl3Gamepad {
         }
     }
 
-    @objc(unregisterMappingEntry:)
     public func unregister(mappingEntry: SkyCtrl3MappingEntry) {
         // if the drone model of the mapping entry is supported and the mappings contain the entry
         if supportedDroneModels.contains(mappingEntry.droneModel) &&
@@ -226,7 +224,6 @@ public class SkyCtrl3GamepadCore: PeripheralCore, SkyCtrl3Gamepad {
         }
     }
 
-    @objc(resetMappingForModel:)
     public func resetMapping(forModel droneModel: Drone.Model) {
         if supportedDroneModels.contains(droneModel) {
             backend.resetMapping(forModel: droneModel)
@@ -237,7 +234,6 @@ public class SkyCtrl3GamepadCore: PeripheralCore, SkyCtrl3Gamepad {
         backend.resetMapping(forModel: nil)
     }
 
-    @objc(setInterpolator:forAxis:droneModel:)
     public func set(interpolator: AxisInterpolator, forAxis axis: SkyCtrl3Axis, droneModel: Drone.Model) {
         if let interpolators = axisInterpolators[droneModel], interpolators[axis] != interpolator {
             backend.set(interpolator: interpolator, forDroneModel: droneModel, onAxis: axis)
@@ -248,7 +244,6 @@ public class SkyCtrl3GamepadCore: PeripheralCore, SkyCtrl3Gamepad {
         return axisInterpolators[droneModel]?[axis]
     }
 
-    @objc(reverseAxis:forDroneModel:)
     public func reverse(axis: SkyCtrl3Axis, forDroneModel droneModel: Drone.Model) {
         if let reversedAxes = reversedAxes[droneModel] {
             backend.set(axis: axis, forDroneModel: droneModel, reversed: !reversedAxes.contains(axis))
@@ -518,69 +513,5 @@ extension SkyCtrl3GamepadCore {
         mappings = [:]
         axisInterpolators = [:]
         reversedAxes = [:]
-    }
-}
-
-/// Extension of SkyCtrl3GamepadCore that implements the GSSkyCtrl3Gamepad (obj-c protocol).
-/// Only transforms Obj-C compatible objects into Swift ones
-extension SkyCtrl3GamepadCore: GSSkyCtrl3Gamepad {
-    public var gsVolatileMappingSupported: Bool {
-        if volatileMappingSetting != nil {
-            return true
-        } else {
-            return false
-        }
-    }
-
-    public var gsVolatileMappingState: Bool {
-        if volatileMappingSetting != nil {
-            return volatileMappingSetting!.value
-        } else {
-            return false
-        }
-    }
-    public func getGrabbedButtonsState() -> [Int: Int] {
-        var buttonsState = [Int: Int]()
-        for (event, state) in grabbedButtonsState {
-            buttonsState[event.rawValue] = state.rawValue
-        }
-        return buttonsState
-    }
-
-    public func getGrabbedButtons() -> GSSkyCtrl3ButtonSet {
-        return GSSkyCtrl3ButtonSet(buttonSet: grabbedButtons)
-    }
-
-    public func getGrabbedAxes() -> GSSkyCtrl3AxisSet {
-        return GSSkyCtrl3AxisSet(axisSet: grabbedAxes)
-    }
-
-    public func grab(buttonSet: GSSkyCtrl3ButtonSet, axisSet: GSSkyCtrl3AxisSet) {
-        grab(buttons: buttonSet.set, axes: axisSet.set)
-    }
-
-    public func getSupportedDroneModels() -> Drone.GSDroneModelSet {
-        return Drone.GSDroneModelSet(modelSet: supportedDroneModels)
-    }
-
-    public var activeDroneModelAsNumber: NSNumber? {
-        if let activeDroneModel = activeDroneModel {
-            return NSNumber(value: activeDroneModel.rawValue)
-        }
-        return nil
-    }
-
-    public func gsInterpolator(forAxis axis: SkyCtrl3Axis, droneModel: Drone.Model) -> NSNumber? {
-        if let axisInterpolator = interpolator(forAxis: axis, droneModel: droneModel) {
-            return NSNumber(value: axisInterpolator.rawValue)
-        }
-        return nil
-    }
-
-    public func gsReversedAxes(forDroneModel droneModel: Drone.Model) -> GSSkyCtrl3AxisSet? {
-        if let axisSet = reversedAxes(forDroneModel: droneModel) {
-            return GSSkyCtrl3AxisSet(axisSet: axisSet)
-        }
-        return nil
     }
 }

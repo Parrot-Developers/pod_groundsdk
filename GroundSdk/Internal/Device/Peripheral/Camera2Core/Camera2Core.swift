@@ -95,11 +95,24 @@ public protocol Camera2Backend: AnyObject {
     ///
     /// The camera will reset the zoom level to 1, as fast as it can.
     func resetZoomLevel()
+
+    /// Sets user location from image coordinates value.
+    ///
+    /// - Parameter userLficCoordinates: coordinates in the picture, in range [0, 1], or `nil` to clear
+    /// - Returns: true if the command has been sent, false if not connected and the value has been changed immediately
+    func set(userLficCoordinates: CGPoint?) -> Bool
+
+    /// Sets the alignment offset on a given axis
+    ///
+    /// - Parameters:
+    ///   - offset: the desired alignment offset
+    ///   - axis: the axis
+    /// - Returns: true if the new alignment offset has been asked
+    func setThermalAlignment(offset: Double, axis: AlignmentAxis) -> Bool
 }
 
 /// Camera2 peripheral implementation.
 public class Camera2Core: PeripheralCore, Camera2 {
-
     /// Implementation backend.
     private unowned let backend: Camera2Backend
 
@@ -138,6 +151,15 @@ public class Camera2Core: PeripheralCore, Camera2 {
 
     /// Zoom component.
     public var zoom: Camera2ZoomCore!
+
+    /// Effective framerate.
+    public var effectiveFramerate: Camera2EffectiveFramerateCore!
+
+    /// User location from image coordinates component.
+    public var userLfic: Camera2UserLficCore!
+
+    /// Alignment offsets component.
+    public var alignment: Camera2AlignmentCore!
 
     /// Constructor.
     ///
@@ -183,6 +205,11 @@ public class Camera2Core: PeripheralCore, Camera2 {
             self.backend.set(whiteBalanceLock: mode)
         }
         zoom = Camera2ZoomCore(store: componentStore, backend: self)
+        effectiveFramerate = Camera2EffectiveFramerateCore(store: componentStore)
+        userLfic = Camera2UserLficCore(store: componentStore) { [unowned self] coordinates in
+            self.backend.set(userLficCoordinates: coordinates)
+        }
+        alignment = Camera2AlignmentCore(store: componentStore, backend: self)
     }
 }
 
@@ -241,6 +268,7 @@ extension Camera2Core {
         recording.cancelRollback()
         exposureLock.cancelRollback()
         whiteBalanceLock.cancelRollback()
+        alignment.cancelSettingsRollback()
         return self
     }
 }
@@ -278,5 +306,13 @@ extension Camera2Core: Camera2RecordingBackend {
 
     func stopRecording() -> Bool {
         return backend.stopRecording()
+    }
+}
+
+// MARK: - Camera2AlignmentBackend
+/// Camera alignment backend implementation.
+extension Camera2Core: Camera2AlignmentBackend {
+    public func setThermal(offset: Double, axis: AlignmentAxis) -> Bool {
+        return backend.setThermalAlignment(offset: offset, axis: axis)
     }
 }

@@ -124,7 +124,7 @@ public class MediaStoreThumbnailCacheCore {
     /// Current download requests
     private var currentDownloadRequest: IdentifiableCancelableCore?
 
-    /// Indicates wether the current/active download request should enqueued for re-execution.
+    /// Indicates whether the current/active download request should enqueued for re-execution.
     /// This means that the current/active request will be cancelled.
     private var retryCurrentDownloadRequest: Bool = false
 

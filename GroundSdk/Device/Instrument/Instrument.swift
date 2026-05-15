@@ -30,7 +30,6 @@
 import Foundation
 
 /// Base protocol for all Instrument components.
-@objc(GSInstrument)
 public protocol Instrument: Component {
 }
 
@@ -41,8 +40,6 @@ public protocol InstrumentClassDesc: ComponentApiDescriptor {
 }
 
 /// Defines all known Instrument descriptors.
-@objcMembers
-@objc(GSInstruments)
 public class Instruments: NSObject {
     /// Alarms information instrument.
     public static let alarms = AlarmsDesc()
@@ -54,8 +51,6 @@ public class Instruments: NSObject {
     public static let batteryInfo = BatteryInfoDesc()
     /// Camera exposure values instrument.
     public static let cameraExposureValues = CameraExposureValuesDesc()
-    /// Cellular link status instrument.
-    public static let cellularLink = CellularLinkDesc()
     /// Cellular logs instrument.
     public static let cellularLogs = CellularLogsDesc()
     /// Cellular session status instrument.
@@ -78,6 +73,8 @@ public class Instruments: NSObject {
     public static let speedometer = SpeedometerDesc()
     /// Takeoff checklist instrument.
     public static let takeoffChecklist = TakeoffChecklistDesc()
+    /// Anemometer instrument.
+    public static let anemometer = AnemometerDesc()
 }
 
 /// Instruments uid.
@@ -87,7 +84,6 @@ enum InstrumentUid: Int {
     case attitudeIndicator
     case batteryInfo
     case cameraExposureValues
-    case cellularLink
     case cellularLogs
     case cellularSession
     case compass
@@ -99,23 +95,5 @@ enum InstrumentUid: Int {
     case radio
     case speedometer
     case takeoffChecklist
-}
-
-/// Objective-C wrapper of Ref<Instrument>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSInstrumentRef: NSObject {
-    private let ref: Ref<Instrument>
-
-    /// Referenced instrument.
-    public var value: Instrument? {
-        return ref.value
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameter ref: referenced instrument
-    init(ref: Ref<Instrument>) {
-        self.ref = ref
-    }
+    case anemometer
 }

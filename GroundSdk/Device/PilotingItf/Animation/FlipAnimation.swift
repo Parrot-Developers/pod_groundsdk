@@ -30,7 +30,6 @@
 import Foundation
 
 /// Flip directions.
-@objc(GSFlipAnimationDirection)
 public enum FlipAnimationDirection: Int {
     /// Flip forward.
     case front
@@ -59,8 +58,6 @@ public enum FlipAnimationDirection: Int {
 /// Flip animation configuration class.
 ///
 /// Allows to configure the flip direction parameter for this animation. This parameter is mandatory.
-@objcMembers
-@objc(GSFlipAnimationConfig)
 public class FlipAnimationConfig: NSObject, AnimationConfig {
 
     public let type = AnimationType.flip
@@ -81,7 +78,6 @@ public class FlipAnimationConfig: NSObject, AnimationConfig {
 ///
 /// This animation instructs the drone to flip in place around one of its axes.
 /// The axis in question depends on the instructed flip direction.
-@objc(GSFlipAnimation)
 public protocol FlipAnimation: Animation {
 
     /// Flip direction.

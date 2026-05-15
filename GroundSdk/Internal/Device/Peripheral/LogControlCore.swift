@@ -54,10 +54,10 @@ public class LogControlCore: PeripheralCore, LogControl {
     private unowned let backend: LogControlBackend
 
     /// Indicates if the logs are enabled on the drone.
-    private (set) public var areLogsEnabled: Bool = true
+    private(set) public var areLogsEnabled: Bool = true
 
     /// Indicates if the deactivate command is supported
-    private (set) public var canDeactivateLogs: Bool = false
+    private(set) public var canDeactivateLogs: Bool = false
 
     /// Indicates if the mission logs are enabled on the drone.
     public var missionLogs: BoolSetting? {

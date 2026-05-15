@@ -30,8 +30,8 @@
 import Foundation
 import CoreLocation
 
-/// Internal return home preferred target implementation
-class ReturnHomePreferredTargetCore: NSObject, ReturnHomePreferredTarget {
+/// Internal return home custom location implementation
+class ReturnHomeCustomLocationCore: NSObject, ReturnHomeCustomLocation {
     /// Delegate called when the setting value is changed by setting `value` property
     private unowned let didChangeDelegate: SettingChangeDelegate
 
@@ -43,20 +43,19 @@ class ReturnHomePreferredTargetCore: NSObject, ReturnHomePreferredTarget {
     /// Tells if the setting value has been changed and is waiting for change confirmation
     var updating: Bool { return timeout.isScheduled }
 
-    /// Return home target
-    var target: ReturnHomeTarget {
+    /// Return home custom location
+    var value: ReturnHomeLocation? {
         get {
-            return _target
+            return _value
         }
-
         set {
-            if _target != newValue {
+            if _value != newValue, let newValue {
                 if backend(newValue) {
-                    let oldValue = _target
+                    let oldValue = _value
                     // value sent to the backend, update setting value and mark it updating
-                    _target = newValue
+                    _value = newValue
                     timeout.schedule { [weak self] in
-                        if let `self` = self, self.update(target: oldValue) {
+                        if let `self` = self, self.update(location: oldValue) {
                             self.didChangeDelegate.userDidChangeSetting()
                         }
                     }
@@ -66,30 +65,30 @@ class ReturnHomePreferredTargetCore: NSObject, ReturnHomePreferredTarget {
         }
     }
 
-    /// Return home target value
-    private var _target: ReturnHomeTarget = .takeOffPosition
+    /// Return home custom location
+    private var _value: ReturnHomeLocation?
 
     /// Closure to call to change the value.
     /// Return `true` if the new value has been sent and setting must become updating.
-    private let backend: ((ReturnHomeTarget) -> Bool)
+    private let backend: ((ReturnHomeLocation) -> Bool)
 
     /// Constructor
     ///
     /// - Parameters:
     ///   - didChangeDelegate: delegate called when the setting value is changed by setting `value` property
     ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (ReturnHomeTarget) -> Bool) {
+    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (ReturnHomeLocation) -> Bool) {
         self.didChangeDelegate = didChangeDelegate
         self.backend = backend
     }
 
     /// Called by the backend, change the setting data
     ///
-    /// - Parameter target: new preferred target
+    /// - Parameter location: new location
     /// - Returns: `true` if the setting has been changed, `false` otherwise
-    func update(target newTarget: ReturnHomeTarget) -> Bool {
-        if updating || _target != newTarget {
-            _target = newTarget
+    func update(location newLocation: ReturnHomeLocation?) -> Bool {
+        if updating || _value != newLocation {
+            _value = newLocation
             timeout.cancel()
             return true
         }
@@ -108,7 +107,7 @@ class ReturnHomePreferredTargetCore: NSObject, ReturnHomePreferredTarget {
 
     /// Debug description.
     override var description: String {
-        return "\(_target) [\(updating)]"
+        return "\(String(describing: _value)) [\(updating)]"
     }
 }
 
@@ -196,7 +195,7 @@ class ReturnHomeEndingCore: NSObject, ReturnHomeEnding {
 
 /// ReturnHomePilotingItf backend protocol
 public protocol ReturnHomePilotingItfBackend: ActivablePilotingItfBackend {
-    /// Activate this piloting interface
+    /// Activates this piloting interface
     ///
     /// - Returns: `false` if it can't be activated
     func activate() -> Bool
@@ -225,8 +224,8 @@ public protocol ReturnHomePilotingItfBackend: ActivablePilotingItfBackend {
     /// Change the auto start after disconnect value
     func set(autoStartOnDisconnectDelay: Int) -> Bool
 
-    /// set the custom location.
-    func setCustomLocation(latitude: Double, longitude: Double, altitude: Double)
+    /// Set the custom location.
+    func set(customLocation: ReturnHomeLocation) -> Bool
 }
 
 /// Internal return home piloting interface implementation
@@ -241,14 +240,7 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
     private var _autoTriggerMode: BoolSettingCore?
 
     /// Current home location, nil if unknown.
-    public var homeLocation: CLLocation? {
-        if let homeLocationtimeStamp = _homeLocationtimeStamp {
-            return CLLocation(coordinate: CLLocationCoordinate2D(latitude: _latitude, longitude: _longitude),
-                              altitude: _altitude, horizontalAccuracy: -1, verticalAccuracy: -1,
-                              timestamp: homeLocationtimeStamp)
-        }
-        return nil
-    }
+    public private(set) var homeLocation: ReturnHomeLocation?
 
     /// Reason why the return home is active.
     internal(set) public var reason = ReturnHomeReason.none
@@ -262,9 +254,10 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
     /// `true` if an ongoing return home is currently suspended for some reason; `false` otherwise.
     public private(set) var suspended: Bool = false
 
+    /// Current return home target. May be different from the one selected by preferredTarget if the requirement
     /// of the selected target are not met.
     /// May be nil if return home is not available, for example because the drone doesn't have a gps fix.
-    public var currentTarget: ReturnHomeTarget {
+    public var currentTarget: ReturnHomeTarget? {
         return _currentTarget
     }
 
@@ -275,7 +268,7 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
     }
 
     /// current pilot position (as provided by .....
-    public var preferredTarget: ReturnHomePreferredTarget {
+    public var preferredTarget: EnumSetting<ReturnHomeTarget> {
         return _preferredTarget
     }
 
@@ -299,24 +292,21 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
         return _autoStartOnDisconnectDelay
     }
 
+    /// Custom return home location
+    public var customLocation: ReturnHomeCustomLocation? {
+        return _customLocation
+    }
+
     public var unavailabilityReasons: Set<ReturnHomeIssue>? {
         return _unavailabilityReasons
     }
 
-    /// return home location latitude
-    private var _latitude = 0.0
-    /// return home location longitude
-    private var _longitude = 0.0
-    /// return home location altitude
-    private var _altitude = 0.0
-    /// Timestamp of the latest return home location update, nil if location has never been updated
-    private var _homeLocationtimeStamp: Date?
     /// Current return home target
-    private var _currentTarget = ReturnHomeTarget.takeOffPosition
+    private var _currentTarget: ReturnHomeTarget?
     /// If current target is TakeOffPosition, indicate that the first gps fix was made at or after takeoff.
     private var _gpsWasFixedOnTakeOff = false
     /// Preferred target
-    private var _preferredTarget: ReturnHomePreferredTargetCore!
+    private var _preferredTarget: EnumSettingCore<ReturnHomeTarget>!
     /// Ending behavior
     private var _endingBehavior: ReturnHomeEndingCore!
     /// Minimum return home altitude
@@ -325,6 +315,8 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
     private var _endingHoveringAltitude: DoubleSettingCore?
     /// Delay before starting return home when the controller connection is lost, in seconds
     private var _autoStartOnDisconnectDelay: IntSettingCore!
+    /// Custom return home location
+    private var _customLocation: ReturnHomeCustomLocationCore?
     /// Unavailability reasons
     private var _unavailabilityReasons: Set<ReturnHomeIssue>?
     /// return super class backend as ReturnHomePilotingItfBackend
@@ -348,7 +340,7 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
         createSettings()
     }
 
-    /// Activate this piloting interface
+    /// Activates this piloting interface
     ///
     /// - Returns: false if it can't be activated
     public func activate() -> Bool {
@@ -364,15 +356,11 @@ public class ReturnHomePilotingItfCore: ActivablePilotingItfCore, ReturnHomePilo
         }
     }
 
-    public func setCustomLocation(latitude: Double, longitude: Double, altitude: Double) {
-        if preferredTarget.target == .customPosition {
-            returnHomeBackend.setCustomLocation(latitude: latitude, longitude: longitude, altitude: altitude)
-        }
-    }
-
     /// Create all non optional settings
     private func createSettings() {
-        _preferredTarget = ReturnHomePreferredTargetCore(didChangeDelegate: self) { [unowned self] newTarget in
+        _preferredTarget = EnumSettingCore(defaultValue: .takeOffPosition,
+                                           supportedValues: Set(ReturnHomeTarget.allCases),
+                                           didChangeDelegate: self) { [unowned self] newTarget in
             return self.returnHomeBackend.set(preferredTarget: newTarget)
         }
         _endingBehavior = ReturnHomeEndingCore(
@@ -410,11 +398,11 @@ extension ReturnHomePilotingItfCore {
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(reason newReason: ReturnHomeReason) -> ReturnHomePilotingItfCore {
-            if reason != newReason {
-                reason = newReason
-                markChanged()
-            }
-            return self
+        if reason != newReason {
+            reason = newReason
+            markChanged()
+        }
+        return self
     }
 
     /// Changes current return home location.
@@ -422,38 +410,13 @@ extension ReturnHomePilotingItfCore {
     /// - Parameter homeLocation: new home location
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(
-        homeLocation newHome: (latitude: Double, longitude: Double, altitude: Double)?) -> ReturnHomePilotingItfCore {
-            if let newHome = newHome {
-                var changed = false
-                if _latitude != newHome.latitude {
-                    _latitude = newHome.latitude
-                    changed = true
-                }
-                if _longitude != newHome.longitude {
-                    _longitude = newHome.longitude
-                    changed = true
-                }
-                if _altitude != newHome.altitude {
-                    _altitude = newHome.altitude
-                    changed = true
-                }
-                if _homeLocationtimeStamp == nil || changed {
-                    _homeLocationtimeStamp = Date()
-                    changed = true
-                }
-                if changed {
-                    markChanged()
-                }
-            } else if _homeLocationtimeStamp != nil {
-                // clear current location
-                _homeLocationtimeStamp = nil
-                _latitude = 0
-                _longitude = 0
-                _altitude = 0
-                markChanged()
-            }
-            return self
+    @discardableResult public func update(homeLocation newHomeLocation: ReturnHomeLocation?)
+        -> ReturnHomePilotingItfCore {
+            if homeLocation != newHomeLocation {
+            homeLocation = newHomeLocation
+            markChanged()
+        }
+        return self
     }
 
     /// Changes current return target.
@@ -461,13 +424,13 @@ extension ReturnHomePilotingItfCore {
     /// - Parameter currentTarget: new home current target
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(currentTarget newTarget: ReturnHomeTarget)
+    @discardableResult public func update(currentTarget newTarget: ReturnHomeTarget?)
         -> ReturnHomePilotingItfCore {
-            if _currentTarget != newTarget {
-                _currentTarget = newTarget
-                markChanged()
-            }
-            return self
+        if _currentTarget != newTarget {
+            _currentTarget = newTarget
+            markChanged()
+        }
+        return self
     }
 
     /// Changes gps was fixed on takeoff
@@ -477,11 +440,11 @@ extension ReturnHomePilotingItfCore {
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(gpsFixedOnTakeOff: Bool)
         -> ReturnHomePilotingItfCore {
-            if _gpsWasFixedOnTakeOff != gpsFixedOnTakeOff {
-                _gpsWasFixedOnTakeOff = gpsFixedOnTakeOff
-                markChanged()
-            }
-            return self
+        if _gpsWasFixedOnTakeOff != gpsFixedOnTakeOff {
+            _gpsWasFixedOnTakeOff = gpsFixedOnTakeOff
+            markChanged()
+        }
+        return self
      }
 
     /// Changes preferred return home target.
@@ -491,10 +454,23 @@ extension ReturnHomePilotingItfCore {
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(preferredTarget newTarget: ReturnHomeTarget)
         -> ReturnHomePilotingItfCore {
-            if _preferredTarget.update(target: newTarget) {
-                markChanged()
-            }
-            return self
+        if _preferredTarget.update(value: newTarget) {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates the preferred target supported values.
+    ///
+    /// - Parameter preferredTargetSupportedValues: new set of home type supported values
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(
+        preferredTargetSupportedValues newValue: Set<ReturnHomeTarget>) -> ReturnHomePilotingItfCore {
+        if _preferredTarget.update(supportedValues: newValue) {
+            markChanged()
+        }
+        return self
     }
 
     /// Changes the ending behavior.
@@ -504,10 +480,10 @@ extension ReturnHomePilotingItfCore {
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(endingBehavior newBehavior: ReturnHomeEndingBehavior)
         -> ReturnHomePilotingItfCore {
-            if _endingBehavior.update(behavior: newBehavior) {
-                markChanged()
-            }
-            return self
+        if _endingBehavior.update(behavior: newBehavior) {
+            markChanged()
+        }
+        return self
     }
 
     /// Changes minimum return home altitude.
@@ -542,9 +518,49 @@ extension ReturnHomePilotingItfCore {
             }
         }
         if _endingHoveringAltitude!.update(min: newEndingHoveringAltitude.min,
-                                           value: newEndingHoveringAltitude.value, max: newEndingHoveringAltitude.max) {
+                                           value: newEndingHoveringAltitude.value,
+                                           max: newEndingHoveringAltitude.max) {
             markChanged()
         }
+        return self
+    }
+
+    /// Changes return home custom location.
+    ///
+    /// - Parameter customLocation: new custom return home location.
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(customLocation newCustomLocation: ReturnHomeLocation?)
+        -> ReturnHomePilotingItfCore {
+        if let _customLocation, _customLocation.update(location: newCustomLocation) {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Destroy return homecustom location setting.
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func destroyCustomLocationSetting()
+        -> ReturnHomePilotingItfCore {
+            _customLocation = nil
+            markChanged()
+        return self
+    }
+
+    /// Create return home custom location setting.
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func createCustomLocationSetting()
+        -> ReturnHomePilotingItfCore {
+            guard _customLocation == nil else { return self }
+
+            _customLocation = ReturnHomeCustomLocationCore(didChangeDelegate: self) { [unowned self] newValue in
+                return self.returnHomeBackend.set(customLocation: newValue)
+            }
+            markChanged()
         return self
     }
 
@@ -613,6 +629,7 @@ extension ReturnHomePilotingItfCore {
         _preferredTarget.cancelRollback { markChanged() }
         _autoStartOnDisconnectDelay.cancelRollback { markChanged() }
         _minAltitude?.cancelRollback { markChanged() }
+        _customLocation?.cancelRollback { markChanged() }
         return self
     }
 
@@ -629,13 +646,5 @@ extension ReturnHomePilotingItfCore {
             markChanged()
         }
         return self
-    }
-}
-
-/// Extension of ReturnHomePilotingItfCore that adds support of the ObjC API
-extension ReturnHomePilotingItfCore: GSReturnHomePilotingItf {
-
-    public func hasUnavailabilityReason(_ reason: ReturnHomeIssue) -> Bool {
-        return unavailabilityReasons != nil ? unavailabilityReasons!.contains(reason) : false
     }
 }

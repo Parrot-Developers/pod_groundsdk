@@ -74,7 +74,7 @@ public class MediaGalleryAdder: NSObject {
     ///   - mediaAddedCb: callback called when the media has been added. This call back is called in the media
     ///                   gallery adder dispatch queue
     public func addMedia(url: URL, mediaType: MediaItem.MediaType,
-                         mediaAddedCb: @escaping(_ success: Bool) -> Void) {
+                         mediaAddedCb: @escaping (_ success: Bool) -> Void) {
         queue.async {
             // strong capture self to ensure MediaGalleryAdder stay alive until add media is executed
             self.addMediaSync(url: url, mediaType: mediaType, mediaAddedCb: mediaAddedCb)
@@ -142,7 +142,7 @@ public class MediaGalleryAdder: NSObject {
     ///   - mediaType: type of media
     ///   - mediaAddedCb: callback called when the media has been added or if there is an error.
     private func addMediaSync(url: URL, mediaType: MediaItem.MediaType,
-                              mediaAddedCb: @escaping(_ success: Bool) -> Void) {
+                              mediaAddedCb: @escaping (_ success: Bool) -> Void) {
         guard PHPhotoLibrary.authorizationStatus() == .authorized else {
             ULog.e(.coreMediaTag, "Authorization status of PHPhotoLibrary is " +
                 "\(PHPhotoLibrary.authorizationStatus()), cannot add media.")

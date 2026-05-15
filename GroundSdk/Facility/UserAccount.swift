@@ -123,9 +123,10 @@ public protocol UserAccount: Facility {
     ///         false: Already collected data without account must not be uploaded and should be deleted.
     ///   - token: token.
     ///   - droneList: user drone list, APC JSON format
-    @objc(setAccountProvider:accountId:dataUploadPolicy:oldDataPolicy:token:droneList:)
+    ///   - cloudAntennaList: cloud antenna list, APC JSON format
+    @objc(setAccountProvider:accountId:dataUploadPolicy:oldDataPolicy:token:droneList:cloudAntennaList:)
     func set(accountProvider: String, accountId: String, dataUploadPolicy: DataUploadPolicy,
-             oldDataPolicy: OldDataPolicy, token: String, droneList: String)
+             oldDataPolicy: OldDataPolicy, token: String, droneList: String, cloudAntennaList: String)
 
     /// Sets data policies.
     ///
@@ -168,6 +169,13 @@ public protocol UserAccount: Facility {
     ///
     /// - Note: drone list is updated only if user account exists.
     func set(droneList: String)
+
+    /// Sets cloud antenna list for current user account.
+    ///
+    /// - Parameter cloudAntennaList: cloud antenna list, APC JSON format
+    ///
+    /// - Note: cloud antenna list is updated only if user account exists.
+    func set(cloudAntennaList: String)
 
     /// Clears any registered user account.
     ///

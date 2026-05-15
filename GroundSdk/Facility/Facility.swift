@@ -64,6 +64,8 @@ public class Facilities: NSObject {
     public static let gutmaLogManager = GutmaLogManagerDesc()
     /// Reverse geocoder facility.
     public static let reverseGeocoder = ReverseGeocoderDesc()
+    /// Stream sharing facility.
+    public static let streamSharing = StreamSharingDesc()
     /// User account facility.
     public static let userAccount = UserAccountDesc()
     /// User heading facility.
@@ -84,6 +86,7 @@ enum FacilityUid: Int {
     case flightLogReporter
     case gutmaLogManager
     case reverseGeocoder
+    case streamSharing
     case userAccount
     case userHeading
     case userLocation

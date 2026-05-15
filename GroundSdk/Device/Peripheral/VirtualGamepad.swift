@@ -30,7 +30,6 @@
 import Foundation
 
 /// A navigation event sent when the appropriate remote control input is triggered.
-@objc(GSVirtualGamepadEvent)
 public enum VirtualGamepadEvent: Int {
 
     /// Input used to validate an action was triggered.
@@ -65,7 +64,6 @@ public enum VirtualGamepadEvent: Int {
 }
 
 /// State of an input associated to the event that was sent.
-@objc(GSVirtualGamepadEventState)
 public enum VirtualGamepadEventState: Int {
 
     /// Input was pressed.
@@ -109,8 +107,7 @@ public enum VirtualGamepadEventState: Int {
 /// At that point, the virtual gamepad will grab the navigation inputs again and resume forwarding events to the
 /// application listener.
 ///
-/// This peripheral is also in charge of notifying application events through the `NotificationCenter`.
-/// Those events are the appAction* values defined in `ButtonsMappableAction` enum.
+/// This peripheral is also in charge of notifying events through the `NotificationCenter`.
 /// To subscribe to these notifications, please refer to the `GsdkActionGamepadAppAction` notification key
 /// documentation.
 ///
@@ -118,7 +115,6 @@ public enum VirtualGamepadEventState: Int {
 /// ```
 /// drone.getPeripheral(Peripherals.virtualGamepad)
 /// ```
-@objc(GSVirtualGamepad)
 public protocol VirtualGamepad: Peripheral {
 
     /// Whether othe virtual gamepad is currently grabbed.
@@ -156,7 +152,6 @@ public protocol VirtualGamepad: Peripheral {
 
 /// :nodoc:
 /// Virtual gamepad descriptor
-@objc(GSVirtualGamepadDesc)
 public class VirtualGamepadDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = VirtualGamepad
     public let uid = PeripheralUid.virtualGamepad.rawValue
@@ -165,13 +160,20 @@ public class VirtualGamepadDesc: NSObject, PeripheralClassDesc {
 
 /// Extension of NSNotification to declare app event key
 extension NSNotification.Name {
-    /// Key of a notification posted when an app event has been triggered from the remote control device.
+    /// Key of a notification posted when an button event has been triggered from the remote control device.
     ///
-    /// The notification’s userInfo contains the app action as a `ButtonsMappableAction` as the value of the
-    /// `GsdkActionGamepadAppActionKey` key.
+    /// The notification’s userInfo can contain either
+    /// - the action as a `ButtonsMappableAction` as the value of the `GsdkActionGamepadAppActionKey` key.
+    /// - the action as a `AxisMappableAction` as the value of the `GsdkActionGamepadAxisActionKey`
+    /// key with its associated value `GsdkActionGamepadAxisValueKey`
     public static let GsdkActionGamepadAppAction = NSNotification.Name(rawValue: "GsdkActionGamepadAppAction")
 }
 
 /// The key for the corresponding `ButtonsMappableAction` app action.
-/// - Note: Only `appAction*` enums of `ButtonsMappableAction` are dispatched to the application as app actions.
 public let GsdkActionGamepadAppActionKey = "GsdkActionGamepadAppActionKey"
+
+/// The key for the corresponding `AxisMappableAction` app action.
+public let GsdkActionGamepadAxisActionKey = "GsdkActionGamepadAxisActionKey"
+
+/// The key for the corresponding `AxisMappableAction` app action.
+public let GsdkActionGamepadAxisValueKey = "GsdkActionGamepadAxisValueKey"

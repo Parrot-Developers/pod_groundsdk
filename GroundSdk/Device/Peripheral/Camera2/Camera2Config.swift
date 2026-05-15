@@ -148,33 +148,33 @@ public class Camera2Params {
     public static let zoomVelocityControlQualityMode
         = Camera2Param<Camera2ZoomVelocityControlQualityMode>(.zoomVelocityControlQualityMode)
 
-    /// Alignment offset applied to the pitch axis, in degrees.
-    public static let alignmentOffsetPitch = Camera2Param<Double>(.alignmentOffsetPitch)
-
-    /// Alignment offset applied to the roll axis, in degrees.
-    public static let alignmentOffsetRoll = Camera2Param<Double>(.alignmentOffsetRoll)
-
-    /// Alignment offset applied to the yaw axis, in degrees.
-    public static let alignmentOffsetYaw = Camera2Param<Double>(.alignmentOffsetYaw)
-
     /// Auto exposure metering mode.
     public static let autoExposureMeteringMode =
         Camera2Param<Camera2AutoExposureMeteringMode>(.autoExposureMeteringMode)
 
     /// Storage policy for media files.
     public static let storagePolicy = Camera2Param<Camera2StoragePolicy>(.storagePolicy)
+
+    /// Spectrum allows user to enable/disable thermal functionnality
+    public static let spectrum = Camera2Param<Camera2Spectrum>(.spectrum)
+
+    /// Low light mode selection.
+    public static let lowLightModeSelection = Camera2Param<Camera2LowLightModeSelection>(.lowLightModeSelection)
+
+    /// Low light mode.
+    public static let lowLightMode = Camera2Param<Camera2LowLightMode>(.lowLightMode)
 }
 
 /// Identifiers of camera configuration parameters.
 public enum Camera2ParamId: Int, CaseIterable {
     case mode, photoMode, photoDynamicRange, photoResolution, photoFormat, photoFileFormat,
-    photoDigitalSignature, photoBracketing, photoBurst, photoTimelapseInterval, photoGpslapseInterval,
-    photoStreamingMode, videoRecordingMode, videoRecordingDynamicRange, videoRecordingCodec,
-    videoRecordingResolution, videoRecordingFramerate, videoRecordingBitrate,
-    audioRecordingMode, autoRecordMode, exposureMode, maximumIsoSensitivity,
-    isoSensitivity, shutterSpeed, exposureCompensation, whiteBalanceMode, whiteBalanceTemperature, imageStyle,
-    imageContrast, imageSaturation, imageSharpness, zoomMaxSpeed, zoomVelocityControlQualityMode,
-    alignmentOffsetPitch, alignmentOffsetRoll, alignmentOffsetYaw, autoExposureMeteringMode, storagePolicy
+         photoDigitalSignature, photoBracketing, photoBurst, photoTimelapseInterval, photoGpslapseInterval,
+         photoStreamingMode, videoRecordingMode, videoRecordingDynamicRange, videoRecordingCodec,
+         videoRecordingResolution, videoRecordingFramerate, videoRecordingBitrate,
+         audioRecordingMode, autoRecordMode, exposureMode, maximumIsoSensitivity,
+         isoSensitivity, shutterSpeed, exposureCompensation, whiteBalanceMode, whiteBalanceTemperature, imageStyle,
+         imageContrast, imageSaturation, imageSharpness, zoomMaxSpeed, zoomVelocityControlQualityMode,
+         autoExposureMeteringMode, storagePolicy, spectrum, lowLightModeSelection, lowLightMode
 }
 
 /// Base class for camera configuration parameter.

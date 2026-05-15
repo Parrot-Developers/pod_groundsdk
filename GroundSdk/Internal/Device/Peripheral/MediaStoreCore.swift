@@ -37,21 +37,27 @@ public enum MediaStoreChangeEvent {
     /// A new resource of an existing media has been created.
     /// - Parameter resource: The resource that was created
     case createdResource(_ resource: MediaItemResourceCore, mediaId: String)
+    /// An existing media has been updated.
+    /// - Parameter media: The media that was updated
+    case updatedMedia(_ media: MediaItemCore)
     /// The last resource of a media has been removed.
     /// - Parameter mediaId: The id of the media that was removed
     case removedMedia(mediaId: String)
     /// A resource of a media has been removed, the media still has remaining resource
     /// - Parameter resourceId: The id of the resource that was removed
     case removedResource(resourceId: String)
-    /// All media were removed
+    /// All media have been removed
     case allMediaRemoved
-    /// The indexing state changed
+    /// The indexing state has changed
     /// - Parameters:
     ///   - oldState: the old indexing state
     ///   - newState: the new indexing state
     case indexingStateChanged(oldState: MediaStoreIndexingState,
                               newState: MediaStoreIndexingState)
-    /// The websocket disconnected
+    /// The storage has been removed
+    /// - Parameter storage: The name of the removed storage
+    case storageRemoved(storage: StorageType)
+    /// The websocket has disconnected
     case webSocketDisconnected
 }
 
@@ -72,7 +78,7 @@ public class MediaResourceListCore: MediaResourceList {
     }
 
     /// Entry list
-    private (set) var mediaResourceList = [Entry]()
+    private(set) var mediaResourceList = [Entry]()
 
     /// Constructor with all resources of a list of media
     ///
@@ -81,7 +87,7 @@ public class MediaResourceListCore: MediaResourceList {
         self.init()
         self.mediaResourceList = mediaList.map { (media: MediaItem) in
             Entry(media: media as! MediaItemCore,
-                resources: media.resources as! [MediaItemResourceCore])
+                  resources: media.resources as! [MediaItemResourceCore])
         }
     }
 
@@ -137,13 +143,13 @@ public class MediaResourceListCore: MediaResourceList {
     /// Media resources iterator
     public class Iterator: IteratorProtocol {
         /// List to iterate
-        private let list: [Entry]
+        private var allEntries: [Entry] = []
         /// Number of media in the iterator
-        public var mediaCount: Int { list.count }
+        public var mediaCount: Int { allEntries.count }
         /// Number of resources in the iterator
-        public let resourceCount: Int
+        public var resourceCount: Int
         /// Total resources size in the iterator
-        public let totalSize: UInt64
+        public var totalSize: UInt64
         /// Index of the current media
         fileprivate private(set) var currentMediaIdx = 0
         /// Index of the current resource
@@ -158,7 +164,7 @@ public class MediaResourceListCore: MediaResourceList {
         /// Current iterated entry
         private var currentEntry: MediaResourceListCore.Entry?
         /// Current iterated resource
-        private var currentResource: MediaItemResourceCore?
+        fileprivate var currentResource: MediaItemResourceCore?
         /// Iterator of entry list
         private var entriesIterator: AnyIterator<MediaResourceListCore.Entry>
         /// Iterator of current media resources
@@ -168,16 +174,33 @@ public class MediaResourceListCore: MediaResourceList {
         ///
         /// - Parameter list: list to iterate on
         fileprivate init(list: [Entry]) {
-            self.list = list
-            self.resourceCount = list.reduce(0) { sum, entry in
+            allEntries = list
+            resourceCount = list.reduce(0) { sum, entry in
                 sum + entry.resources.count
             }
-            self.totalSize = list.reduce(0) { sum, entry in
+            totalSize = allEntries.reduce(0) { sum, entry in
                 sum + entry.resources.reduce(0) { sum_, resource in
                     sum_ + resource.size
                 }
             }
             entriesIterator = AnyIterator<MediaResourceListCore.Entry>(list.makeIterator())
+        }
+
+        /// Add media resources to the current list
+        /// - Parameter newEntries: new list to iterate on
+        func addResources(_ newEntries: [Entry]) {
+            allEntries.append(contentsOf: newEntries)
+            resourceCount += newEntries.reduce(0) { sum, entry in
+                sum + entry.resources.count
+            }
+            totalSize += newEntries.reduce(0) { sum, entry in
+                sum + entry.resources.reduce(0) { sum_, resource in
+                    sum_ + resource.size
+                }
+            }
+
+            let remainingEntries = allEntries.dropFirst(currentMediaIdx)
+            entriesIterator = AnyIterator<MediaResourceListCore.Entry>(remainingEntries.makeIterator())
         }
 
         /// Advances to the next element and returns it, or `nil` if no next element
@@ -189,8 +212,8 @@ public class MediaResourceListCore: MediaResourceList {
             // move to the next resource
             if let resourcesIterator = resourcesIterator {
                 currentResource = resourcesIterator.next()
-                if let currentResource = currentResource {
-                    next = (currentEntry!.media, currentResource)
+                if let currentResource = currentResource, let currentEntry = currentEntry {
+                    next = (currentEntry.media, currentResource)
                 }
             }
             if next == nil {
@@ -224,8 +247,8 @@ public class MediaResourceListCore: MediaResourceList {
             // move to the next resource
             if let resourcesIterator = resourcesIterator {
                 currentResource = resourcesIterator.next()
-                if let currentResource = currentResource {
-                    next =  (currentEntry!.media, currentResource)
+                if let currentResource = currentResource, let currentEntry = currentEntry {
+                    next =  (currentEntry.media, currentResource)
                     currentResourceIdx += 1
                     currentSize += currentResource.size
                 }
@@ -262,25 +285,326 @@ public class MediaResourceListCore: MediaResourceList {
 
 /// Media downloader implementation
 public class MediaDownloaderCore: MediaDownloader {
-    /// Construct a new media downloader based on MediaResourceListCore.Iterator progress
+    private(set) public var totalMediaCount: Int = 0
+
+    private(set) public var currentMediaIndex: Int = 0
+
+    private(set) public var totalResourceCount: Int = 0
+
+    private(set) public var currentResourceIndex: Int = 0
+
+    private(set) public var currentFileProgress: Float = 0.0
+
+    private(set) public var totalProgress: Float = 0.0
+
+    private(set) public var status: MediaTaskStatus = .running
+
+    private(set) public var fileUrl: URL?
+
+    private(set) public var signatureUrl: URL?
+
+    private(set) public var currentMedia: MediaItem?
+
+    private(set) public var currentResource: MediaItem.Resource?
+
+    /// Media store instance
+    private let mediaStore: MediaStoreCore
+
+    /// Resource iterator
+    private var resourcesIterator: MediaResourceListCore.Iterator
+
+    /// Result request
+    private var task = CancelableTaskCore()
+
+    /// Media download type
+    private var type: DownloadType
+
+    /// Download destination directory path
+    private var destDirectoryPath: String = ""
+
+    /// The gallery adder
+    private var galleryAdder: MediaGalleryAdder?
+
+    /// Current media downloader observer
+    private var observer: (MediaDownloader?) -> Void
+
+    /// Whether this downloader has changed
+    private var changed = false
+
+    /// Constructor
     ///
     /// - Parameters:
-    ///   - iterator: media list iterator providing progress information on overall resource list download
-    ///   - currentFileProgress: progress on the current file download (0.0 to 1.0)
-    ///   - status: download status
-    ///   - currentMedia : current downloading media
-    ///   - fileUrl : url of downloaded file when progress is at 1.0, nil in other cases
-    ///   - signatureUrl : url of downloaded signature when progress is at 1.0, nil in other cases
-    public init(mediaResourceListIterator iterator: MediaResourceListCore.Iterator,
-                currentFileProgress: Float, status: MediaTaskStatus, currentMedia: MediaItem? = nil,
-                fileUrl: URL? = nil, signatureUrl: URL? = nil) {
-        let progress = (Float(iterator.currentSize - iterator.currentResourceSize) +
-            Float(iterator.currentResourceSize) * currentFileProgress) / Float(iterator.totalSize)
-        super.init(totalMedia: iterator.mediaCount, countMedia: iterator.currentMediaIdx,
-                   totalResources: iterator.resourceCount, countResources: iterator.currentResourceIdx,
-                   currentFileProgress: currentFileProgress,
-                   progress: progress, status: status, currentMedia: currentMedia, fileUrl: fileUrl,
-                   signatureUrl: signatureUrl)
+    ///   - mediaStore: the media store instance
+    ///   - mediaResources: media resources list
+    ///   - type: download type
+    ///   - destination: download destination
+    public init(mediaStore: MediaStoreCore, mediaResources: MediaResourceListCore,
+                type: DownloadType, destination: DownloadDestination, observer: @escaping (MediaDownloader?) -> Void) {
+        self.observer = observer
+        self.mediaStore = mediaStore
+        resourcesIterator = mediaResources.makeIterator()
+        self.type = type
+
+        switch destination {
+        case .document(let directoryName):
+            let documentPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            if let directoryName = directoryName {
+                destDirectoryPath = documentPath.appendingPathComponent(directoryName).path
+            } else {
+                destDirectoryPath = documentPath.path
+            }
+        case .directory(let path):
+            destDirectoryPath = path
+        default:
+            destDirectoryPath = NSTemporaryDirectory()
+        }
+        do {
+            try FileManager.default.createDirectory(atPath: destDirectoryPath,
+                                                    withIntermediateDirectories: true, attributes: nil)
+        } catch let err {
+            ULog.e(.mediaStoreTag, "error creating download media directory \(err)")
+        }
+
+        /// init MediaGalleryAdder if target is .mediaGallery
+        if case .mediaGallery(let albumName) = destination {
+            galleryAdder = MediaGalleryAdder(albumName: albumName)
+        } else {
+            galleryAdder = nil
+        }
+
+        totalMediaCount = resourcesIterator.mediaCount
+        totalResourceCount = resourcesIterator.resourceCount
+
+    }
+
+    /// Cancels the request
+    func cancel() {
+        task.cancel()
+    }
+
+    func execute() {
+        /// start download with the first resource
+        downloadNextResource()
+    }
+
+    public func add(resources: MediaResourceList) {
+        resourcesIterator.addResources((resources as! MediaResourceListCore).mediaResourceList)
+        if totalMediaCount != resourcesIterator.mediaCount {
+            totalMediaCount = resourcesIterator.mediaCount
+            changed = true
+        }
+        if totalResourceCount != resourcesIterator.resourceCount {
+            totalResourceCount = resourcesIterator.resourceCount
+            changed = true
+        }
+        notifyUpdated()
+    }
+
+    /// Download the next media resource in the iterator
+    private func downloadNextResource() {
+        guard !task.canceled else {
+            /// don't do anything if the request has been canceled
+            return
+        }
+
+        /// Move to next resource
+        if let mediaResource = resourcesIterator.next() {
+            /// request download
+            let req = self.mediaStore.backend.download(
+                resource: mediaResource.resource,
+                type: type, destination: destDirectoryPath,
+                progress: { percent in
+                    self.notifyProgress(percent: Float(percent), currentMedia: mediaResource.media)
+                }, completion: { [self] fileUrl in
+                    task.request = nil
+                    if let fileUrl = fileUrl {
+                        self.processDownloadedResource(media: mediaResource.media, fileUrl: fileUrl)
+                        if mediaResource.resource.signed, case .full = type {
+                            self.downloadResourceSignature(mediaResource: mediaResource, fileUrl: fileUrl)
+                        } else {
+                            self.notifyProgressCompletion(currentMedia: mediaResource.media, fileUrl: fileUrl)
+                            downloadNextResource()
+                        }
+                    } else if !task.canceled {
+                        ULog.w(.mediaStoreTag, "Error downloading media resource")
+                        self.notifyProgressFileError(currentMedia: mediaResource.media)
+                        downloadNextResource()
+                    }
+                })
+            /// progress for the new resource
+            notifyProgress(percent: 0, currentMedia: mediaResource.media)
+            /// request created, update client request
+            if let req = req {
+                /// store current low level request to cancel
+                task.request = req
+            } else {
+                ULog.d(.mediaStoreTag, "media resource download skipped")
+                downloadNextResource()
+            }
+        } else {
+            /// no more resources to download
+            if let galleryAdder = galleryAdder {
+                ULog.d(.mediaStoreTag, "media download terminated, waiting for media gallery completion ")
+                galleryAdder.notifyCompleted {
+                    ULog.d(.mediaStoreTag, "media gallery update terminated")
+                    self.notifyProgressTerminated()
+                }
+            } else {
+                ULog.d(.mediaStoreTag, "media download terminated")
+                notifyProgressTerminated()
+            }
+        }
+    }
+
+    /// Process downloaded resource
+    ///
+    /// - Parameters:
+    ///   - media: downloaded media
+    ///   - filePath: local media resource path
+    private func processDownloadedResource(media: MediaItem, fileUrl: URL) {
+        ULog.d(.mediaStoreTag, "media \(fileUrl.path) downloaded")
+        if let galleryAdder = galleryAdder {
+            galleryAdder.addMedia(url: fileUrl, mediaType: media.type) { _ in
+                do {
+                    try FileManager.default.removeItem(at: fileUrl)
+                } catch let err {
+                    ULog.e(.mediaStoreTag, "Error adding item to gallery \(err)")
+                }
+            }
+        }
+    }
+
+    /// Download media resource signature
+    ///
+    /// - Parameter mediaResource: the current media resource
+    private func downloadResourceSignature(mediaResource: (media: MediaItemCore, resource: MediaItemResourceCore),
+                                           fileUrl: URL) {
+        guard !task.canceled else {
+            /// don't do anything if the request has been canceled
+            return
+        }
+
+        /// request download
+        let req = self.mediaStore.backend.downloadSignature(resource: mediaResource.resource,
+                                             destDirectoryPath: destDirectoryPath,
+                                             completion: { signatureUrl in
+            self.task.request = nil
+            if signatureUrl == nil {
+                ULog.w(.mediaStoreTag, "Error downloading media resource signature")
+            }
+            if !self.task.canceled {
+                self.notifyProgressCompletion(currentMedia: mediaResource.media,
+                                         fileUrl: fileUrl,
+                                         signatureUrl: signatureUrl)
+                self.downloadNextResource()
+            }
+        })
+        /// request created, update client request and notify progress
+        if let req = req {
+            /// store current low level request to cancel
+            task.request = req
+        } else {
+            /// error sending request
+            ULog.d(.mediaStoreTag, "media download error sending request, skipping media")
+            notifyProgressError(currentMedia: mediaResource.media)
+        }
+    }
+
+    /// Notify progress completion with fileUrl
+    ///
+    /// - Parameters:
+    ///    - currentMedia: the current media item
+    ///    - fileUrl: url of the file
+    ///    - signatureUrl: the signature url
+    private func notifyProgressCompletion(currentMedia: MediaItem, fileUrl: URL, signatureUrl: URL? = nil) {
+        update(currentFileProgress: 1.0, status: .fileDownloaded, currentMedia: currentMedia, fileUrl: fileUrl,
+        signatureUrl: signatureUrl)
+    }
+
+    /// Notify progress with current file progress
+    ///
+    /// - Parameters:
+    ///    - percent: current file download %
+    ///    - currentMedia: the current media item
+    private func notifyProgress(percent: Float, currentMedia: MediaItem) {
+        update(currentFileProgress: percent / 100, status: .running, currentMedia: currentMedia)
+    }
+
+    /// Notify progress with an error
+    ///
+    /// - Parameter currentMedia: the current media item
+    private func notifyProgressError(currentMedia: MediaItem) {
+        update(currentFileProgress: 0.0, status: .error, currentMedia: currentMedia)
+    }
+
+    /// Notify progress with an error downloading file
+    ///
+    /// - Parameter currentMedia: the current media item
+    func notifyProgressFileError(currentMedia: MediaItem) {
+        update(currentFileProgress: 1.0, status: .fileError, currentMedia: currentMedia)
+    }
+
+    /// Notify download terminated
+    private func notifyProgressTerminated() {
+        update(currentFileProgress: 1.0, status: .complete)
+    }
+
+    /// Updates current media downloader with new values and notify changed.
+    ///
+    /// - Parameters:
+    ///    - currentFileProgress: current file download %
+    ///    - status: status
+    ///    - currentMedia: the current media item
+    ///    - fileUrl: url of the file
+    ///    - signatureUrl: the signature url
+    private func update(currentFileProgress: Float, status: MediaTaskStatus, currentMedia: MediaItem? = nil,
+                        fileUrl: URL? = nil, signatureUrl: URL? = nil) {
+        let progress = (Float(resourcesIterator.currentSize - resourcesIterator.currentResourceSize) +
+            Float(resourcesIterator.currentResourceSize) * currentFileProgress) / Float(resourcesIterator.totalSize)
+        if self.currentMedia != currentMedia {
+            self.currentMedia = currentMedia
+            changed = true
+        }
+        if currentResource != resourcesIterator.currentResource {
+            currentResource = resourcesIterator.currentResource
+            changed = true
+        }
+        if self.status != status {
+            self.status = status
+            changed = true
+        }
+        if self.currentMediaIndex != resourcesIterator.currentMediaIdx {
+            self.currentMediaIndex = resourcesIterator.currentMediaIdx
+            changed = true
+        }
+        if self.currentResourceIndex != resourcesIterator.currentResourceIdx {
+            self.currentResourceIndex = resourcesIterator.currentResourceIdx
+            changed = true
+        }
+        if self.currentFileProgress != currentFileProgress {
+            self.currentFileProgress = currentFileProgress
+            changed = true
+        }
+        if self.fileUrl != fileUrl {
+            self.fileUrl = fileUrl
+            changed = true
+        }
+        if self.signatureUrl != signatureUrl {
+            self.signatureUrl = signatureUrl
+            changed = true
+        }
+        if totalProgress != progress {
+            totalProgress = progress
+            changed = true
+        }
+        notifyUpdated()
+    }
+
+    private func notifyUpdated() {
+        if changed {
+            changed = false
+            observer(self)
+        }
     }
 }
 
@@ -385,13 +709,24 @@ public protocol MediaStoreBackend: AnyObject {
     /// Download media resources
     ///
     /// - Parameters:
-    ///   - mediaResources: list of media resources to download
+    ///   - resource: media resource to download
     ///   - type: download type
     ///   - destination: download destination
     ///   - progress: download progress callback
+    ///   - completion: closure called when the resource has been downloaded or if there is an error.
     /// - Returns: download media resources request, or `nil` if the request can't be sent
-    func download(mediaResources: MediaResourceListCore, type: DownloadType, destination: DownloadDestination,
-                  progress: @escaping (MediaDownloader) -> Void) -> CancelableCore?
+    func download(resource: MediaItemResourceCore, type: DownloadType, destination: String,
+                  progress: @escaping (_ progressValue: Int) -> Void,
+                  completion: @escaping (_ fileUrl: URL?) -> Void) -> CancelableCore?
+
+    /// Download signature resource
+    /// - Parameters:
+    ///   - resource: signature to download
+    ///   - destDirectoryPath: download destination
+    ///   - completion: completion closure called when the request is terminated
+    /// - Returns: download signature resources request, or `nil` if the request can't be sent
+    func downloadSignature(resource: MediaItemResourceCore, destDirectoryPath: String,
+                           completion: @escaping (_ signatureUrl: URL?) -> Void) -> CancelableCore?
 
     /// Uploads media resources.
     ///
@@ -649,76 +984,6 @@ public class MediaStoreCore: PeripheralCore, MediaStore {
     }
 }
 
-/// Objective-C extension adding MediaStoreCore swift methods that can't be automatically converted.
-/// Those methods should no be used from swift
-extension MediaStoreCore: GSMediaStore {
-
-    /// Create a new Media list request for a storage.
-    ///
-    /// This function starts loading the media store content, and notify when the it has been loaded and each time
-    /// the content changes.
-    ///
-    /// - Parameters:
-    ///     - storage: the storage type where to browse
-    ///     - observer: observer  notified when the media list has been loaded or has change.
-    /// - Returns: a reference on a list of MediaItem
-    public func newListRef(storage: StorageType, observer: @escaping ([MediaItem]?) -> Void) -> GSMediaListRef {
-        return GSMediaListRef(ref: newList(storage: storage, observer: observer))
-    }
-
-    /// Create a new Media list request.
-    ///
-    /// This function starts loading the media store content, and notify when the it has been loaded and each time
-    /// the content changes.
-    ///
-    /// - Parameter observer: observer  notified when the media list has been loaded or has change.
-    /// - Returns: a reference on a list of MediaItem
-    public func newListRef(observer: @escaping ([MediaItem]?) -> Void) -> GSMediaListRef {
-        return GSMediaListRef(ref: newList(observer: observer))
-    }
-
-    /// Create a new thumbnail downloader
-    ///
-    /// - Parameters:
-    ///   - media: media item to download the thumbnail from
-    ///   - observer: observer called when the thumbnail has been downloaded. Observer is called immediately if the
-    ///     thumbnail is already cached
-    ///   - thumbnail: loaded or cached thumbnail, nil if the thumbnail can't be downloaded
-    /// - Returns: A reference of the media downloader. Caller must keep this instance referenced for the observer
-    ///   to be called.
-    public func newThumbnailDownloaderRef(media: MediaItem, observer: @escaping (UIImage?) -> Void) -> GSMediaImageRef {
-        return GSMediaImageRef(ref: newThumbnailDownloader(media: media, observer: observer))
-    }
-
-    /// Create a new media resource downloader
-    ///
-    /// - Parameters:
-    ///   - mediaResources: list of media resources to download
-    ///   - destination: download destination
-    ///   - observer: observer called when the Media downloader changes, indicating download progress
-    /// - Returns: a reference on a MediaDownloader. Caller must keep this instance referenced until all media are
-    ///   downloaded. Setting it to nil cancel the download.
-    public func newDownloaderRef(mediaResources: MediaResourceList, destination: GSDownloadDestination,
-                                 observer: @escaping (MediaDownloader?) -> Void) -> GSMediaDownloaderRef {
-        return GSMediaDownloaderRef(ref: newDownloader(
-            mediaResources: mediaResources, destination: destination.destination, observer: observer))
-    }
-
-    /// Create a new Media deleter, to delete a list of media
-    ///
-    /// - Parameters:
-    ///   - medias: medias to delete.
-    ///   - observer: observer notified progress of the delete task.
-    /// - Returns: a reference on a MediaDeleter.
-    public func newDeleterRef(medias: [MediaItem], observer: @escaping (MediaDeleter?) -> Void) -> GSMediaDeleterRef {
-        return GSMediaDeleterRef(ref: newDeleter(medias: medias, observer: observer))
-    }
-
-    public func newAllMediasDeleterRef(observer: @escaping (AllMediasDeleter?) -> Void) -> GSAllMediasDeleterRef {
-        return GSAllMediasDeleterRef(ref: newAllMediasDeleter(observer: observer))
-    }
-}
-
 /// Backend callback methods
 extension MediaStoreCore {
 
@@ -728,7 +993,6 @@ extension MediaStoreCore {
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult
-    @objc
     public func update(indexingState newValue: MediaStoreIndexingState) -> MediaStoreCore {
         if indexingState != newValue {
             indexingState = newValue

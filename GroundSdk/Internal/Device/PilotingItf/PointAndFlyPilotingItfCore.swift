@@ -61,6 +61,8 @@ public class PointAndFlyPilotingItfCore: ActivablePilotingItfCore, PointAndFlyPi
 
     public private(set) var executionStatus: PointAndFlyExecutionStatus?
 
+    public private(set) var availableRadioLinks: Set<RadioConfiguration> = [.all]
+
     /// Super class backend as PointAndFlyPilotingItfBackend
     public var pointAndFlyBackend: PointAndFlyPilotingItfBackend {
         return backend as! PointAndFlyPilotingItfBackend
@@ -139,6 +141,20 @@ extension PointAndFlyPilotingItfCore {
     public func update(executionStatus newValue: PointAndFlyExecutionStatus?) -> PointAndFlyPilotingItfCore {
         if executionStatus != newValue {
             executionStatus = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates available radio links.
+    ///
+    /// - Parameter availableRadioLinks: new available radio links
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult
+    public func update(availableRadioLinks newValue: Set<RadioConfiguration>) -> PointAndFlyPilotingItfCore {
+        if availableRadioLinks != newValue {
+            availableRadioLinks = newValue
             markChanged()
         }
         return self

@@ -32,15 +32,15 @@ import Foundation
 /// Internal Attitude indicator instrument implementation
 public class AttitudeIndicatorCore: InstrumentCore, AttitudeIndicator {
 
-    /// Angle (in degrees) on the roll axis of the drone
-    private(set) public var roll: Double = 0
-
     /// Angle (in degrees) on the pitch axis of the drone
-    private(set) public var pitch: Double = 0
+    private(set) public var pitch: Double?
+
+    /// Angle (in degrees) on the roll axis of the drone
+    private(set) public var roll: Double?
 
     /// Debug description
     public override var description: String {
-        return "AttitudeIndicator: roll = \(roll), pitch = \(pitch)"
+        return "AttitudeIndicator: pitch = \(String(describing: pitch)), roll = \(String(describing: roll))"
     }
 
     /// Constructor
@@ -54,30 +54,28 @@ public class AttitudeIndicatorCore: InstrumentCore, AttitudeIndicator {
 /// Backend callback methods
 extension AttitudeIndicatorCore {
 
-    /// Changes the roll angle value.
-    /// In degrees in range [0, 360[
-    ///
-    /// - Parameter roll: the roll to set
-    /// - Returns: self to allow call chaining
-    /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(roll newValue: Double) -> AttitudeIndicatorCore {
-        if roll != newValue {
-            markChanged()
-            roll = newValue
-        }
-        return self
-    }
-
     /// Changes the pitch angle value.
-    /// In degrees in range [0, 360[
     ///
     /// - Parameter pitch: the pitch to set
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(pitch newValue: Double) -> AttitudeIndicatorCore {
+    @discardableResult public func update(pitch newValue: Double?) -> AttitudeIndicatorCore {
         if pitch != newValue {
             markChanged()
             pitch = newValue
+        }
+        return self
+    }
+
+    /// Changes the roll angle value.
+    ///
+    /// - Parameter roll: the roll to set
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(roll newValue: Double?) -> AttitudeIndicatorCore {
+        if roll != newValue {
+            markChanged()
+            roll = newValue
         }
         return self
     }

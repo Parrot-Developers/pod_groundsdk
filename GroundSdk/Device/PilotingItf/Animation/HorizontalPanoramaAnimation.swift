@@ -38,8 +38,6 @@ import Foundation
 ///   its own default value for this parameter.
 /// - **rotation speed**: angular speed of the rotation, in degrees per second. If `with(rotationSpeed:)` is not called,
 ///   then the drone will apply its own default value for this parameter.
-@objcMembers
-@objc(GSHorizontalPanoramaAnimationConfig)
 public class HorizontalPanoramaAnimationConfig: NSObject, AnimationConfig {
 
     public let type = AnimationType.horizontalPanorama
@@ -76,7 +74,6 @@ public class HorizontalPanoramaAnimationConfig: NSObject, AnimationConfig {
 /// Horizontal panorama animation.
 ///
 /// This animation instructs the drone to rotate horizontally.
-@objc(GSHorizontalPanoramaAnimation)
 public protocol HorizontalPanoramaAnimation: Animation {
 
     /// Current animation rotation angle, in degrees.

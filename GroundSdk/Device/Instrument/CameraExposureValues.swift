@@ -35,7 +35,6 @@ import Foundation
 /// ```
 /// drone.getInstrument(Instruments.cameraExposureValues)
 /// ```
-@objc(GSCameraExposureValues)
 public protocol CameraExposureValues: Instrument {
 
     /// Current effective shutter speed.
@@ -47,7 +46,6 @@ public protocol CameraExposureValues: Instrument {
 
 /// :nodoc:
 /// Instrument descriptor
-@objc(GSCameraExposureValuesDesc)
 public class CameraExposureValuesDesc: NSObject, InstrumentClassDesc {
     public typealias ApiProtocol = CameraExposureValues
     public let uid = InstrumentUid.cameraExposureValues.rawValue

@@ -48,11 +48,11 @@ public class VirtualGamepadCore: PeripheralCore, VirtualGamepad {
 
     /// Whether or not the virtual gamepad is preempted by the specific gamepad.
     /// If this peripheral is grabbed and not preempted, you should receive navigation events through the listener.
-    private (set) public var isPreempted = false
+    private(set) public var isPreempted = false
 
     /// Whether or not the virtual gamepad is currently grabbed.
     /// If this peripheral is grabbed and not preempted, you should receive navigation events through the listener.
-    private (set) public var isGrabbed = false
+    private(set) public var isGrabbed = false
 
     /// Whether or not the gamepad can be grabbed for navigation.
     public var canGrab: Bool {
@@ -132,7 +132,7 @@ extension VirtualGamepadCore {
             return self
     }
 
-    /// Forwards an app action to the application
+    /// Forwards a button app action to the application
     ///
     /// - Parameter appAction: the application action to forward
     /// - Returns: self to allow call chaining
@@ -141,6 +141,19 @@ extension VirtualGamepadCore {
         NotificationCenter.default.post(
             name: NSNotification.Name.GsdkActionGamepadAppAction, object: self,
             userInfo: [GsdkActionGamepadAppActionKey: appAction])
+        return self
+    }
+
+    /// Forwards an axis app action to the application
+    ///
+    /// - Parameter appAction: the application action to forward
+    /// - Parameter value: the value of the axis to forward
+    /// - Returns: self to allow call chaining
+    @discardableResult
+    public func notifyAppAction(_ appAction: AxisMappableAction, _ value: Int) -> VirtualGamepadCore {
+        NotificationCenter.default.post(
+            name: NSNotification.Name.GsdkActionGamepadAppAction, object: self,
+            userInfo: [GsdkActionGamepadAxisActionKey: appAction, GsdkActionGamepadAxisValueKey: value])
         return self
     }
 

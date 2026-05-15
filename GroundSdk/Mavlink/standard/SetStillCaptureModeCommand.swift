@@ -97,3 +97,5 @@ extension MavlinkStandard {
         }
     }
 }
+
+// swiftlint:enable nesting

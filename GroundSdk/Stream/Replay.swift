@@ -37,6 +37,7 @@ public enum ReplayPlayState: Int, CustomStringConvertible {
 
     /// Stream is either 'State.starting' in which case this indicates that playback will start once
     /// the stream is started, or 'State.started' in which case this indicates that playback is currently ongoing.
+    /// The stream stays in `playing` state when end of stream is reached.
     case playing
 
     /// Stream is either 'State.starting' in which case this indicates that playback will pause once
@@ -63,6 +64,9 @@ public protocol Replay: Stream {
     /// Current playback state.
     var playState: ReplayPlayState { get }
 
+    /// Whether playback is currently seeking.
+    var isSeeking: Bool { get }
+
     /// Request playback to start.
     ///
     /// The stream is started if necessary.
@@ -82,9 +86,13 @@ public protocol Replay: Stream {
 
     /// Request playback position change.
     ///
-    /// - Parameter position: time position to seek to, in seconds
+    /// - Parameters:
+    ///   - position: time position to seek to, in seconds
+    ///   - exact: `true` means seek to the sample closest to the position (slower), `false` means seek to the nearest (faster)
+    ///   synchronization sample preceding the position
+    ///
     /// - Returns: 'true' if seek request was sent, otherwise 'false'
-    func seekTo(position: TimeInterval) -> Bool
+    func seekTo(position: TimeInterval, exact: Bool) -> Bool
 
     /// Total playback duration, in seconds.
     var duration: TimeInterval { get }

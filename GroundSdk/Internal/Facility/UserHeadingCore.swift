@@ -33,7 +33,7 @@ import CoreLocation
 /// Core implementation of the UserHeading facility
 class UserHeadingCore: FacilityCore, UserHeading {
 
-    private (set) var heading: CLHeading?
+    private(set) var heading: CLHeading?
 
     override var description: String {
         return "heading: \(String(describing: heading))"

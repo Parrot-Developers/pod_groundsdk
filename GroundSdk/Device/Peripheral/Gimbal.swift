@@ -30,7 +30,6 @@
 import Foundation
 
 /// Gimbal axis.
-@objc(GSGimbalAxis)
 public enum GimbalAxis: Int, CustomStringConvertible {
     /// Yaw axis of the gimbal.
     case yaw
@@ -53,7 +52,6 @@ public enum GimbalAxis: Int, CustomStringConvertible {
 }
 
 /// Gimbal frame of reference.
-@objc(GSFrameOfReference)
 public enum FrameOfReference: Int, CustomStringConvertible {
     /// Absolute frame of reference.
     case absolute
@@ -73,7 +71,6 @@ public enum FrameOfReference: Int, CustomStringConvertible {
 }
 
 /// Way of controlling the gimbal.
-@objc(GSGimbalControlMode)
 public enum GimbalControlMode: Int, CustomStringConvertible {
     /// Control the gimbal giving position targets.
     case position
@@ -90,8 +87,6 @@ public enum GimbalControlMode: Int, CustomStringConvertible {
 }
 
 /// Gimbal offsets manual correction process.
-@objcMembers
-@objc(GSGimbalOffsetsCorrectionProcess)
 public class GimbalOffsetsCorrectionProcess: NSObject {
     /// Set of axes that can be manually corrected.
     ///
@@ -143,6 +138,9 @@ public protocol Gimbal: CalibratableGimbal {
 
     /// Only contains supported axes.
     var lockedAxes: Set<GimbalAxis> { get }
+
+    /// Whether Gimbal stabilization is degraded or not.
+    var isStabilizationDegraded: Bool { get }
 
     /// Bounds of the attitude by axis.
     /// Only contains supported axes.
@@ -205,107 +203,6 @@ public protocol Gimbal: CalibratableGimbal {
     func currentAttitude(frameOfReference: FrameOfReference) -> [GimbalAxis: Double]
 }
 
-/// Objective-C version of Gimbal.
-///
-/// The gimbal is the peripheral "holding" and orientating the camera. It can be a real mechanical gimbal, or a software
-/// one.
-///
-/// The gimbal can act on one or multiple axes. It can stabilize a given axis, meaning that the movement on this axis
-/// will be following the horizon (for `.roll` and `.pitch`) or the North (for the `.yaw`).
-///
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objc
-public protocol GSGimbal: GSCalibratableGimbal {
-    /// Offset correction process.
-    /// Not nil when offset correction is started (see `startOffsetsCorrectionProcess()` and
-    /// `stopOffsetsCorrectionProcess()`).
-    var offsetsCorrectionProcess: GimbalOffsetsCorrectionProcess? { get }
-
-    /// Tells whether a given axis is supported
-    ///
-    /// - Parameter axis: the axis to query
-    /// - Returns: `true` if the axis is supported, `false` otherwise
-    func isAxisSupported(_ axis: GimbalAxis) -> Bool
-
-    /// Tells whether a given axis is currently locked.
-    ///
-    /// While an axis is locked, you cannot set a speed or a position.
-    ///
-    /// An axis can be locked because the drone is controlling this axis on itself, thus it does not allow the
-    /// controller to change its orientation. This might be the case during a FollowMe or when the
-    /// `PointOfInterestPilotingItf` is active.
-    ///
-    /// - Parameter axis: the axis to query
-    /// - Returns: `true` if the axis is supported and locked, `false` otherwise
-    func isAxisLocked(_ axis: GimbalAxis) -> Bool
-
-    /// Gets the lower bound of the attitude on a given axis.
-    ///
-    /// - Parameter axis: the axis
-    /// - Returns: a double in an NSNumber. `nil` if axis is not supported.
-    func attitudeLowerBound(onAxis axis: GimbalAxis) -> NSNumber?
-
-    /// Gets the upper bound of the attitude on a given axis.
-    ///
-    /// - Parameter axis: the axis
-    /// - Returns: a double in an NSNumber. `nil` if axis is not supported.
-    func attitudeUpperBound(onAxis axis: GimbalAxis) -> NSNumber?
-
-    /// Gets the max speed setting on a given axis.
-    ///
-    /// - Parameter axis: the axis
-    /// - Returns: the max speed setting or `nil` if the axis is not supported.
-    func maxSpeed(onAxis axis: GimbalAxis) -> DoubleSetting?
-
-    /// Gets the stabilization setting on a given axis
-    ///
-    /// - Parameter axis: the axis
-    /// - Returns: the stabilization setting or `nil` if the axis is not supported
-    func stabilization(onAxis axis: GimbalAxis) -> BoolSetting?
-
-    /// Gets the current attitude on a given axis.
-    ///
-    /// - Parameter axis: the axis
-    /// - Returns: the current attitude as a double in an NSNumber. `nil` if axis is not supported.
-    func currentAttitude(onAxis axis: GimbalAxis) -> NSNumber?
-
-    /// Gets the current attitude on a given axis and frame of reference
-    ///
-    /// - Parameters:
-    ///   - axis: the axis
-    ///   - frameOfReference: the frame of reference
-    /// - Returns: the current attitude as a double in an NSNumber. `nil` if axis is not supported.
-    func currentAttitude(onAxis axis: GimbalAxis, frameOfReference: FrameOfReference) -> NSNumber?
-
-    /// Controls the gimbal.
-    ///
-    /// Unit of the `yaw`, `pitch`, `roll` values depends on the value of the `mode` parameter:
-    ///    - `.position`: axis value is in degrees and represents the desired position of the gimbal on the given axis.
-    ///    - `.velocity`: axis value is in max speed (`maxSpeedSettings[thisAxis].value`) ratio (from -1 to 1).
-    ///
-    /// If mode is `.position`, frame of reference of a given axis depends on the value of the stabilization on
-    /// this axis. If this axis is stabilized (i.e. `stabilizationSettings[thisAxis].value == true`), the .absolute
-    /// frame of reference is used. Otherwise .relative frame of reference is used.
-    /// - Parameters:
-    ///   - mode: the mode that should be used to move the gimbal. This parameter will change the unit of the following
-    ///           parameters
-    ///   - yaw: target on the yaw axis as a Double in an NSNumber. `nil` if you want to keep the current value.
-    ///   - pitch: target on the pitch axis as a Double in an NSNumber. `nil` if you want to keep the current value.
-    ///   - roll: target on the roll axis as a Double in an NSNumber. `nil` if you want to keep the current value.
-    func control(mode: GimbalControlMode, yaw: NSNumber?, pitch: NSNumber?, roll: NSNumber?)
-
-    /// Starts the offsets correction process.
-    ///
-    /// When offset correction is started, `offsetsCorrectionProcess` is not nil and correctable offsets can be
-    /// corrected.
-    func startOffsetsCorrectionProcess()
-
-    /// Stops the offsets correction process.
-    ///
-    /// `offsetsCorrectionProcess` will be set to nil.
-    func stopOffsetsCorrectionProcess()
-}
-
 /// Extension of the GimbalOffsetsCorrectionProcess that adds Objective-C missing vars and functions support.
 extension GimbalOffsetsCorrectionProcess {
     /// Tells whether a given axis can be manually corrected.
@@ -329,7 +226,6 @@ extension GimbalOffsetsCorrectionProcess {
 
 /// :nodoc:
 /// Gimbal description
-@objc(GSGimbalDesc)
 public class GimbalDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = Gimbal
     public let uid = PeripheralUid.gimbal.rawValue

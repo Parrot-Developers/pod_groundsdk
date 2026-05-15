@@ -139,9 +139,9 @@ public protocol GuidedPilotingItfBackend: ActivablePilotingItfBackend {
 /// Internal GuidedPilotingItf implementation
 public class GuidedPilotingItfCore: ActivablePilotingItfCore, GuidedPilotingItf {
 
-    public private (set) var currentDirective: GuidedDirective?
+    public private(set) var currentDirective: GuidedDirective?
 
-    public private (set) var latestFinishedFlightInfo: FinishedFlightInfo?
+    public private(set) var latestFinishedFlightInfo: FinishedFlightInfo?
 
     public var unavailabilityReasons: Set<GuidedIssue>? {
         return _unavailabilityReasons
@@ -290,32 +290,5 @@ extension GuidedPilotingItfCore {
             markChanged()
         }
         return self
-    }
-}
-
-// MARK: Objective-C API
-/// - Note: this protocol is for Objective-C only. Swift must use the protocol `GuidedPilotingItf`
-extension GuidedPilotingItfCore: GSGuidedPilotingItf {
-
-    /// Starts a location guided flight.
-    public func moveToLocation(
-        latitude: Double, longitude: Double, altitude: Double, orientation: GSOrientationDirective, heading: Double) {
-        var swiftOrientation: OrientationDirective
-        switch orientation {
-        case .none:
-            swiftOrientation = .none
-        case .toTarget:
-            swiftOrientation = .toTarget
-        case .headingStart:
-            swiftOrientation = .headingStart(heading)
-        case .headingDuring:
-            swiftOrientation = .headingDuring(heading)
-        }
-        // call the swift method in interface
-        moveToLocation(latitude: latitude, longitude: longitude, altitude: altitude, orientation: swiftOrientation)
-    }
-
-    public func hasUnavailabilityReason(_ reason: GuidedIssue) -> Bool {
-        return unavailabilityReasons != nil ? unavailabilityReasons!.contains(reason) : false
     }
 }

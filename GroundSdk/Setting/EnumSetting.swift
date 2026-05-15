@@ -50,5 +50,6 @@ public class EnumSetting<EnumType: Hashable> {
         set {
             fatalError("`value` property implemented in subclass")
         }
+        // swiftlint:enable unused_setter_value
     }
 }

@@ -30,15 +30,12 @@
 import Foundation
 
 /// Anti-flickering modes.
-@objc(GSAntiflickerMode)
 public enum AntiflickerMode: Int, CustomStringConvertible, CaseIterable {
     /// Anti-flickering is off.
     case off
     /// Anti-flickering set to 50hz.
-    @objc(GSAntiflickerMode50Hz)
     case mode50Hz
     /// Anti-flickering set to 60hz.
-    @objc(GSAntiflickerMode60Hz)
     case mode60Hz
     /// Anti-flickering automatically either managed by the drone or based on the location.
     case auto
@@ -55,17 +52,14 @@ public enum AntiflickerMode: Int, CustomStringConvertible, CaseIterable {
 }
 
 /// Anti-flickering value.
-@objc(GSAntiflickerValue)
 public enum AntiflickerValue: Int, CustomStringConvertible {
     /// Unknown value. Drone didn't notify current value.
     case unknown
     /// Anti-flickering is off.
     case off
     /// Anti-flickering set to 50hz.
-    @objc(GSAntiflickerValue50Hz)
     case value50Hz
     /// Anti-flickering set to 60hz.
-    @objc(GSAntiflickerValue60Hz)
     case value60Hz
 
     /// Debug description.
@@ -109,38 +103,8 @@ public protocol Antiflicker: Peripheral {
 
 /// :nodoc:
 /// Antiflicker description
-@objc(GSAntiflickerDesc)
 public class AntiflickerDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = Antiflicker
     public let uid = PeripheralUid.antiflicker.rawValue
     public let parent: ComponentDescriptor? = nil
-}
-
-// MARK: - objc compatibility
-
-/// Setting to change the anti-flickering mode.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSAntiflickerSetting {
-    /// Whether the setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Antiflicker mode setting.
-    var mode: AntiflickerMode { get set }
-
-    /// Tells if a mode is supported.
-    ///
-    /// - Parameter mode: mode to check
-    /// - Returns: `true` if the mode is supported
-    func isModeSupported(_ mode: AntiflickerMode) -> Bool
-}
-
-/// Peripheral managing anti-flickering.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSAntiflicker {
-    /// Antiflicker setting.
-    @objc(setting)
-    var gsSetting: GSAntiflickerSetting { get }
-
-    /// Current anti-flickering value. Useful when mode is one of the automatic mode.
-    var value: AntiflickerValue { get }
 }

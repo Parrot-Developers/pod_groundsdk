@@ -32,14 +32,16 @@ import Foundation
 /// Internal implementation of the HTTP server peripheral.
 public class HttpServerCore: PeripheralCore, HttpServer {
 
-    public private (set) var baseUrl: URL
+    public private(set) var baseUrl: URL
 
     /// Constructor
     ///
-    /// - Parameter store: store where this peripheral will be stored
-    public init(store: ComponentStoreCore) {
+    /// - Parameters:
+    ///   - desc: component descriptor
+    ///   - store:  store: store where this peripheral will be stored
+    public init(desc: ComponentDescriptor, store: ComponentStoreCore) {
         baseUrl = URL(string: "http://0.0.0.0:0")!
-        super.init(desc: Peripherals.httpServer, store: store)
+        super.init(desc: desc, store: store)
     }
 }
 

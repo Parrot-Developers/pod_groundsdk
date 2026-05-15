@@ -595,62 +595,6 @@ class CameraPhotoSettingsCore: CameraPhotoSettings, CustomDebugStringConvertible
     }
 }
 
-/// ObjC support
-extension CameraPhotoSettingsCore: GSCameraPhotoSettings {
-    func isModeSupported(_ mode: CameraPhotoMode) -> Bool {
-        return supportedModes.contains(mode)
-    }
-
-    func isFormatSupported(_ format: CameraPhotoFormat) -> Bool {
-        return supportedFormats.contains(format)
-    }
-
-    func isFormatSupported(_ format: CameraPhotoFormat, forMode mode: CameraPhotoMode) -> Bool {
-        return supportedFormats(forMode: mode).contains(format)
-    }
-
-    func isFileFormatSupported(_ fileformat: CameraPhotoFileFormat) -> Bool {
-        return supportedFileFormats.contains(fileformat)
-    }
-
-    func isFileFormatSupported(_ fileformat: CameraPhotoFileFormat, forPhotoMode: CameraPhotoMode,
-                               andPhotoFormat photoFormat: CameraPhotoFormat) -> Bool {
-        return supportedFileFormats(forMode: mode, format: photoFormat).contains(fileformat)
-    }
-
-    func isBurstValueSupported(_ burstValue: CameraBurstValue) -> Bool {
-        return supportedBurstValues.contains(burstValue)
-    }
-
-    func isBracketingValueSupported(_ bracketingValue: CameraBracketingValue) -> Bool {
-        return supportedBracketingValues.contains(bracketingValue)
-    }
-
-    var gsMinSupportedGpslapseIntervals: Double {
-        return _supportedGpslapseIntervals.lowerBound
-    }
-
-    var gsMaxSupportedGpslapseIntervals: Double {
-        return _supportedGpslapseIntervals.upperBound
-    }
-
-    var gsMinSupportedTimelapseIntervals: Double {
-        return _supportedTimelapseIntervals.lowerBound
-    }
-
-    var gsMaxSupportedTimelapseIntervals: Double {
-        return _supportedTimelapseIntervals.upperBound
-    }
-
-    func gsSet(mode: CameraPhotoMode, format: CameraPhotoFormat, fileFormat: CameraPhotoFileFormat,
-               burstValue: Int, bracketingValue: Int, gpslapseCaptureIntervalValue gpslapseValue: Double,
-               timelapseCaptureIntervalValue timelapseValue: Double) {
-        set(mode: mode, format: format, fileFormat: fileFormat, burstValue: CameraBurstValue(rawValue: burstValue),
-            bracketingValue: CameraBracketingValue(rawValue: bracketingValue),
-            gpslapseCaptureIntervalValue: gpslapseValue, timelapseCaptureIntervalValue: timelapseValue)
-    }
-}
-
 /// Pair of photo mode and format
 private struct ModeAndFormat: Hashable, CustomStringConvertible {
     let mode: CameraPhotoMode

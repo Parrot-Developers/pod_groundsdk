@@ -31,39 +31,47 @@ import Foundation
 
 /// ManualCopterPilotingItf backend protocol
 public protocol ManualCopterPilotingItfBackend: ActivablePilotingItfBackend {
-    /// Activate this piloting interface
+    /// Activates this piloting interface
     /// - Returns: false if it can't be activated
     func activate() -> Bool
-    /// set the piloting command roll value
+    /// Sets the piloting command roll value
     func set(roll: Int)
-    /// set the piloting command pitch value
+    /// Sets the piloting command pitch value
     func set(pitch: Int)
-    /// set the piloting command yaw rotation speed value
+    /// Sets the piloting command yaw rotation speed value
     func set(yawRotationSpeed: Int)
-    /// set the piloting command vertical speed value
+    /// Sets the piloting command vertical speed value
     func set(verticalSpeed: Int)
     /// Asks the drone to hover.
     func hover()
-    /// send takeoff request
+    /// Sends takeoff request
     func takeOff()
-    /// send thrown takeoff request
+    /// Sends thrown takeoff request
     func thrownTakeOff()
-    /// send land request
+    /// Sends land request
     func land()
-    /// send emergency request
+    /// Sends emergency request
     func emergencyCutOut()
-    /// change the max pitch/roll
+    /// Sets the max pitch/roll
     func set(maxPitchRoll value: Double) -> Bool
-    /// change the max pitch/roll velocity
+    /// Sets the max horizontal speed
+    func set(maxHorizontalSpeed value: Double) -> Bool
+    /// Sets the max pitch/roll velocity
     func set(maxPitchRollVelocity value: Double) -> Bool
-    /// change the max vertical speed
+    /// Sets the max vertical speed
     func set(maxVerticalSpeed value: Double) -> Bool
-    /// change the max yaw rotation speed
+    /// Sets the speed mode
+    func set(speedMode value: SpeedMode) -> Bool
+    /// Sets the max yaw rotation speed
     func set(maxYawRotationSpeed value: Double) -> Bool
-    /// change banked turn mode
+    /// Sets banked turn mode
     func set(bankedTurnMode value: Bool) -> Bool
-    /// change the smartThrownTakeOff mode
+    /// Sets the smartThrownTakeOff mode
     func set(useThrownTakeOffForSmartTakeOff: Bool) -> Bool
+    /// Sets the take off hovering altitude
+    func set(takeoffHoveringAltitude value: Double) -> Bool
+    /// Sets the preferred ATTI mode
+    func set(preferredAttiMode value: Bool) -> Bool
 }
 
 /// Internal manual copter piloting interface implementation
@@ -72,6 +80,14 @@ public class ManualCopterPilotingItfCore: ActivablePilotingItfCore, ManualCopter
     /// Max pitch roll
     public var maxPitchRoll: DoubleSetting {
         return _maxPitchRoll
+    }
+    /// Max horizontal speed
+    public var maxHorizontalSpeed: DoubleSetting? {
+        return _maxHorizontalSpeed
+    }
+    /// Speed Mode
+    public var speedMode: EnumSetting<SpeedMode>? {
+        return _speedMode
     }
     /// Max pitch roll velocity
     public var maxPitchRollVelocity: DoubleSetting? {
@@ -85,14 +101,31 @@ public class ManualCopterPilotingItfCore: ActivablePilotingItfCore, ManualCopter
     public var maxYawRotationSpeed: DoubleSetting {
         return _maxYawRotationSpeed
     }
-    /// banked-turn mode
+    /// Banked-turn mode
     public var bankedTurnMode: BoolSetting? {
         return _bankedTurnMode
     }
-    /// thrown take off settings
+    /// Thrown take off settings
     public var thrownTakeOffSettings: BoolSetting? {
         return _thrownTakeOffSettings
     }
+    /// Takeoff hovering altitude setting
+    public var takeoffHoveringAltitude: DoubleSetting? {
+        return _takeoffHoveringAltitude
+    }
+
+    /// Preferred ATTI mode setting
+    public var preferredAttiMode: BoolSetting? {
+        return _preferredAttiMode
+    }
+
+    /// Current ATTI mode.
+    public var currentAttiMode: Bool? {
+        return _currentAttiMode
+    }
+
+    /// Vehicle type
+    public private(set) var vehicleType: VehicleType?
 
     /// Flag to indicate if Hand launch is ready for a thrown takeoff (drone is moving or steady
     /// if this flag is YES, a smartTakeOffLandAction will perform a thrownTakeOff Action
@@ -118,12 +151,16 @@ public class ManualCopterPilotingItfCore: ActivablePilotingItfCore, ManualCopter
     }
 
     /// Tells if the drone is ready to takeoff
-    private (set) public var canTakeOff = false
+    private(set) public var canTakeOff = false
     /// Tells if the drone is ready to land
-    private (set) public var canLand = false
+    private(set) public var canLand = false
 
     /// max pitch roll internal value
     private var _maxPitchRoll: DoubleSettingCore!
+    /// max horizontal speed internal value
+    private var _maxHorizontalSpeed: DoubleSettingCore?
+    /// speed mode internal value
+    private var _speedMode: EnumSettingCore<SpeedMode>?
     /// max pitch roll velocity internal value
     private var _maxPitchRollVelocity: DoubleSettingCore?
     /// max vertical speed internal value
@@ -134,9 +171,15 @@ public class ManualCopterPilotingItfCore: ActivablePilotingItfCore, ManualCopter
     private var _bankedTurnMode: BoolSettingCore?
     /// thrown take off settings value
     private var _thrownTakeOffSettings: BoolSettingCore?
+    /// takeoff hovering altitude internal value
+    private var _takeoffHoveringAltitude: DoubleSettingCore?
+    /// preferred ATTI mode value
+    private var _preferredAttiMode: BoolSettingCore?
+    /// current ATTI mode value
+    private var _currentAttiMode: Bool?
 
     /// Super class backend as ManualCopterPilotingItfBackend
-    private var manualCopterfBackend: ManualCopterPilotingItfBackend {
+    private var manualCopterBackend: ManualCopterPilotingItfBackend {
         return backend as! ManualCopterPilotingItfBackend
     }
 
@@ -153,62 +196,66 @@ public class ManualCopterPilotingItfCore: ActivablePilotingItfCore, ManualCopter
     /// Create non all optional settings
     private func createSettings() {
         _maxPitchRoll = DoubleSettingCore(didChangeDelegate: self) { [unowned self] newValue in
-            return self.manualCopterfBackend.set(maxPitchRoll: newValue)
+            return self.manualCopterBackend.set(maxPitchRoll: newValue)
         }
         _maxVerticalSpeed = DoubleSettingCore(didChangeDelegate: self) { [unowned self] newValue in
-            return self.manualCopterfBackend.set(maxVerticalSpeed: newValue)
+            return self.manualCopterBackend.set(maxVerticalSpeed: newValue)
         }
         _maxYawRotationSpeed = DoubleSettingCore(didChangeDelegate: self) { [unowned self] newValue in
-            return self.manualCopterfBackend.set(maxYawRotationSpeed: newValue)
+            return self.manualCopterBackend.set(maxYawRotationSpeed: newValue)
         }
     }
 
     // MARK: API methods
 
-    /// Activate this piloting interface
+    /// Activates this piloting interface
     ///
     /// - Returns: false if it can't be activated
     public func activate() -> Bool {
         if state == .idle {
-            return manualCopterfBackend.activate()
+            return manualCopterBackend.activate()
         }
         return false
     }
 
     public func set(pitch: Int) {
-        manualCopterfBackend.set(pitch: signedPercentInterval.clamp(pitch))
+        manualCopterBackend.set(pitch: signedPercentInterval.clamp(pitch))
     }
 
     public func set(roll: Int) {
-        manualCopterfBackend.set(roll: signedPercentInterval.clamp(roll))
+        manualCopterBackend.set(roll: signedPercentInterval.clamp(roll))
     }
 
     public func set(yawRotationSpeed: Int) {
-        manualCopterfBackend.set(yawRotationSpeed: signedPercentInterval.clamp(yawRotationSpeed))
+        manualCopterBackend.set(yawRotationSpeed: signedPercentInterval.clamp(yawRotationSpeed))
     }
 
     public func set(verticalSpeed: Int) {
-        manualCopterfBackend.set(verticalSpeed: signedPercentInterval.clamp(verticalSpeed))
+        manualCopterBackend.set(verticalSpeed: signedPercentInterval.clamp(verticalSpeed))
+    }
+
+    public func set(speedMode: SpeedMode) -> Bool {
+        manualCopterBackend.set(speedMode: speedMode)
     }
 
     public func hover() {
-        manualCopterfBackend.hover()
+        manualCopterBackend.hover()
     }
 
     public func takeOff() {
-        manualCopterfBackend.takeOff()
+        manualCopterBackend.takeOff()
     }
 
     public func thrownTakeOff() {
-        manualCopterfBackend.thrownTakeOff()
+        manualCopterBackend.thrownTakeOff()
     }
 
     public func land() {
-        manualCopterfBackend.land()
+        manualCopterBackend.land()
     }
 
     public func emergencyCutOut() {
-        manualCopterfBackend.emergencyCutOut()
+        manualCopterBackend.emergencyCutOut()
     }
 
     public func smartTakeOffLand() {
@@ -234,6 +281,8 @@ public class ManualCopterPilotingItfCore: ActivablePilotingItfCore, ManualCopter
         _maxPitchRollVelocity = nil
         _bankedTurnMode = nil
         _thrownTakeOffSettings = nil
+        _preferredAttiMode = nil
+        _currentAttiMode = nil
         // recreate non optional settings
         createSettings()
     }
@@ -296,6 +345,58 @@ extension ManualCopterPilotingItfCore {
             return self
     }
 
+    /// Changes maximum horizontal speed setting
+    ///
+    /// - Parameter maxHorizontalSpeed: tuple containing new values. Only not nil values are updated
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(maxHorizontalSpeed newSetting: (min: Double?, value: Double?, max: Double?))
+        -> ManualCopterPilotingItfCore {
+            if _maxHorizontalSpeed == nil {
+                _maxHorizontalSpeed = DoubleSettingCore(didChangeDelegate: self) { [unowned self] newValue in
+                    return self.manualCopterBackend.set(maxHorizontalSpeed: newValue)
+                }
+            }
+            if _maxHorizontalSpeed!.update(min: newSetting.min, value: newSetting.value, max: newSetting.max) {
+                markChanged()
+            }
+            return self
+    }
+
+    /// Changes supported speed modes
+    ///
+    /// - Parameter supportedSpeedModes: new supported speed modes
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult
+    public func update(supportedSpeedModes newSupportedSpeedModes: Set<SpeedMode>) -> ManualCopterPilotingItfCore {
+        if let _speedMode {
+            if _speedMode.update(supportedValues: newSupportedSpeedModes) {
+                markChanged()
+            }
+        } else {
+            _speedMode = EnumSettingCore(defaultValue: .normal,
+                                         supportedValues: newSupportedSpeedModes,
+                                         didChangeDelegate: self) { [unowned self] speedMode in
+                self.manualCopterBackend.set(speedMode: speedMode)
+            }
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes speed mode setting
+    ///
+    /// - Parameter speedMode: new speed mode.
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(speedMode newSetting: SpeedMode) -> ManualCopterPilotingItfCore {
+        if let _speedMode, _speedMode.update(value: newSetting) {
+            markChanged()
+        }
+        return self
+    }
+
     /// Changes maximum pitch roll velocity settings
     ///
     /// - Parameter maxPitchRollVelocity: tuple containing new values. Only not nil values are updated
@@ -305,7 +406,7 @@ extension ManualCopterPilotingItfCore {
         -> ManualCopterPilotingItfCore {
             if _maxPitchRollVelocity == nil {
                 _maxPitchRollVelocity = DoubleSettingCore(didChangeDelegate: self) { [unowned self] newValue in
-                    return self.manualCopterfBackend.set(maxPitchRollVelocity: newValue)
+                    return self.manualCopterBackend.set(maxPitchRollVelocity: newValue)
                 }
             }
             if _maxPitchRollVelocity!.update(min: newSetting.min, value: newSetting.value, max: newSetting.max) {
@@ -348,10 +449,23 @@ extension ManualCopterPilotingItfCore {
     @discardableResult public func update(bankedTurnMode newSetting: Bool) -> ManualCopterPilotingItfCore {
         if _bankedTurnMode == nil {
             _bankedTurnMode = BoolSettingCore(didChangeDelegate: self) { [unowned self] newValue in
-                return self.manualCopterfBackend.set(bankedTurnMode: newValue)
+                return self.manualCopterBackend.set(bankedTurnMode: newValue)
             }
         }
         if _bankedTurnMode!.update(value: newSetting) {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates vehicle type
+    ///
+    /// - Parameter vehicleType: new vehicle type.
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(vehicleType newValue: VehicleType?) -> ManualCopterPilotingItfCore {
+        if vehicleType != newValue {
+            vehicleType = newValue
             markChanged()
         }
         return self
@@ -366,7 +480,7 @@ extension ManualCopterPilotingItfCore {
         -> ManualCopterPilotingItfCore {
             if _thrownTakeOffSettings == nil {
                 _thrownTakeOffSettings = BoolSettingCore(didChangeDelegate: self) { [unowned self] newUse in
-                    return self.manualCopterfBackend.set(useThrownTakeOffForSmartTakeOff: newUse)
+                    self.manualCopterBackend.set(useThrownTakeOffForSmartTakeOff: newUse)
                 }
                 // mark changed when _thrownTakeOffSettings is created
                 markChanged()
@@ -377,17 +491,80 @@ extension ManualCopterPilotingItfCore {
             return self
     }
 
+    /// Changes takeoff hovering altitude
+    ///
+    /// - Parameter takeoffHoveringAltitude: tuple containing new values. Only not nil values are updated
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(takeoffHoveringAltitude newSetting: (min: Double?, value: Double?,
+                                                                               max: Double?))
+        -> ManualCopterPilotingItfCore {
+            if _takeoffHoveringAltitude == nil {
+                _takeoffHoveringAltitude = DoubleSettingCore(didChangeDelegate: self) { [unowned self] newValue in
+                    self.manualCopterBackend.set(takeoffHoveringAltitude: newValue)
+                }
+            }
+            if _takeoffHoveringAltitude!.update(min: newSetting.min,
+                value: newSetting.value, max: newSetting.max) {
+                markChanged()
+            }
+            return self
+    }
+
+    /// Changes preferred ATTI mode setting
+    ///
+    /// - Parameter preferredAttiMode: new preferred ATTI mode
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(preferredAttiMode newSetting: Bool?) -> ManualCopterPilotingItfCore {
+        guard let newSetting else {
+            if _preferredAttiMode != nil {
+                _preferredAttiMode = nil
+                markChanged()
+            }
+            return self
+        }
+
+        if _preferredAttiMode == nil {
+            _preferredAttiMode = BoolSettingCore(didChangeDelegate: self) { [unowned self] newValue in
+                return self.manualCopterBackend.set(preferredAttiMode: newValue)
+            }
+            // mark changed when _preferredAttiMode is created
+            markChanged()
+        }
+        if _preferredAttiMode!.update(value: newSetting) {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Changes current ATTI mode setting
+    ///
+    /// - Parameter currentAttiMode: new current ATTI mode
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(currentAttiMode newValue: Bool?) -> ManualCopterPilotingItfCore {
+        if _currentAttiMode != newValue {
+            _currentAttiMode = newValue
+            markChanged()
+        }
+        return self
+    }
+
     /// Cancels all pending settings rollbacks.
     ///
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func cancelSettingsRollback() -> ManualCopterPilotingItfCore {
         _maxPitchRoll.cancelRollback { markChanged() }
+        _maxHorizontalSpeed?.cancelRollback { markChanged() }
+        _speedMode?.cancelRollback { markChanged() }
         _maxPitchRollVelocity?.cancelRollback { markChanged() }
         _maxVerticalSpeed.cancelRollback { markChanged() }
         _maxYawRotationSpeed.cancelRollback { markChanged() }
         _bankedTurnMode?.cancelRollback { markChanged() }
         _thrownTakeOffSettings?.cancelRollback { markChanged() }
+        _takeoffHoveringAltitude?.cancelRollback { markChanged() }
         return self
     }
 }

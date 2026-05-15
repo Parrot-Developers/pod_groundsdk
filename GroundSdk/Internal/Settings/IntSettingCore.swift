@@ -30,7 +30,7 @@
 import Foundation
 
 /// Represent an integer setting with a current value and a valide range
-class IntSettingCore: NSObject, IntSetting {
+public class IntSettingCore: NSObject, IntSetting {
     /// Delegate called when the setting value is changed by setting `value` property
     private unowned let didChangeDelegate: SettingChangeDelegate
 
@@ -40,17 +40,17 @@ class IntSettingCore: NSObject, IntSetting {
     let timeout = SettingTimeout()
 
     /// Tells if the setting value has been changed and is waiting for change confirmation
-    var updating: Bool { return timeout.isScheduled }
+    public var updating: Bool { return timeout.isScheduled }
     /// Setting minimum value
-    var min: Int {
+    public var min: Int {
         return range.lowerBound
     }
     /// Setting maximum value
-    var max: Int {
+    public var max: Int {
         return range.upperBound
     }
     /// Setting current value
-    var value: Int {
+    public var value: Int {
         get {
             return _value
         }
@@ -75,13 +75,13 @@ class IntSettingCore: NSObject, IntSetting {
     /// Internal value
     private var _value = 0
     /// Range
-    private var range: ClosedRange<Int> = 0...0
+    public var range: ClosedRange<Int> = 0...0
     /// Closure to call to change the value.
     /// Return `true` if the new value has been sent and setting must become updating.
     private let backend: ((Int) -> Bool)
 
     /// Debug description.
-    override var description: String {
+    public override var description: String {
         return "\(min) / \(value) / \(max) [\(updating)]"
     }
 
@@ -90,7 +90,7 @@ class IntSettingCore: NSObject, IntSetting {
     /// - Parameters:
     ///   - didChangeDelegate: delegate called when the setting value is changed by setting `value` property
     ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (Int) -> Bool) {
+    public init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (Int) -> Bool) {
         self.didChangeDelegate = didChangeDelegate
         self.backend = backend
     }
@@ -102,7 +102,7 @@ class IntSettingCore: NSObject, IntSetting {
     ///   - value: if not `nil` the new current value
     ///   - max: if not `nil` the new max value
     /// - Returns: `true` if the setting has been changed, `false` otherwise
-    func update(min newMin: Int?, value newValue: Int?, max newMax: Int?) -> Bool {
+    public func update(min newMin: Int?, value newValue: Int?, max newMax: Int?) -> Bool {
         var changed = false
 
         if let newMin = newMin, let newMax = newMax {

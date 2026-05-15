@@ -30,7 +30,6 @@
 import Foundation
 
 /// Camera mode.
-@objc(GSCameraMode)
 public enum CameraMode: Int, CustomStringConvertible, CaseIterable {
     /// Camera mode that is best suited to record videos.
     /// - Note: Depending on the device, it may also be possible to take photos while in this mode.
@@ -57,22 +56,4 @@ public protocol CameraModeSetting: AnyObject {
 
     /// Current camera mode.
     var mode: CameraMode { get set }
-}
-
-// MARK: - objc compatibility
-
-/// Setting to change the camera mode
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSCameraModeSetting {
-    /// Tells if a setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Camera mode.
-    var mode: CameraMode { get set }
-
-    /// Checks if a mode is supported
-    ///
-    /// - Parameter mode: mode to check
-    /// - Returns: `true` if the mode is supported
-    func isModeSupported(_ mode: CameraMode) -> Bool
 }

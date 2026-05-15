@@ -30,12 +30,9 @@
 import Foundation
 
 /// State of the calibration process for a 3-steps calibration.
-@objcMembers
-@objc(GSMagnetometer3StepCalibrationProcessState)
 public class Magnetometer3StepCalibrationProcessState: NSObject {
 
     /// Drone axis used during the magnetometer calibration process.
-    @objc(GSMagnetometerAxis)
     public enum Axis: Int, CustomStringConvertible {
         /// No axis.
         case none
@@ -101,7 +98,6 @@ public class Magnetometer3StepCalibrationProcessState: NSObject {
 /// ```
 /// drone.getPeripheral(Peripherals.magnetometerWith3StepCalibration)
 /// ```
-@objc(GSMagnetometerWith3StepCalibration)
 public protocol MagnetometerWith3StepCalibration: Magnetometer {
 
     /// Current state of the calibration process. Not `nil` if a calibration process is running, `nil` otherwise.
@@ -133,7 +129,6 @@ public protocol MagnetometerWith3StepCalibration: Magnetometer {
 
 /// :nodoc:
 /// 3-steps calibration magnetometer description
-@objc(GSMagnetometerWith3StepCalibrationDesc)
 public class MagnetometerWith3StepCalibrationDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = MagnetometerWith3StepCalibration
     public let uid = PeripheralUid.magnetometerWith3StepCalibration.rawValue

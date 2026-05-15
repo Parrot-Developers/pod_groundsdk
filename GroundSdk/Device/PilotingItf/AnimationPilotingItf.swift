@@ -30,7 +30,6 @@
 import Foundation
 
 /// Reasons why an animation may be unavailable.
-@objc(GSAnimationIssue)
 public enum AnimationIssue: Int, CustomStringConvertible {
 
     /// Drone is not flying.
@@ -84,7 +83,6 @@ public enum AnimationIssue: Int, CustomStringConvertible {
 }
 
 /// Piloting mode in which an animation may be available.
-@objc(GSPilotingMode)
 public enum PilotingMode: Int, CustomStringConvertible {
 
     /// Manual
@@ -159,67 +157,8 @@ public protocol AnimationPilotingItf: PilotingItf {
     func abortCurrentAnimation() -> Bool
 }
 
-/// Animation piloting interface.
-///
-/// This piloting interface cannot be activated or deactivated. It is present as soon as a drone supporting animations
-/// is connected. It is removed as soon as the drone is disconnected.
-///
-/// According to different parameters, the list of available animation can change.
-/// These parameters can be (not exhaustive):
-/// - Current activated piloting interface
-/// - Information about the controller (such as location)
-/// - Internal state of the drone (such as battery level, gps fix...)
-///
-/// This peripheral can be retrieved by:
-/// ```
-/// (id<AnimationPilotingItf>) [drone getPilotingItf:GSPilotingItfs.animation]
-/// ```
-///
-/// - Note: this protocol is for Objective-C only. Swift must use the protocol `AnimationPilotingItf`.
-@objc
-public protocol GSAnimationPilotingItf: PilotingItf {
-
-    /// Currently executing animation.
-    /// `nil` if no animation is playing
-    var animation: Animation? { get }
-
-    /// Tells whether the given animation type is currently available on the drone.
-    ///
-    /// - Parameter animation: the animation type to query
-    /// - Returns: `true` if this type of animation is currently available
-    func isAnimationAvailable(_ animation: AnimationType) -> Bool
-
-    /// Tells whether the animation has the corresponding issue.
-    ///
-    /// - Parameters:
-    ///     - animation: the animation type to query
-    ///     - requierement: requierement to fix
-    /// - Note: If there is no issue for an animation, it doesn't mean it is available.
-    /// It needs to be in the right mode.
-    func isIssuePresent(_ animation: AnimationType, requierement: AnimationIssue) -> Bool
-
-    /// Tells whether the animation is supported for a piloting mode.
-    ///
-    /// - Parameters:
-    ///     - animation: the animation type to query
-    ///     - mode: piloting mode
-    func isAnimationSupported(animation: AnimationType, mode: PilotingMode) -> Bool
-
-    /// Starts an animation.
-    ///
-    /// - Parameter config: configuration of the animation to execute
-    /// - Returns: `true` if an animation request was sent to the drone, `false` otherwise
-    func startAnimation(config: AnimationConfig) -> Bool
-
-    /// Aborts any currently executing animation.
-    ///
-    /// - Returns: `true` if an animation cancellation request was sent to the drone, `false` otherwise
-    func abortCurrentAnimation() -> Bool
-}
-
 /// :nodoc:
 /// Animation piloting interface description
-@objc(GSAnimationPilotingItfs)
 public class AnimationPilotingItfs: NSObject, PilotingItfClassDesc {
     public typealias ApiProtocol = AnimationPilotingItf
     public let uid = PilotingItfUid.animation.rawValue

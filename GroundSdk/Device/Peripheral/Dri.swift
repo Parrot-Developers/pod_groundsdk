@@ -143,6 +143,26 @@ public enum DriTypeState: Equatable, CustomStringConvertible {
     }
 }
 
+/// The external module
+public struct ExternalModule: Equatable {
+    /// External module serial.
+    /// `nil` if external module is not connected
+    public var serial: String?
+
+    /// Whether the external module has already been connected
+    public var hasBeenConnected: Bool
+
+    /// Constructor
+    ///
+    /// - Parameters
+    ///    - serial: the serial of the external module if connected
+    ///    - hasBeenConnected: whether the external module has already been connected
+    public init(serial: String?, hasBeenConnected: Bool) {
+        self.serial = serial
+        self.hasBeenConnected = hasBeenConnected
+    }
+}
+
 /// Setting to configure DRI type.
 public protocol DriTypeSetting: AnyObject {
     /// DRI type configuration state, when available.
@@ -172,13 +192,17 @@ public protocol DriTypeSetting: AnyObject {
 /// ```
 public protocol Dri: Peripheral {
     /// DRI setting. This setting allows to enable or disable the drone DRI.
-    var mode: BoolSetting? { get }
+    var enabled: BoolSetting { get }
 
     /// DRI type setting. This setting allows to configue the DRI type.
     var type: DriTypeSetting { get }
 
     /// DRI drone ID.
     var droneId: (type: DriIdType, id: String)? { get }
+
+    /// Latest external module information.
+    /// Available offline, `nil` if not supported by the drone.
+    var externalModule: ExternalModule? { get }
 }
 
 /// :nodoc:

@@ -72,9 +72,9 @@ private class Placemark: CustomStringConvertible {
         do {
             let locationOriginString = propertyList[PlacemarkKeys.locationOrigin.rawValue] as? String
             if let placeData = propertyList[PlacemarkKeys.placemark.rawValue] as? Data,
-                let placemark = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(placeData) as? CLPlacemark,
-                let timeStamp = propertyList[PlacemarkKeys.timeStamp.rawValue] as? Date,
-                let locationOrigin = LocationOrigin(rawValue: locationOriginString ?? "" ) {
+               let placemark = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(placeData) as? CLPlacemark,
+               let timeStamp = propertyList[PlacemarkKeys.timeStamp.rawValue] as? Date,
+               let locationOrigin = LocationOrigin(rawValue: locationOriginString ?? "" ) {
                 self.init(placemark: placemark, origin: locationOrigin, timeStamp: timeStamp)
             } else {
                 return nil
@@ -90,7 +90,7 @@ private class Placemark: CustomStringConvertible {
     fileprivate func asPropertyList() -> [String: Any]? {
         guard let archivedData = try? NSKeyedArchiver.archivedData(
             withRootObject: placemark, requiringSecureCoding: true) else {
-                return nil
+            return nil
         }
         return [PlacemarkKeys.placemark.rawValue: archivedData,
                 PlacemarkKeys.locationOrigin.rawValue: locationOrigin.rawValue,
@@ -135,8 +135,8 @@ private class Location: CustomStringConvertible {
         do {
             let locationOriginString = propertyList[LocationKeys.locationOrigin.rawValue] as? String
             if let locData = propertyList[LocationKeys.location.rawValue] as? Data,
-                let location = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(locData) as? CLLocation,
-                let locationOrigin = LocationOrigin(rawValue: locationOriginString ?? "" ) {
+               let location = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(locData) as? CLLocation,
+               let locationOrigin = LocationOrigin(rawValue: locationOriginString ?? "" ) {
                 self.init(location: location, origin: locationOrigin)
             } else {
                 return nil
@@ -152,7 +152,7 @@ private class Location: CustomStringConvertible {
     fileprivate func asPropertyList() -> [String: Any]? {
         guard let archivedData = try? NSKeyedArchiver.archivedData(
             withRootObject: location, requiringSecureCoding: true) else {
-                return nil
+            return nil
         }
         return [LocationKeys.location.rawValue: archivedData,
                 LocationKeys.locationOrigin.rawValue: locationOrigin.rawValue]
@@ -284,7 +284,7 @@ class ReverseGeocoderEngine: EngineBaseCore {
                     // (see: `newLocationScheduledRequest()`). So, we force a new location request at this moment
                     self.newLocationScheduledRequest()
                 }
-        })
+            })
 
         // auto update the location every `RequestLocationInterval` seconds
         newLocationScheduledRequest()
@@ -381,7 +381,7 @@ class ReverseGeocoderEngine: EngineBaseCore {
                             this.saveData()
                         }
                     }
-            })
+                })
         }
     }
 }

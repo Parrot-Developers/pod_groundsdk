@@ -78,50 +78,6 @@ public protocol Altimeter: Instrument {
 
 }
 
-/// Instrument that informs about altitude.
-///
-/// This instrument can be retrieved by:
-/// ```
-/// drone.getInstrument(Instruments.altimeter)
-/// ```
-/// - Note: This protocol is for Objective-C only. Swift must use the protocol `Altimeter`.
-@objc
-public protocol GSAltimeter: Instrument {
-    /// Gets the altitude of the drone relative to take off altitude (in meters).
-    ///
-    /// - Returns: the altitude relative to take off point.
-    ///            `nil` if not available. This can happen if the drone does not know or provide this information.
-    /// - Note: this method is for Objective-C only. Swift must use the property `takeoffRelativeAltitude`.
-    func getTakeoffRelativeAltitude() -> NSNumber?
-
-    /// Gets the altitude of the drone relative to the ground (in meters).
-    ///
-    /// This is the fusion of barometer and ultrasounds,
-    /// may be wrong at high altitude and jump brutally when getting closer to the ground.
-    ///
-    /// - Returns: the altitude of the drone relative to the ground.
-    ///            `nil` if not available. This can happen if the drone does not know or provide this information.
-    /// - Note: This method is for Objective-C only. Swift must use the property `groundRelativeAltitude`.
-    func getGroundRelativeAltitude() -> NSNumber?
-
-    /// Gets the absolute altitude of the drone, i.e. relative to sea-level (in meters).
-    ///
-    /// - Returns: the altitude relative to sea level
-    ///            `nil` if not available. This can happen if the drone does not know or provide this information,
-    ///             or if its gps is not fixed.
-    /// - Note: This method is for Objective-C only. Swift must use the property `absoluteAltitude`.
-    func getAbsoluteAltitude() -> NSNumber?
-
-    /// Gets the vertical speed of the drone (in m/s).
-    ///
-    /// Positive when the drone is going up, negative when the drone is going down.
-    ///
-    /// - Returns: the vertical speed of the drone.
-    ///            `nil` if not available. This can happen if the drone does not know or provide this information.
-    /// - Note: This method is for Objective-C only. Swift must use the property `verticalSpeed`.
-    func getVerticalSpeed() -> NSNumber?
-}
-
 /// :nodoc:
 /// Instrument descriptor
 public class AltimeterDesc: NSObject, InstrumentClassDesc {

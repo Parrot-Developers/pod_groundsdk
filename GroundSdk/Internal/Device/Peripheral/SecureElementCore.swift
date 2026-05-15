@@ -57,13 +57,14 @@ public class SecureElementCore: PeripheralCore, SecureElement {
     /// Constructor
     ///
     /// - Parameters :
+    ///    - desc: component descriptor
     ///    - store: store where this peripheral will be stored
     ///    - backend: Secure element backend
-    public init(store: ComponentStoreCore, backend: SecureElementBackend) {
+    public init(desc: ComponentDescriptor, store: ComponentStoreCore, backend: SecureElementBackend) {
         self.backend = backend
         self.certificateForImagesState = CertificateImagesDownloaderState()
         self.certificateImagesStorage = CertificateImagesStorageCoreImpl()
-        super.init(desc: Peripherals.secureElement, store: store)
+        super.init(desc: desc, store: store)
     }
 
     /// Private signature implementation

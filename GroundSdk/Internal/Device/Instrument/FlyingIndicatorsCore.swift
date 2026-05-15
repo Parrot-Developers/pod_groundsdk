@@ -32,17 +32,20 @@ import Foundation
 /// Internal flying indicators instrument implementation
 public class FlyingIndicatorsCore: InstrumentCore, FlyingIndicators {
     /// Current state
-    internal(set) public var state: FlyingIndicatorsState = .landed
+    internal(set) public var state: FlyingIndicatorsState?
     /// Current landed state
-    public var landedState: FlyingIndicatorsLandedState = .initializing
+    public var landedState: FlyingIndicatorsLandedState?
     /// Current flying state
-    internal(set) public var flyingState: FlyingIndicatorsFlyingState = .none
+    internal(set) public var flyingState: FlyingIndicatorsFlyingState?
     /// Whether the drone is currently hand landing
-    internal(set) public var isHandLanding = false
+    internal(set) public var isHandLanding: Bool?
+
+    internal(set) public var vehicleMode: VehicleMode = .copter
 
     /// Debug description
     public override var description: String {
-        return "FlyingIndicatorsCore \(state)-\(landedState)-\(flyingState)\(isHandLanding ? "-handLanding" : "")"
+        return "FlyingIndicatorsCore \(state?.description ?? "?")-\(landedState?.description ?? "?")"
+        + "-\(flyingState?.description ?? "?")\(isHandLanding == true ? "-handLanding" : "")"
     }
 
     /// Constructor
@@ -73,9 +76,9 @@ public class FlyingIndicatorsCore: InstrumentCore, FlyingIndicators {
     /// - Parameter flyingState: new flyingState state
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(flyingState newFlyingState: FlyingIndicatorsFlyingState)
+    @discardableResult public func update(flyingState newFlyingState: FlyingIndicatorsFlyingState?)
         -> FlyingIndicatorsCore {
-            if newFlyingState != .none && state != .flying {
+            if newFlyingState != nil && state != .flying {
                 update(state: .flying)
             }
             if newFlyingState != flyingState {
@@ -91,9 +94,9 @@ public class FlyingIndicatorsCore: InstrumentCore, FlyingIndicators {
     /// - Parameter landedState: new landedState state
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(landedState newLandedState: FlyingIndicatorsLandedState)
+    @discardableResult public func update(landedState newLandedState: FlyingIndicatorsLandedState?)
         -> FlyingIndicatorsCore {
-            if newLandedState != .none && state != .landed {
+            if newLandedState != nil && state != .landed {
                 update(state: .landed)
             }
             if newLandedState != landedState {
@@ -111,15 +114,15 @@ public class FlyingIndicatorsCore: InstrumentCore, FlyingIndicators {
     /// - Parameter state: new state
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(state newState: FlyingIndicatorsState) -> FlyingIndicatorsCore {
+    @discardableResult public func update(state newState: FlyingIndicatorsState?) -> FlyingIndicatorsCore {
         if newState != state {
             markChanged()
             state = newState
             if state != .flying {
-                flyingState = .none
+                flyingState = nil
             }
             if state != .landed {
-                landedState = .none
+                landedState = nil
             }
         }
         return self
@@ -131,9 +134,23 @@ public class FlyingIndicatorsCore: InstrumentCore, FlyingIndicators {
     /// - Parameter isHandLanding: whether the drone is handlanding or not
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(isHandLanding newValue: Bool) -> FlyingIndicatorsCore {
+    @discardableResult public func update(isHandLanding newValue: Bool?) -> FlyingIndicatorsCore {
         if isHandLanding != newValue {
             isHandLanding = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    // can't be declared in the extension because it is overriden by subclasses
+    /// Changes the vehicle mode.
+    ///
+    /// - Parameter vehicleMode: the new vehicle mode
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(vehicleMode newValue: VehicleMode) -> FlyingIndicatorsCore {
+        if vehicleMode != newValue {
+            vehicleMode = newValue
             markChanged()
         }
         return self

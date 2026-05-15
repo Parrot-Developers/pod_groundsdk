@@ -30,7 +30,7 @@
 import Foundation
 
 /// Represent an boolean setting
-class BoolSettingCore: NSObject, BoolSetting {
+public class BoolSettingCore: NSObject, BoolSetting {
     /// Delegate called when the setting value is changed by setting `value` property
     private unowned let didChangeDelegate: SettingChangeDelegate
 
@@ -39,11 +39,14 @@ class BoolSettingCore: NSObject, BoolSetting {
     /// Visibility is internal for testing purposes
     let timeout = SettingTimeout()
 
+    /// Timeout for update rollback.
+    let timeoutDuration: DispatchTimeInterval
+
     /// Tells if the setting value has been changed and is waiting for change confirmation
-    var updating: Bool { return timeout.isScheduled }
+    public var updating: Bool { return timeout.isScheduled }
 
     /// Setting current value
-    var value: Bool {
+    public var value: Bool {
         get {
             return _value
         }
@@ -54,7 +57,7 @@ class BoolSettingCore: NSObject, BoolSetting {
                     let oldValue = _value
                     // value sent to the backend, update setting value and mark it updating
                     _value = newValue
-                    timeout.schedule { [weak self] in
+                    timeout.schedule(timeout: timeoutDuration) { [weak self] in
                         if let `self` = self, self.update(value: oldValue) {
                             self.didChangeDelegate.userDidChangeSetting()
                         }
@@ -66,11 +69,12 @@ class BoolSettingCore: NSObject, BoolSetting {
     }
     /// Internal value
     private var _value = false
+
     /// Closure to call to change the value
     private let backend: ((Bool) -> Bool)
 
     /// Debug description.
-    override var description: String {
+    public override var description: String {
         return "\(value) [\(updating)]"
     }
 
@@ -78,17 +82,20 @@ class BoolSettingCore: NSObject, BoolSetting {
     ///
     /// - Parameters:
     ///   - didChangeDelegate: delegate called when the setting value is changed by setting `value` property
+    ///   - timeout: timeout for update rollback
     ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (Bool) -> Bool) {
+    public init(didChangeDelegate: SettingChangeDelegate, timeout: DispatchTimeInterval = SettingTimeout.defaultTimeout,
+         backend: @escaping (Bool) -> Bool) {
         self.didChangeDelegate = didChangeDelegate
+        self.timeoutDuration = timeout
         self.backend = backend
     }
 
     /// Called by the backend, change the setting data
     ///
-    /// - Parameter value:  the new current value
+    /// - Parameter value: the new current value
     /// - Returns: true if the setting has been changed, false else
-    func update(value newValue: Bool) -> Bool {
+    public func update(value newValue: Bool) -> Bool {
         var changed = false
         if updating || _value != newValue {
             _value = newValue

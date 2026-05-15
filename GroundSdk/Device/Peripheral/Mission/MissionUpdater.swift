@@ -119,6 +119,18 @@ public enum MissionUpdaterError: Error {
     }
 }
 
+/// Completion status of a mission asset download.
+public enum MissionAssetDownloadCompletionStatus {
+    /// Download is not complete yet. Mission asset download may still be ongoing or not even started yet.
+    case none
+
+    /// Mission assets download has completed successfully.
+    case success
+
+    /// Mission assets download interrupted.
+    case interrupted
+}
+
 /// Mission updater peripheral
 ///
 /// This peripheral can be retrieved by:
@@ -138,6 +150,12 @@ public protocol MissionUpdater: Peripheral {
 
     /// Progress of the upload.
     var currentProgress: Int? { get }
+
+    /// Current asset download state
+    var assetDownloadState: MissionAssetDownloadCompletionStatus { get }
+
+    /// Whether a mission asset is currently being downloaded
+    var isDownloadingAsset: Bool { get }
 
     /// Uploads a mission to the server.
     /// The mission is installed immediately or upon next reboot, depending on the `postpone` parameter.

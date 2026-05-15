@@ -29,12 +29,13 @@
 
 import Foundation
 
-/// A timeout linked to a setting
-class SettingTimeout {
+/// A timeout linked to a setting.
+public class SettingTimeout {
 
-    /// Timeout in seconds
-    static let defaultTimeout: Int = 5
+    /// Default timeout.
+    public static let defaultTimeout: DispatchTimeInterval = .seconds(5)
 
+    /// Tells whether a timeout is scheduled.
     var isScheduled: Bool {
         return dispatchWorkItem != nil
     }
@@ -44,12 +45,13 @@ class SettingTimeout {
     /// Visibility is internal for testing purposes
     private(set) var dispatchWorkItem: DispatchWorkItem?
 
-    /// Schedules a timeout
+    /// Schedules a timeout.
+    ///
     /// - Parameters:
-    ///   - timeout: The timeout in seconds to use
-    ///   - queue: The queue to use for the `timeoutBlock`
-    ///   - timeoutBlock: The block to call when reaching the timeout
-    func schedule(timeout: Int = SettingTimeout.defaultTimeout,
+    ///   - timeout: the timeout to use
+    ///   - queue: the queue to use for the `timeoutBlock`
+    ///   - timeoutBlock: the block to call when reaching the timeout
+    func schedule(timeout: DispatchTimeInterval = SettingTimeout.defaultTimeout,
                   queue: DispatchQueue = .main,
                   timeoutBlock: @escaping () -> Void) {
         // be sure to cancel any pending scheduled timeout
@@ -57,14 +59,14 @@ class SettingTimeout {
 
         dispatchWorkItem = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
-            timeoutBlock()
             self.dispatchWorkItem = nil
+            timeoutBlock()
         }
-        queue.asyncAfter(deadline: .now() + .seconds(timeout),
+        queue.asyncAfter(deadline: .now() + timeout,
                          execute: dispatchWorkItem!)
     }
 
-    /// Cancels the scheduled timeout
+    /// Cancels the scheduled timeout.
     @discardableResult
     func cancel() -> Bool {
         let cancelled = dispatchWorkItem != nil

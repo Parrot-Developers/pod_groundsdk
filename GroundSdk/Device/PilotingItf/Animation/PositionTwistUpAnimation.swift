@@ -30,8 +30,6 @@
 import Foundation
 
 /// Position twist up animation configuration.
-@objcMembers
-@objc(GSPositionTwistUpAnimationConfig)
 public class PositionTwistUpAnimationConfig: NSObject, AnimationConfig {
 
     public let type = AnimationType.positionTwistUp
@@ -128,7 +126,6 @@ extension PositionTwistUpAnimationConfig {
 /// This animation instructs the drone to circle around the target, possibly in a spiral shape and possibly also while
 /// flying vertically (up or down).
 /// The target in question depends on the currently active `ActivablePilotingItf`.
-@objc(GSPositionTwistUpAnimation)
 public protocol PositionTwistUpAnimation: Animation {
 
     /// Current animation speed, in meters per second.

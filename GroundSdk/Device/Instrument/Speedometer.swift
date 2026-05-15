@@ -38,48 +38,44 @@ import Foundation
 public protocol Speedometer: Instrument {
 
     /// Overall speed on the horizontal plan relative to the ground, in meters/second.
-    var groundSpeed: Double { get }
+    /// `nil` if not available.
+    var groundSpeed: Double? { get }
 
     /// Drone current speed along the north axis, relative to the ground, in meters/second.
     ///
-    /// A negative value means that the drone moves to the South.
-    var northSpeed: Double { get }
+    /// A negative value means that the drone moves to the South. `nil` if not available.
+    var northSpeed: Double? { get }
 
     /// Drone current speed along the east axis, relative to the ground, in meters/second.
     ///
-    /// A negative value means that the drone moves to the West.
-    var eastSpeed: Double { get }
+    /// A negative value means that the drone moves to the West. `nil` if not available.
+    var eastSpeed: Double? { get }
 
     /// Drone current speed along the down axis, relative to the ground, in meters/second.
     ///
-    /// A negative value means that the drone moves upward.
-    var downSpeed: Double { get }
+    /// A negative value means that the drone moves upward. `nil` if not available.
+    var downSpeed: Double? { get }
 
     /// Drone current speed along its front axis on the horizontal plane, relative to the ground, in meters/second.
     ///
-    /// A negative value means that the drone moves backward.
-    var forwardSpeed: Double { get }
+    /// A negative value means that the drone moves backward. `nil` if not available.
+    var forwardSpeed: Double? { get }
 
     /// Drone current speed along its right axis on the horizontal plane, relative to the ground, in meters/second.
     ///
-    /// A negative value means that the drone moves to the left.
-    var rightSpeed: Double { get }
-}
+    /// A negative value means that the drone moves to the left. `nil` if not available.
+    var rightSpeed: Double? { get }
 
-/// Instrument that informs about speeds.
-///
-/// This instrument can be retrieved by:
-/// ```
-/// drone.getInstrument(Instruments.speedometer)
-/// ```
-/// - Note: This protocol is for Objective-C only. Swift must use the protocol `Speedometer`.
-@objc
-public protocol GSSpeedometer: Instrument {
-    /// Gets the overall speed on the horizontal plan relative to the ground, in meters/second.
+    /// Whether the air speed is supported or not by the drone.
+    var isAirSpeedSupported: Bool { get }
+
+    /// Drone current speed on the horizontal plane, relative to the air, in meters/second.
     ///
-    /// - Returns: the speed on the horizontal plan relative to the ground
-    /// - Note: this method is for Objective-C only. Swift must use the property `groundSpeed`.
-    func getGroundSpeed() -> Double
+    /// `nil` if not available.
+    ///
+    /// Air speed may be unsupported depending on the drone model and/or firmware versions.
+    /// It's usually supported on plane-type drones only.
+    var airSpeed: Double? { get }
 }
 
 /// :nodoc:

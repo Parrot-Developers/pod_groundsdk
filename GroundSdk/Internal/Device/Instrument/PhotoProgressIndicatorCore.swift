@@ -32,9 +32,9 @@ import Foundation
 /// Internal photo progress indicator core instrument implementation
 public class PhotoProgressIndicatorCore: InstrumentCore, PhotoProgressIndicator {
 
-    private (set) public var remainingTime: Double?
+    private(set) public var remainingTime: Double?
 
-    private (set) public var remainingDistance: Double?
+    private(set) public var remainingDistance: Double?
 
     /// Debug description
     public override var description: String {

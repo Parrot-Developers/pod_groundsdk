@@ -65,12 +65,20 @@ public class Utilities: NSObject {
     public static let gutmaLogStorage = GutmaLogStorageCoreDesc()
     /// Internet connectivity monitoring utility.
     public static let internetConnectivity = InternetConnectivityCoreDesc()
+    /// Key manager utility.
+    public static let keyManager = KeyManagerCoreDesc()
+    /// Mission asset storage utility.
+    public static let missionAssetStorage = MissionAssetStorageCoreDesc()
     /// Plan generator utility.
     public static let planUtilityProvider = PlanUtilityCoreDesc()
     /// Remote controls store utility.
     public static let remoteControlStore = RemoteControlStoreCoreDesc()
     /// Reverse geocoder utility.
     public static let reverseGeocoder = ReverseGeocoderUtilityCoreDesc()
+    /// ServiceDiscovery browser utility.
+    public static let serviceDiscoveryBrowser = ServiceDiscoveryBrowserCoreDesc()
+    /// Stream sharing manager utility.
+    public static let streamSharingManager = StreamSharingManagerCoreDesc()
     /// System barometer utility.
     public static let systemBarometer = SystemBarometerCoreDesc()
     /// System position utility.
@@ -98,9 +106,13 @@ enum UtilityUid: Int {
     case flightLogStorage
     case gutmaLogStorage
     case internetConnectivity
+    case keyManager
+    case missionAssetStorage
     case planUtilityProvider
     case remoteControlStore
     case reverseGeocoder
+    case serviceDiscoveryBrowser
+    case streamSharingManager
     case systemBarometer
     case systemPosition
     case userAccount

@@ -30,7 +30,6 @@
 import Foundation
 
 /// Magnetometer calibration state
-@objc(GSMagnetometerCalibrationState)
 public enum MagnetometerCalibrationState: Int {
     /// Magnetometer is calibrated.
     case calibrated
@@ -68,7 +67,6 @@ public enum MagnetometerCalibrationState: Int {
 /// ```
 /// device.getPeripheral(Peripherals.magnetometer)
 /// ```
-@objc(GSMagnetometer)
 public protocol Magnetometer: Peripheral {
 
     /// Indicates the magnetometer calibration state.
@@ -80,7 +78,6 @@ public protocol Magnetometer: Peripheral {
 
 /// :nodoc:
 /// Magnetometer description
-@objc(GSMagnetometerDesc)
 public class MagnetometerDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = Magnetometer
     public let uid = PeripheralUid.magnetometer.rawValue

@@ -37,7 +37,6 @@ import Foundation
 /// ```
 /// device.getPeripheral(Peripherals.systemInfo)
 /// ```
-@objc(GSSystemInfo)
 public protocol SystemInfo: Peripheral {
 
     /// Firmware version of the device.
@@ -63,6 +62,13 @@ public protocol SystemInfo: Peripheral {
     /// Device board identifier.
     var boardId: String { get }
 
+    /// Product name setting.
+    ///
+    /// Setting a new product name also changes the SSID for WiFi products.
+    ///
+    /// - Note: only available for drone devices.
+    var productName: StringSetting? { get }
+
     /// Whether the reset settings is in progress.
     var isResetSettingsInProgress: Bool { get }
 
@@ -79,11 +85,22 @@ public protocol SystemInfo: Peripheral {
     /// - Returns: `true` if the factory reset has begun
     /// - Note: This will produce a reboot of the device.
     func factoryReset() -> Bool
+
+    /// Power off the device
+    ///
+    /// - Note: only available for drone devices
+    /// - Returns: `true` if the command has been sent, `false` otherwise
+    func powerOff() -> Bool
+
+    /// Reboot the device
+    ///
+    /// - Note: only available for drone devices
+    /// - Returns: `true` if the command has been sent, `false` otherwise
+    func reboot() -> Bool
 }
 
 /// :nodoc:
 /// SystemInfo description
-@objc(GSSystemInfoDesc)
 public class SystemInfoDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = SystemInfo
     public let uid = PeripheralUid.systemInfo.rawValue

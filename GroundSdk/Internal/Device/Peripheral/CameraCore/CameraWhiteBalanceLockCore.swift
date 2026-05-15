@@ -128,18 +128,3 @@ class CameraWhiteBalanceLockCore: CameraWhiteBalanceLock, CustomDebugStringConve
     }
 
 }
-
-// MARK: - objc compatibility
-extension CameraWhiteBalanceLockCore: GSCameraWhiteBalanceLock {
-    var isLockableSupported: Bool {
-        return isLockable != nil
-    }
-
-    var gsIsLockable: Bool {
-        return isLockable != nil ? isLockable! : false
-    }
-
-    var gsLocked: Bool {
-        return locked
-    }
-}

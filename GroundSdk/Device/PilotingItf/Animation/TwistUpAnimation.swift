@@ -30,8 +30,6 @@
 import Foundation
 
 /// Twist up animation configuration.
-@objcMembers
-@objc(GSTwistUpAnimationConfig)
 public class TwistUpAnimationConfig: NSObject, AnimationConfig {
 
      public let type = AnimationType.twistUp
@@ -107,27 +105,10 @@ public class TwistUpAnimationConfig: NSObject, AnimationConfig {
     }
 }
 
-/// Extension that brings Obj-C support.
-extension TwistUpAnimationConfig {
-    /// `true` when `with(mode:)` has been called once.
-    /// ObjC-only api. In Swift, use `mode`.
-    public var modeIsCustom: Bool {
-        return mode != nil
-    }
-
-    /// Custom mode.
-    /// Value is meaningless if `modeIsCustom` is `false`.
-    /// ObjC-only api. In Swift, use `mode`.
-    public var customMode: AnimationMode {
-        return mode ?? .once
-    }
-}
-
 /// Twist Up Animation.
 ///
 /// This animation will make the drone move up and rotate slowly on itself until the end of the animation,
 /// first with the camera looking down and when it reaches its target altitude, slowly looking up to the horizon.
-@objc(GSTwistUpAnimation)
 public protocol TwistUpAnimation: Animation {
 
     /// Current animation speed, in meters per second.

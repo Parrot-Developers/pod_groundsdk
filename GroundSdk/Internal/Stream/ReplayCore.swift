@@ -33,8 +33,11 @@ import Foundation
 public protocol ReplayCoreBackend: StreamCoreBackend {
     /// Seeks to a time position.
     ///
-    /// - Parameter position: position to seek, in seconds
-    func seek(position: Int)
+    /// - Parameters:
+    ///   - position: position to seek, in seconds
+    ///   - exact: `true` means seek to the sample closest to the position (slower), `false` means seek
+    ///   to the nearest synchronization sample preceding the position (faster)
+    func seek(position: Int, exact: Bool)
 }
 
 /// Core class for Replay.
@@ -42,6 +45,9 @@ public class ReplayCore: StreamCore, Replay {
 
     /// Current playback state.
     public var playState: ReplayPlayState = .none
+
+    /// Whether playback is currently seeking.
+    public var isSeeking: Bool = false
 
     /// Playback speed (multiplier), 0 when paused
     public var speed: Double = 0.0
@@ -73,7 +79,7 @@ public class ReplayCore: StreamCore, Replay {
     public func play() -> Bool {
         // Force a go back to the beginning, if the replay is at the ending.
         if duration > 0 && position >= duration {
-            backend.seek(position: 0)
+            backend.seek(position: 0, exact: false)
         }
         backend.play()
         return true
@@ -84,26 +90,28 @@ public class ReplayCore: StreamCore, Replay {
         return true
     }
 
-    public func seekTo(position: TimeInterval) -> Bool {
-        backend.seek(position: Int(position * 1000.0))
-        return true
+    public func seekTo(position: TimeInterval, exact: Bool = false) -> Bool {
+        if position >= 0 {
+            update(isSeeking: true)
+            backend.seek(position: Int(position * 1000.0), exact: exact)
+            return true
+        } else {
+            return false
+        }
     }
 
     public override func stop() {
         super.stop()
     }
 
-    override func onPlaybackStateChanged(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval) {
+    override func onPlaybackStateChanged(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval,
+                                         isSeeking: Bool) {
         self.timestamp = timestamp
         update(duration: duration)
         update(position: min(position, duration))
         update(speed: speed)
         update(timestamp: timestamp)
-
-        // Force pause at the end of the replay.
-        if duration > 0 && position >= duration && speed == 0 {
-            _ = pause()
-        }
+        update(isSeeking: isSeeking)
     }
 
     override func onStop() {
@@ -187,6 +195,19 @@ extension ReplayCore {
     public func update(timestamp: TimeInterval) -> ReplayCore {
         if timestamp != self.timestamp {
             self.timestamp = timestamp
+            changed = true
+        }
+        return self
+    }
+
+    /// Updates playback isSeeking.
+    ///
+    /// - Parameter isSeeking: new playback isSeeking
+    /// - Returns: self to allow call chaining
+    @discardableResult
+    public func update(isSeeking: Bool) -> ReplayCore {
+        if isSeeking != self.isSeeking {
+            self.isSeeking = isSeeking
             changed = true
         }
         return self

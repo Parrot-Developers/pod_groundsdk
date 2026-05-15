@@ -42,8 +42,9 @@ protocol UserAccountBackend: AnyObject {
     ///         false: Already collected data without account must not be uploaded and should be deleted.
     ///   - token: authentication token.
     ///   - droneList: user drone list, APC JSON format
+    ///   - cloudAntennaList: cloud antenna list, APC JSON format
     func set(account: String, dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy,
-             token: String, droneList: String)
+             token: String, droneList: String, cloudAntennaList: String)
 
     /// Set data upload policy and old data policy
     ///
@@ -69,6 +70,11 @@ protocol UserAccountBackend: AnyObject {
     /// - Parameter droneList: user drone list, APC JSON format
     func set(droneList: String)
 
+    /// Sets cloud antenna for current user account
+    ///
+    /// - Parameter cloudAntennaList: cloud antenna list, APC JSON format
+    func set(cloudAntennaList: String)
+
     /// Clears any registered user account.
     ///
     /// - Parameters:
@@ -93,13 +99,13 @@ class UserAccountCore: FacilityCore, UserAccount {
     }
 
     func set(accountProvider: String, accountId: String, dataUploadPolicy: DataUploadPolicy,
-             oldDataPolicy: OldDataPolicy, token: String, droneList: String) {
+             oldDataPolicy: OldDataPolicy, token: String, droneList: String, cloudAntennaList: String) {
         GroundSdkCore.logEvent(message: "EVT:ACADEMY;provider='\(accountProvider)';" +
             "upload='\(dataUploadPolicy)';old_data='\(oldDataPolicy)'")
         backend.set(account: accountProvider + " " + accountId,
                     dataUploadPolicy: dataUploadPolicy,
                     oldDataPolicy: oldDataPolicy,
-                    token: token, droneList: droneList)
+                    token: token, droneList: droneList, cloudAntennaList: cloudAntennaList)
     }
 
     func set(dataUploadPolicy: DataUploadPolicy, oldDataPolicy: OldDataPolicy) {
@@ -116,6 +122,10 @@ class UserAccountCore: FacilityCore, UserAccount {
 
     func set(droneList: String) {
         backend.set(droneList: droneList)
+    }
+
+    func set(cloudAntennaList: String) {
+        backend.set(cloudAntennaList: cloudAntennaList)
     }
 
     func clear(dataUploadPolicy: DataUploadPolicy) {

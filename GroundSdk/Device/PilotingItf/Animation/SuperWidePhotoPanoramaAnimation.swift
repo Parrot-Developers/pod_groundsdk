@@ -30,8 +30,6 @@
 import Foundation
 
 /// Super Wide Photo panorama animation configuration.
-@objcMembers
-@objc(GSSuperWidePhotoPanoramaAnimationConfig)
 public class SuperWidePhotoPanoramaAnimationConfig: NSObject, AnimationConfig {
     public let type = AnimationType.superWidePhotoPanorama
 }
@@ -42,6 +40,5 @@ public class SuperWidePhotoPanoramaAnimationConfig: NSObject, AnimationConfig {
 ///
 /// The resulting set of photos can then be retrieved as a single media that may
 /// be post-processed to make a wide angle image.
-@objc(GSSuperWidePhotoPanoramaAnimation)
 public protocol SuperWidePhotoPanoramaAnimation: Animation {
 }

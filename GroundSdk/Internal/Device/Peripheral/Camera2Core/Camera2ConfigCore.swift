@@ -539,11 +539,9 @@ class Camera2EditorCore: Camera2Editor {
         params[.imageSharpness] = param(Camera2Params.imageSharpness, config: config)
         params[.zoomMaxSpeed] = param(Camera2Params.zoomMaxSpeed, config: config)
         params[.zoomVelocityControlQualityMode] = param(Camera2Params.zoomVelocityControlQualityMode, config: config)
-        params[.alignmentOffsetPitch] = param(Camera2Params.alignmentOffsetPitch, config: config)
-        params[.alignmentOffsetRoll] = param(Camera2Params.alignmentOffsetRoll, config: config)
-        params[.alignmentOffsetYaw] = param(Camera2Params.alignmentOffsetYaw, config: config)
         params[.autoExposureMeteringMode] = param(Camera2Params.autoExposureMeteringMode, config: config)
         params[.storagePolicy] = param(Camera2Params.storagePolicy, config: config)
+        params[.spectrum] = param(Camera2Params.spectrum, config: config)
 
         sortedParams = params.sorted { $0.0.rawValue > $1.0.rawValue }.compactMap { $0.value }
     }
@@ -717,8 +715,8 @@ public class Camera2ConfigCore: Camera2Config {
          .audioRecordingMode, .autoRecordMode, .exposureMode, .maximumIsoSensitivity,
          .isoSensitivity, .shutterSpeed, .exposureCompensation, .whiteBalanceMode, .whiteBalanceTemperature,
          .imageStyle, .imageContrast, .imageSaturation, .imageSharpness, .zoomMaxSpeed,
-         .zoomVelocityControlQualityMode, .alignmentOffsetPitch, .alignmentOffsetRoll, .alignmentOffsetYaw,
-         .autoExposureMeteringMode, .storagePolicy]
+         .zoomVelocityControlQualityMode, .autoExposureMeteringMode, .storagePolicy, .spectrum,
+         .lowLightModeSelection, .lowLightMode]
     }
 
     /// Current configuration.
@@ -883,13 +881,13 @@ extension Camera2ConfigCore.Config: CustomStringConvertible {
         self[Camera2Params.zoomVelocityControlQualityMode].map {
             params.append("zoomVelocityControlQualityMode: \($0.description)")
         }
-        self[Camera2Params.alignmentOffsetPitch].map { params.append("alignmentOffsetPitch: \($0.description)") }
-        self[Camera2Params.alignmentOffsetRoll].map { params.append("alignmentOffsetRoll: \($0.description)") }
-        self[Camera2Params.alignmentOffsetYaw].map { params.append("alignmentOffsetYaw: \($0.description)") }
         self[Camera2Params.autoExposureMeteringMode].map {
             params.append("autoExposureMeteringMode: \($0.description)")
         }
         self[Camera2Params.storagePolicy].map { params.append("storagePolicy: \($0.description)") }
+        self[Camera2Params.spectrum].map { params.append("spectrum: \($0.description)") }
+        self[Camera2Params.lowLightModeSelection].map { params.append("lowLightModeSelection: \($0.description)") }
+        self[Camera2Params.lowLightMode].map { params.append("lowLightMode: \($0.description)") }
         return "{ \(params.joined(separator: ", ")) }"
     }
 }

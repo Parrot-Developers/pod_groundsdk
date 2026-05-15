@@ -51,6 +51,7 @@ public class MediaItemCore: MediaItem {
     ///   - creationDate: media creation date
     ///   - bootDate: drone boot date
     ///   - flightDate: flight date
+    ///   - location: media location
     ///   - expectedCount: expected number of resources in the media
     ///   - photoMode: photo mode of the media (if available and media is a photo else nil)
     ///   - panoramaType: panorama type
@@ -60,9 +61,9 @@ public class MediaItemCore: MediaItem {
     ///   - metadataTypes: set of 'MetadataType' available in this media
     public init(uid: String, name: String, type: MediaType, runUid: String, customId: String?,
                 customTitle: String?, creationDate: Date, bootDate: Date?, flightDate: Date?,
-                expectedCount: UInt64?, photoMode: MediaItem.PhotoMode?, panoramaType: PanoramaType?,
-                streamUrl: String? = nil, resources: [Resource], backendData: Any? = nil,
-                metadataTypes: Set<MetadataType> = Set()) {
+                location: CLLocation?, expectedCount: UInt64?, photoMode: MediaItem.PhotoMode?,
+                panoramaType: PanoramaType?, streamUrl: String? = nil, resources: [Resource],
+                backendData: Any? = nil, metadataTypes: Set<MetadataType> = Set()) {
         self.streamUrl = streamUrl
         self.backendData = backendData
 
@@ -77,9 +78,10 @@ public class MediaItemCore: MediaItem {
         let remainingResources = resources.filter({ $0.uid != resourceId })
         return MediaItemCore(uid: uid, name: name, type: type, runUid: runUid, customId: customId,
                              customTitle: customTitle, creationDate: creationDate, bootDate: bootDate,
-                             flightDate: flightDate, expectedCount: expectedCount, photoMode: photoMode,
-                             panoramaType: panoramaType, streamUrl: streamUrl, resources: remainingResources,
-                             backendData: backendData, metadataTypes: metadataTypes)
+                             flightDate: flightDate, location: location, expectedCount: expectedCount,
+                             photoMode: photoMode, panoramaType: panoramaType, streamUrl: streamUrl,
+                             resources: remainingResources, backendData: backendData,
+                             metadataTypes: metadataTypes)
     }
 
     public func mediaWithResource(_ resource: Resource) -> MediaItemCore {
@@ -89,9 +91,17 @@ public class MediaItemCore: MediaItem {
         newResources.append(resource)
         return MediaItemCore(uid: uid, name: name, type: type, runUid: runUid, customId: customId,
                              customTitle: customTitle, creationDate: creationDate, bootDate: bootDate,
-                             flightDate: flightDate, expectedCount: expectedCount, photoMode: photoMode,
-                             panoramaType: panoramaType, streamUrl: streamUrl, resources: newResources,
-                             backendData: backendData, metadataTypes: metadataTypes)
+                            flightDate: flightDate, location: location, expectedCount: expectedCount,
+                             photoMode: photoMode, panoramaType: panoramaType, streamUrl: streamUrl,
+                             resources: newResources, backendData: backendData, metadataTypes: metadataTypes)
+    }
+
+    public func mediaWithResources(from other: MediaItem) -> MediaItemCore {
+        return MediaItemCore(uid: uid, name: name, type: type, runUid: runUid, customId: customId,
+                             customTitle: customTitle, creationDate: creationDate, bootDate: bootDate,
+                             flightDate: flightDate, location: location, expectedCount: expectedCount,
+                             photoMode: photoMode, panoramaType: panoramaType, streamUrl: streamUrl,
+                             resources: other.resources, backendData: backendData, metadataTypes: metadataTypes)
     }
 }
 
@@ -123,12 +133,13 @@ public class MediaItemResourceCore: MediaItem.Resource {
     ///   - location: resource creation location, may be nil if unavailable
     ///   - creationDate: media creation date
     ///   - metadataTypes: set of 'MediaItem.MetadataType' available in this ressource
+    ///   - cameraSpectrum: camera spectrum of the media; `null` if `type` is not `photo`
     ///   - storage: the storage type
     ///   - signed: `true` if resource is signed, `false` otherwise
-    public init(uid: String, type: MediaItem.ResourceType, format: MediaItem.Format, size: UInt64,
+    public init(uid: String, type: MediaItem.ResourceType, path: String, format: MediaItem.Format, size: UInt64,
                 duration: TimeInterval? = nil, streamUrl: String? = nil, backendData: Any? = nil,
                 location: CLLocation?, creationDate: Date, metadataTypes: Set<MediaItem.MetadataType> = Set(),
-                storage: StorageType? = nil, signed: Bool = false) {
+                cameraSpectrum: MediaItem.CameraSpectrum? = nil, storage: StorageType? = nil, signed: Bool = false) {
         self.streamUrl = streamUrl
         self.backendData = backendData
         self.tracks = [:]
@@ -139,9 +150,9 @@ public class MediaItemResourceCore: MediaItem.Resource {
                 self.tracks[.thermalUnblended] = StreamCore.TRACK_THERMAL_VIDEO
             }
         }
-        super.init(uid: uid, type: type, format: format, size: size, duration: duration, location: location,
-                   creationDate: creationDate, metadataTypes: metadataTypes, storage: storage,
-                   signed: signed)
+        super.init(uid: uid, type: type, path: path, format: format, size: size, duration: duration, location: location,
+                   creationDate: creationDate, metadataTypes: metadataTypes, cameraSpectrum: cameraSpectrum,
+                   storage: storage, signed: signed)
     }
 
     /// Get available tracks for media

@@ -30,8 +30,6 @@
 import Foundation
 
 /// Horizontal 180 Photo panorama animation configuration.
-@objcMembers
-@objc(GSHorizontal180PhotoPanoramaAnimationCfg)
 public class Horizontal180PhotoPanoramaAnimationCfg: NSObject, AnimationConfig {
     public let type = AnimationType.horizontal180PhotoPanorama
 }
@@ -41,6 +39,5 @@ public class Horizontal180PhotoPanoramaAnimationCfg: NSObject, AnimationConfig {
 /// The drone performs a 180° rotation on the yaw axis while taking photos at various angles.
 /// The resulting set of photos can then be retrieved as a single 'panorama' media that may be
 /// post-processed to make panoramic images.
-@objc(GSHorizontal180PhotoPanoramaAnimation)
 public protocol Horizontal180PhotoPanoramaAnimation: Animation {
 }

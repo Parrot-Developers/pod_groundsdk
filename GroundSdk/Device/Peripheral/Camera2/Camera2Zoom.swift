@@ -35,9 +35,72 @@ public enum Camera2ZoomControlMode: String, CustomStringConvertible, CaseIterabl
     case level
     /// Control zoom giving velocity targets.
     case velocity
+    /// Control zoom giving horizontal field of view targets.
+    case hfov
 
     /// Debug description.
     public var description: String { rawValue }
+}
+
+/// Zoom preset.
+public enum Camera2ZoomPreset: String, CustomStringConvertible, CaseIterable {
+    /// Wide preset.
+    case wide
+    /// Thermal preset.
+    case thermal
+    /// Tele preset.
+    case tele
+    /// Max preset.
+    case max
+
+    /// Debug description.
+    public var description: String { rawValue }
+}
+
+/// Camera subtype.
+public enum Camera2Subtype: String, CustomStringConvertible, CaseIterable {
+    /// Wide subtype.
+    case wide
+    /// Tele subtype.
+    case tele
+
+    /// Debug description.
+    public var description: String { rawValue }
+}
+
+/// Zoom range of a camera module.
+public struct Camera2ZoomRange: Equatable {
+
+    /// Minimum zoom level available for the camera module.
+    public var minLevel: Double
+
+    /// Maximum zoom level available for the camera module.
+    public var maxLevel: Double
+
+    /// Maximum zoom level to keep image quality at its best.
+    public var maxLosslessLevel: Double
+
+    /// Minimum horizontal field of view available for the camera module, `nil` if unavailable.
+    public var minHfov: Double?
+
+    /// Maximum horizontal field of view available for the camera module, `nil` if unavailable.
+    public var maxHfov: Double?
+
+    /// Constructor
+    ///
+    /// - Parameters:
+    ///   - minLevel: minimum zoom level available for the camera
+    ///   - maxLevel: maximum zoom level available for the camera
+    ///   - maxLosslessLevel: maximum zoom level to keep image quality at its best
+    ///   - minHfov: minimum horizontal field of view available for the camera
+    ///   - maxHfov: maximum horizontal field of view available for the camera
+    public init(minLevel: Double, maxLevel: Double, maxLosslessLevel: Double, minHfov: Double?, maxHfov: Double?) {
+        self.minLevel = minLevel
+        self.maxLevel = maxLevel
+        self.maxLosslessLevel = maxLosslessLevel
+        self.minHfov = minHfov
+        self.maxHfov = maxHfov
+    }
 }
 
 /// Camera zoom component.
@@ -56,6 +119,21 @@ public protocol Camera2Zoom: Component {
     /// - Note: If zoom level is greater than this value, image quality will be altered.
     var maxLossLessLevel: Double { get }
 
+    /// Current horizontal field of view, in degrees, `nil` if not available
+    var hfov: Double? { get }
+
+    /// Horizontal field of view range of the camera, `nil` if not available
+    var hfovRange: ClosedRange<Double>? { get }
+
+    /// Whether zoom control is currently locked
+    var isLocked: Bool { get }
+
+    /// Zoom presets available on the device.
+    var presets: [Camera2ZoomPreset: Double] { get }
+
+    /// Zoom ranges by camera subtype.
+    var ranges: [Camera2Subtype: Camera2ZoomRange] { get }
+
     /// Controls zoom.
     ///
     /// Unit of the `target` depends on `mode` parameter:
@@ -63,6 +141,7 @@ public protocol Camera2Zoom: Component {
     ///               This value will be clamped to the `maxLevel` if it is greater than this value.
     ///    - `.velocity`: value is in signed ratio (from -1 to 1) of `Camera2Params.zoomMaxSpeed` setting value.
     ///                  Negative value will produce a zoom out, positive value will zoom in.
+    ///    - `.hfov`: target is in horizontal field of view in degrees.
     ///
     /// - Parameters:
     ///   - mode: mode that should be used to control zoom

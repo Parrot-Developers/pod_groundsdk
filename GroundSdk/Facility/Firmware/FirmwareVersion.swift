@@ -115,14 +115,26 @@ public class FirmwareVersion: NSObject {
         return arsdkVersion.build
     }
 
+    ///  The version custom name part, if a custom part is present, otherwise `nil`.
+    public var customName: String? {
+        arsdkVersion.customName.map { String($0) }
+    }
+
+    /// The version custom number part, if a custom part is present, otherwise `0`.
+    public var customNumber: Int {
+        return arsdkVersion.customNumber
+    }
+
     /// Description of the version.
     /// This will be major.minor.patch-typebuildNumber for alpha, beta and rc
     /// And major.minor.patch for prod type
     public override var description: String {
+        let customSuffix = customName.map { "+\($0)\(customNumber)" } ?? ""
+
         if self.type == .release || self.type == .dev {
-            return "\(major).\(minor).\(patch)"
+            return "\(major).\(minor).\(patch)\(customSuffix)"
         } else {
-            return "\(major).\(minor).\(patch)-\(type.description)\(buildNumber)"
+            return "\(major).\(minor).\(patch)-\(type.description)\(buildNumber)\(customSuffix)"
         }
     }
 

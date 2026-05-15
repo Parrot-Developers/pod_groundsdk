@@ -30,7 +30,6 @@
 import Foundation
 
 /// Type of a mapping entry.
-@objc(GSSkyCtrl3MappingEntryType)
 public enum SkyCtrl3MappingEntryType: Int {
     /// Entry of this type is a `SkyCtrl3ButtonsMappingEntry` and can be casted as such.
     case buttons
@@ -54,8 +53,6 @@ public enum SkyCtrl3MappingEntryType: Int {
 ///
 /// No instance of this class can be created, you must either create a `SkyCtrl3ButtonsMappingEntry` or a
 /// `SkyCtrl3AxisMappingEntry`.
-@objcMembers
-@objc(GSSkyCtrl3MappingEntry)
 public class SkyCtrl3MappingEntry: NSObject {
 
     /// Associated drone model.
@@ -88,8 +85,6 @@ public class SkyCtrl3MappingEntry: NSObject {
 
 /// A mapping entry that defines a `ButtonsMappableAction` to be triggered when the gamepad inputs produce a set of
 /// `SkyCtrl3ButtonEvent` in the state `.pressed`.
-@objcMembers
-@objc(GSSkyCtrl3ButtonsMappingEntry)
 public class SkyCtrl3ButtonsMappingEntry: SkyCtrl3MappingEntry {
     /// Action to be triggered.
     public let action: ButtonsMappableAction
@@ -146,8 +141,6 @@ public class SkyCtrl3ButtonsMappingEntry: SkyCtrl3MappingEntry {
 /// A mapping entry that defines a `AxisMappableAction` to be triggered when the gamepad inputs produce an
 /// `SkyCtrl3AxisEvent`, and optionally in conjunction with a specific set of `SkyCtrl3ButtonEvent` in the
 /// state `.pressed`.
-@objcMembers
-@objc(GSSkyCtrl3AxisMappingEntry)
 public class SkyCtrl3AxisMappingEntry: SkyCtrl3MappingEntry {
 
     /// Action to be triggered.

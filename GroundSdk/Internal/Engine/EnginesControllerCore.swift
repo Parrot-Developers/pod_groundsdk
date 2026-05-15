@@ -70,6 +70,8 @@ public class EnginesControllerCore: NSObject {
 
         // publish the cloud server utility
         utilityRegistry.publish(utility: CloudServerCore(utilityRegistry: utilityRegistry))
+        // publish the mission asset storage utility
+        utilityRegistry.publish(utility: MissionAssetStorageCoreImpl())
 
         // create internal engines
         allEngineList.append(SystemEngine(enginesController: self))
@@ -77,6 +79,7 @@ public class EnginesControllerCore: NSObject {
         allEngineList.append(AutoConnectionEngine(enginesController: self))
         allEngineList.append(ActivationEngine(enginesController: self))
         allEngineList.append(UserAccountEngine(enginesController: self))
+        allEngineList.append(StreamSharingEngine(enginesController: self))
         if GroundSdkConfig.sharedInstance.enableCrashReport && GroundSdkConfig.sharedInstance.applicationKey != nil {
             allEngineList.append(CrashReportEngine(enginesController: self))
         }
@@ -92,6 +95,7 @@ public class EnginesControllerCore: NSObject {
         if GroundSdkConfig.sharedInstance.enableGutmaLog && GroundSdkConfig.sharedInstance.enableFlightLog {
             allEngineList.append(GutmaLogEngine(enginesController: self))
             allEngineList.append(FlightLogConverterEngine(enginesController: self))
+            allEngineList.append(KeyManagerEngine(enginesController: self))
         }
         if GroundSdkConfig.sharedInstance.enableFlightLog {
             allEngineList.append(FlightLogEngine(enginesController: self))

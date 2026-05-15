@@ -36,7 +36,6 @@ import Foundation
 /// ```
 /// drone.getInstrument(Instruments.flightMeter)
 /// ```
-@objc(GSFlightMeter)
 public protocol FlightMeter: Instrument {
 
     /// Total flight duration, in seconds.
@@ -50,7 +49,6 @@ public protocol FlightMeter: Instrument {
 }
 
 /// Instrument descriptor
-@objc(GSFlightMeterDesc)
 public class FlightMeterDesc: NSObject, InstrumentClassDesc {
     public typealias ApiProtocol = FlightMeter
     public let uid = InstrumentUid.flightMeter.rawValue

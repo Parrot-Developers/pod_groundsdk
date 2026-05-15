@@ -31,25 +31,51 @@ import Foundation
 
 /// Leds backend part.
 public protocol LedsBackend: AnyObject {
-    /// Sets switch state
+    /// Sets standard LEDs state
     ///
-    /// - Parameter state: the new state
+    /// - Parameter standard: the new standard
     /// - Returns: true if the command has been sent, false if not connected and the value has been changed immediately
-    func set(state: Bool) -> Bool
+    func set(standard: Bool) -> Bool
+
+    /// Sets infrared LEDs state
+    ///
+    /// - Parameter infrared: the new infrared
+    /// - Returns: true if the command has been sent, false if not connected and the value has been changed immediately
+    func set(infrared: Bool) -> Bool
+
+    /// Sets ToF LEDs state
+    ///
+    /// - Parameter tof: the new ToF
+    /// - Returns: true if the command has been sent, false if not connected and the value has been changed immediately
+    func set(tof: Bool) -> Bool
 }
 
 /// Internal light switch peripheral implementation
 public class LedsCore: PeripheralCore, Leds {
 
-    /// State settings
-    public var state: BoolSetting? {
-        return _state
+    /// Standard LEDs state setting
+    public var standard: BoolSetting? {
+        return _standard
     }
-    /// Internal storage for state settings
-    private var _state: BoolSettingCore?
 
-    /// Whether switch is supported
-    private (set) public var supportedSwitch: Bool = false
+    /// Infrared LEDs state setting
+    public var infrared: BoolSetting? {
+        return _infrared
+    }
+
+    /// ToF LEDs state setting
+    public var tof: BoolSetting? {
+        return _tof
+    }
+
+    /// Internal storage for standard LEDs state setting
+    private var _standard: BoolSettingCore?
+
+    /// Internal storage for infrared LEDs state setting
+    private var _infrared: BoolSettingCore?
+
+    /// Internal storage for ToF LEDs state setting
+    private var _tof: BoolSettingCore?
 
     /// implementation backend
     private unowned let backend: LedsBackend
@@ -68,31 +94,70 @@ public class LedsCore: PeripheralCore, Leds {
 /// Backend callback methods
 extension LedsCore {
 
-    /// Set the switch state
+    /// Creates the standard setting if it doesn't exist yet.
+    public func createStandard() {
+        if _standard == nil {
+            _standard = BoolSettingCore(didChangeDelegate: self) { [unowned self] newValue in
+                return self.backend.set(standard: newValue)
+            }
+            markChanged()
+        }
+    }
+
+    /// Creates the infrared setting if it doesn't exist yet.
+    public func createInfrared() {
+        if _infrared == nil {
+            _infrared = BoolSettingCore(didChangeDelegate: self) { [unowned self] newValue in
+                return self.backend.set(infrared: newValue)
+            }
+            markChanged()
+        }
+    }
+
+    /// Creates the ToF setting if it doesn't exist yet.
+    public func createTof() {
+        if _tof == nil {
+            _tof = BoolSettingCore(didChangeDelegate: self) { [unowned self] newValue in
+                return self.backend.set(tof: newValue)
+            }
+            markChanged()
+        }
+    }
+
+    /// Set the standard LEDs state
     ///
-    /// - Parameter state: tells the leds switch state
+    /// - Parameter standardLedState: tells the standard leds state
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(state newValue: Bool) -> LedsCore {
-        if _state == nil {
-            _state = BoolSettingCore(didChangeDelegate: self) { [unowned self] newValue in
-                return self.backend.set(state: newValue)
-            }
-        }
-        if _state!.update(value: newValue) {
+    @discardableResult public func update(standardLedState newValue: Bool) -> LedsCore {
+        createStandard()
+        if _standard!.update(value: newValue) {
             markChanged()
         }
         return self
     }
 
-    /// Set whether the switch is supported or not
+    /// Set the infrared LEDs state
     ///
-    /// - Parameter supportedSwitch: tells whether the switch is supported
+    /// - Parameter infraredLedState: tells the infrared leds state
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(supportedSwitch newValue: Bool) -> LedsCore {
-        if newValue != supportedSwitch {
-            supportedSwitch = newValue
+    @discardableResult public func update(infraredLedState newValue: Bool) -> LedsCore {
+        createInfrared()
+        if _infrared!.update(value: newValue) {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Set the ToF LEDs state
+    ///
+    /// - Parameter tofLedState: tells the ToF leds state
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(tofLedState newValue: Bool) -> LedsCore {
+        createTof()
+        if _tof!.update(value: newValue) {
             markChanged()
         }
         return self
@@ -103,7 +168,9 @@ extension LedsCore {
     /// - Returns: self to allow call chaining
     /// - note: changes are not notified until notifyUpdated() is called
     @discardableResult public func cancelSettingsRollback() -> LedsCore {
-        _state?.cancelRollback { markChanged() }
+        _standard?.cancelRollback { markChanged() }
+        _infrared?.cancelRollback { markChanged() }
+        _tof?.cancelRollback { markChanged() }
         return self
     }
 }

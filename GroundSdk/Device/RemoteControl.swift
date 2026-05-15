@@ -52,6 +52,9 @@ public class RemoteControl: NSObject, InstrumentProvider, PeripheralProvider {
         /// Sky Controller 5 remote control.
         case skyCtrl5
 
+        /// Sky Controller UA2 remote control.
+        case skyCtrlUA2
+
         /// Internal unique identifier.
         public var internalId: Int {
             switch self {
@@ -60,6 +63,7 @@ public class RemoteControl: NSObject, InstrumentProvider, PeripheralProvider {
             case .skyCtrl4Black: return 0x0921
             case .skyCtrlUA:     return 0x091c
             case .skyCtrl5:      return 0x0922
+            case .skyCtrlUA2:    return 0x0923
             }
         }
 
@@ -71,11 +75,12 @@ public class RemoteControl: NSObject, InstrumentProvider, PeripheralProvider {
             case .skyCtrl4Black: return "skyCtrl4Black"
             case .skyCtrlUA:     return "skyCtrlUA"
             case .skyCtrl5:      return "skyCtrl5"
+            case .skyCtrlUA2:    return "skyCtrlUA2"
             }
         }
 
         /// Set containing all possible models of remote controls.
-        static let allCases: Set<Model> = [.skyCtrl3, .skyCtrl4, .skyCtrl4Black, .skyCtrlUA, skyCtrl5]
+        static let allCases: Set<Model> = [.skyCtrl3, .skyCtrl4, .skyCtrl4Black, .skyCtrlUA, .skyCtrl5, .skyCtrlUA2]
     }
 
     /// Remote control unique identifier, persistant between sessions.
@@ -174,16 +179,16 @@ public class RemoteControl: NSObject, InstrumentProvider, PeripheralProvider {
     ///
     /// - Returns: `true` if the connection process has started
     public func connect() -> Bool {
-        return remoteControlCore.connect(connector: nil, password: nil)
+        return remoteControlCore.connect(connector: nil, parameters: [])
     }
 
-    /// Connects the remote control with a specific connector.
-    ///
-    /// - Parameter connector: connector to use to connect the remote control
-    /// - Returns: `true` if the connection process has started
-    public func connect(connector: DeviceConnector) -> Bool {
-        return remoteControlCore.connect(connector: connector, password: nil)
-    }
+//    /// Connects the remote control with a specific connector.
+//    ///
+//    /// - Parameter connector: connector to use to connect the remote control
+//    /// - Returns: `true` if the connection process has started
+//    public func connect(connector: DeviceConnector) -> Bool {
+//        return remoteControlCore.connect(connector: connector, password: nil)
+//    }
 
     /// Connects the remote control with a specific connector, using a password.
     ///
@@ -192,7 +197,17 @@ public class RemoteControl: NSObject, InstrumentProvider, PeripheralProvider {
     ///    - password: password to use to connect the remote control
     /// - returns: `true` if the connection process has started
     public func connect(connector: DeviceConnector, password: String) -> Bool {
-        return remoteControlCore.connect(connector: connector, password: password)
+        return remoteControlCore.connect(connector: connector, parameters: [.securityKey(key: password)])
+    }
+
+    /// Connects the remote control using specified device connector and custom parameters.
+    ///
+    /// - Parameters:
+    ///    - connector: connector to use to connect the drone
+    ///    - parameters: custom parameters to use to connect the drone
+    /// - Returns: `true` if the connection process has started
+    public func connect(connector: DeviceConnector, _ parameters: DeviceConnectionParameter...) -> Bool {
+        return remoteControlCore.connect(connector: connector, parameters: parameters)
     }
 
     /// Disconnects the remote control.
@@ -263,133 +278,5 @@ extension RemoteControl {
     public func getPeripheral<Desc: PeripheralClassDesc>(_ desc: Desc,
                               observer: @escaping Ref<Desc.ApiProtocol>.Observer) -> Ref<Desc.ApiProtocol> {
         return remoteControlCore.getPeripheral(desc, observer: observer)
-    }
-}
-
-/// Extension that add components getter from id, returning the basic type.
-/// This is used by Objective-C extension for components accessors.
-extension RemoteControl {
-
-    /// Gets an instrument.
-    ///
-    /// - Parameter uid: requested instrument uid
-    /// - Returns: requested instrument
-    func getInstrument(uid: Int) -> Instrument? {
-        return remoteControlCore.getInstrument(uid: uid)
-    }
-
-    /// Gets an instrument and registers an observer notified each time it changes.
-    ///
-    /// - Parameters:
-    ///    - uid: requested instrument uid
-    ///    - observer: observer to notify when the instrument changes
-    /// - Returns: reference to the requested instrument
-    func getInstrument(uid: Int, observer: @escaping (Instrument?) -> Void) -> Ref<Instrument> {
-        return remoteControlCore.getInstrument(uid: uid, observer: observer)
-    }
-
-    /// Gets a peripheral.
-    ///
-    /// Returns the requested peripheral or `nil` if the remote control doesn't have the requested peripheral, or if the
-    /// peripheral is not available in the current connection state.
-    ///
-    /// - Parameter uid: requested peripheral uid
-    /// - Returns: requested peripheral
-    func getPeripheral(uid: Int) -> Peripheral? {
-        return remoteControlCore.getPeripheral(uid: uid)
-    }
-
-    /// Gets a peripheral and registers an observer notified each time it changes.
-    ///
-    /// If the peripheral is present, the observer will be called immediately with. If the peripheral is not present,
-    /// the observer won't be called until the peripheral is added to the remote control.
-    /// If the peripheral or the remote control are removed, the observer will be notified and referenced value is set
-    /// to `nil`.
-    ///
-    /// - Parameters:
-    ///    - uid: requested peripheral uid
-    ///    - observer: observer to notify when the peripheral changes
-    /// - Returns: reference to the requested peripheral
-    func getPeripheral(uid: Int, observer: @escaping (Peripheral?) -> Void) -> Ref<Peripheral> {
-        return remoteControlCore.getPeripheral(uid: uid, observer: observer)
-    }
-}
-
-/// Objective-C extension adding GroundSdk swift methods that can't be automatically converted.
-/// Those methods should no be used from swift.
-public extension RemoteControl {
-
-    /// Gets the remote control name and registers an observer notified each time it changes.
-    ///
-    /// If the remote control is removed, the observer will be notified and the referenced value is set to `nil`.
-    ///
-    /// - Parameter observer: observer to notify when the remote control name changes
-    /// - Returns: reference to remote control name
-    ///
-    /// - Note: This method is for Objective-C only. Swift must use `func getName:observer`.
-    /// - Seealso: property `name` to get current name without registering an observer
-    @objc(getNameRef:)
-    func getNameRef(observer: @escaping (String?) -> Void) -> GSNameRef {
-        return GSNameRef(ref: getName(observer: observer))
-    }
-
-    /// Gets the remote control state and registers an observer notified each time it changes.
-    ///
-    /// If the remote control is removed, the observer will be notified and the referenced value is set to `nil`.
-    ///
-    /// - Parameter observer: observer to notify when the remote control state changes
-    /// - Returns: reference to remote control state
-    ///
-    /// - Note: This method is for Objective-C only. Swift must use `func getState:observer`.
-    /// - Seealso: property state to get current state without registering an observer
-    @objc(getStateRef:)
-    func getStateRef(observer: @escaping (DeviceState?) -> Void) -> GSDeviceStateRef {
-        return GSDeviceStateRef(ref: getState(observer: observer))
-    }
-
-    /// Gets an instrument.
-    ///
-    /// - Parameter desc: requested instrument. See `Instruments` api for available descriptors instances.
-    /// - Returns: requested instrument
-    /// - Note: This method is for Objective-C only. Swift must use `func getInstrument:`.
-    @objc(getInstrument:)
-    func getInstrument(desc: ComponentDescriptor) -> Instrument? {
-        return getInstrument(uid: desc.uid)
-    }
-
-    /// Gets a instrument and registers an observer notified each time it changes.
-    ///
-    /// - Parameters:
-    ///    - desc: requested instrument. See `Instruments` api for available descriptors instances.
-    ///    - observer: observer to notify when the instrument changes
-    /// - Returns: reference to the requested instrument
-    /// - Note: this method is for Objective-C only. Swift must use `func getInstrument:desc:observer`.
-    @objc(getInstrument:observer:)
-    func getInstrumentRef(desc: ComponentDescriptor, observer: @escaping (Instrument?) -> Void)
-        -> GSInstrumentRef {
-            return GSInstrumentRef(ref: getInstrument(uid: desc.uid, observer: observer))
-    }
-
-    /// Gets a peripheral.
-    ///
-    /// - Parameter desc: requested peripheral. See `Peripherals` api for available descriptors instances.
-    /// - Returns: requested peripheral
-    /// - Note: This method is for Objective-C only. Swift must use `func getPeripheral:`.
-    @objc(getPeripheral:)
-    func getPeripheral(desc: ComponentDescriptor) -> Peripheral? {
-        return getPeripheral(uid: desc.uid)
-    }
-
-    /// Gets a peripheral and registers an observer notified each time it changes.
-    ///
-    /// - Parameters:
-    ///    - desc: requested peripheral. See `Peripherals` api for available descriptors instances.
-    ///    - observer: observer to notify when the peripheral changes
-    /// - Returns: reference to the requested peripheral
-    /// - Note: This method is for Objective-C only. Swift must use `func getPeripheral:desc:observer`.
-    @objc(getPeripheral:observer:)
-    func getPeripheralRef(desc: ComponentDescriptor, observer: @escaping (Peripheral?) -> Void)
-        -> GSPeripheralRef {
-            return GSPeripheralRef(ref: getPeripheral(uid: desc.uid, observer: observer))
     }
 }

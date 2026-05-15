@@ -38,7 +38,6 @@ import Foundation
 /// drone.getPeripheral(Peripherals.streamServer)
 /// ```
 public protocol StreamServer: Peripheral {
-
     /// Tells whether streaming is enabled.
     ///
     /// When streaming gets enabled, currently suspended stream will be resumed.
@@ -80,47 +79,8 @@ public protocol StreamServer: Peripheral {
 
 /// :nodoc:
 /// StreamServer description
-@objc(GSStreamServerDesc)
 public class StreamServerDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = StreamServer
     public let uid = PeripheralUid.streamServer.rawValue
     public let parent: ComponentDescriptor? = nil
-}
-
-/// StreamServer peripheral interface.
-/// This peripheral allows streaming of live camera video and replay of video files stored in drone memory.
-/// Those methods should no be used from swift
-@objc
-public protocol GSStreamServer {
-
-    /// Tells whether streaming is enabled.
-    ///
-    /// When streaming gets enabled, currently suspended stream will be resumed.
-    /// When streaming is enabled, streams can be started.
-    ///
-    /// When streaming gets disabled, currently started stream gets suspended,
-    /// in case it supports suspended state (CameraLive), or stopped otherwise (MediaReplay).
-    /// When streaming is disabled, no stream can be started.
-    var enabled: Bool { get set }
-
-    /// Provides access to the drone video live  stream.
-    /// There is only one live stream instance for each CameraLive.Source source, which is shared among all open
-    /// references.
-    /// Closing the returned reference does NOT automatically stops the referenced camera live stream.
-    ///
-    /// - Parameter source: live source to stream
-    /// - Parameter observer: notified when the stream state changes
-    /// - Returns: a reference to the camera live stream interface
-    func live(source: CameraLiveSource, observer: @escaping (_ stream: CameraLive?) -> Void) -> GSCameraLiveRef
-
-    /// Creates a new replay stream for a media resource.
-    /// Every successful call to this method creates a new replay stream instance for the given media resource,
-    /// that must be disposed by closing the returned reference once that stream is not needed.
-    /// Closing the returned reference automatically stops the referenced media replay stream.
-    ///
-    /// - Parameter resource: media resource to stream
-    /// - Parameter observer: notified when the stream state changes
-    /// - Returns: a reference to the camera live stream interface,
-    ///            or 'nil' in case the provided resource cannot be streamed
-    func replay(source: MediaReplaySource, observer: @escaping (_ stream: MediaReplay?) -> Void) -> GSMediaReplayRef?
 }

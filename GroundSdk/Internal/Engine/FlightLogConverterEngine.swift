@@ -41,6 +41,9 @@ class FlightLogConverterEngine: FlightLogEngineBase {
     /// Flight log storage utility
     private var flightLogStorage: FlightLogStorageCore!
 
+    /// Key manager utility
+    private var keyManager: KeyManagerCore!
+
     /// Extension of GUTMAs log files
     private var outFileExtension = "gutma"
 
@@ -64,6 +67,7 @@ class FlightLogConverterEngine: FlightLogEngineBase {
         ULog.d(.flightLogConverterEngineTag, "Starting FlightLogConverterEngine.")
         gutmaLogStorage = utilities.getUtility(Utilities.gutmaLogStorage)
         flightLogStorage = utilities.getUtility(Utilities.flightLogStorage)
+        keyManager = utilities.getUtility(Utilities.keyManager)
     }
 
     public override func stopEngine() {
@@ -125,7 +129,9 @@ class FlightLogConverterEngine: FlightLogEngineBase {
 
         // Call the SDKCore to convert the file
         queue.async {
-            let res = FileConverterAPI.convert(processingFlightLog.path, outFile: gutmaLog.path, format: .gutma)
+            let res = FileConverterAPI.convert(processingFlightLog.path, outFile: gutmaLog.path, format: .gutma,
+                                               privateKey: self.keyManager.privateKey,
+                                               publicKey: self.keyManager.publicKey)
             DispatchQueue.main.async { [weak self] in
                 guard let strongSelf = self else { return }
                 // move file in flight log storage

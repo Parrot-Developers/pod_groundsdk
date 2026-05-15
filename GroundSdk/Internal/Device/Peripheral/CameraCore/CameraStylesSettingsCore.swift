@@ -35,7 +35,7 @@ private class CameraStyleParameterCore: CameraStyleParameter, CustomDebugStringC
     private var backend: (_ value: Int) -> Bool
 
     /// Whether or not the parameter can be modified
-    private (set) var mutable = false
+    private(set) var mutable = false
     /// Parameter minimum value
     var min: Int {
         return range.lowerBound
@@ -314,16 +314,5 @@ class CameraStyleSettingsCore: CameraStyleSettings, CustomDebugStringConvertible
     var debugDescription: String {
         return "\(_activeStyle) [\(supportedStyles)] saturation: \(saturation) contrast: \(contrast) " +
         "sharpness: \(sharpness) updating: \(updating)]"
-    }
-}
-
-// MARK: - objc compatibility
-extension CameraStyleSettingsCore: GSCameraStyleSettings {
-    /// Checks if a style is supported
-    ///
-    /// - Parameter style: style to check
-    /// - Returns: true if the style is supported
-    func isStyleSupported(_ style: CameraStyle) -> Bool {
-        return supportedStyles.contains(style)
     }
 }

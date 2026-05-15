@@ -157,7 +157,7 @@ public class OffScreenStreamRender {
     }
 
     /// Frame Buffer Object where each frame are rendered.
-    public private (set) var fbo: GGLFbo
+    public private(set) var fbo: GGLFbo
 
     /// Constructor
     ///

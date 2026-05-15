@@ -46,7 +46,7 @@ protocol CameraAlignmentBackend: AnyObject {
     func resetAlignment() -> Bool
 }
 
-/// Camera Alignment core implementation.
+/// Camera alignment core implementation.
 class CameraAlignmentCore: CameraAlignment {
 
     /// Backend of this object.
@@ -247,32 +247,5 @@ extension CameraAlignmentCore {
             timeout.cancel()
         }
         return changed
-    }
-}
-
-// MARK: - objc compatibility
-extension CameraAlignmentCore: GSCameraAlignment {
-    var gsMinSupportedYawRange: Double {
-        return supportedYawRange.lowerBound
-    }
-
-    var gsMaxSupportedYawRange: Double {
-        return supportedYawRange.upperBound
-    }
-
-    var gsMinSupportedPitchRange: Double {
-        return supportedPitchRange.lowerBound
-    }
-
-    var gsMaxSupportedPitchRange: Double {
-        return supportedPitchRange.upperBound
-    }
-
-    var gsMinSupportedRollRange: Double {
-        return supportedRollRange.lowerBound
-    }
-
-    var gsMaxSupportedRollRange: Double {
-        return supportedRollRange.upperBound
     }
 }

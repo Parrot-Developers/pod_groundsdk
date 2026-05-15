@@ -87,6 +87,12 @@ public protocol MissionManagerBackend: AnyObject {
     ///
     /// - Parameter message: mission message
     func sendMessage(message: MissionMessage)
+
+    /// Get assets directory for the specified mission.
+    ///
+    /// - Parameter uid: mission uid
+    /// - Returns: the asset directory
+    func getAssetDirectory(uid: String) -> URL?
 }
 
 /// Internal mission manager implementation
@@ -167,6 +173,14 @@ public class MissionManagerCore: PeripheralCore, MissionManager {
         }
     }
 
+    /// Get assets directory for the specified mission.
+    ///
+    /// - Parameter uid: mission uid
+    /// - Returns: the asset directory
+    public func getAssetDirectory(uid: String) -> URL? {
+        backend.getAssetDirectory(uid: uid)
+    }
+
     /// Called by the backend, change the setting data
     ///
     /// - Parameter updatingMission: the mission to update.
@@ -183,7 +197,7 @@ public class MissionManagerCore: PeripheralCore, MissionManager {
 
     /// Deactivate current mission. Default mission will be selected
     public func deactivate() {
-        backend.activate(uid: "default")
+        backend.activate(uid: "com.parrot.missions.default")
     }
 
     /// Send a message to a mission

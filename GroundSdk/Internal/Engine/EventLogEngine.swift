@@ -49,17 +49,8 @@ class EventLogEngine: EngineBaseCore {
     /// Monitor of the userAccount changes
     private var userAccountMonitor: MonitorCore!
 
-    /// Index of the current event log
-    private var index: Int = 0
-
     /// Current session id
     private var sessionId: String?
-
-    /// Start date of the current event log
-    private var currentLogDate: Date?
-
-    /// Start date of the next event log
-    private var nextLogDate: Date?
 
     /// Background timestamp
     private var backgroundTimeStamp: Double?
@@ -107,7 +98,7 @@ class EventLogEngine: EngineBaseCore {
 
         folderMonitor = FolderMonitor(url: workDir, handler: handleNewFile)
         // Monitoring a folder that has just been created may fail, so we add a timer to fix this
-        Timer.scheduledTimer(withTimeInterval: 0.001, repeats: false) { _ in
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
             self.folderMonitor.startMonitoring()
         }
 
@@ -123,27 +114,17 @@ class EventLogEngine: EngineBaseCore {
                 self.logRecorder = ULog.redirectToLogEvent(config: logConfig,
                                                            roProperties: roProperties as [String: String],
                                                            rwProperties: rwProperties as [String: String])
-                self.index = 0
-                self.currentLogDate = Date()
             }
         })
 
         let notificationCenter = NotificationCenter.default
-        if #available(iOS 13.0, *) {
-            notificationCenter.addObserver(
-                self, selector: #selector(appMovedToBackground),
-                name: UIScene.didEnterBackgroundNotification, object: nil)
-            notificationCenter.addObserver(
-                self, selector: #selector(appMovedToForeground),
-                name: UIScene.willEnterForegroundNotification, object: nil)
-        } else {
-            notificationCenter.addObserver(
-                self, selector: #selector(appMovedToBackground),
-                name: UIApplication.didEnterBackgroundNotification, object: nil)
-            notificationCenter.addObserver(
-                self, selector: #selector(appMovedToForeground),
-                name: UIApplication.willEnterForegroundNotification, object: nil)
-        }
+        notificationCenter.addObserver(
+            self, selector: #selector(appMovedToBackground),
+            name: UIScene.didEnterBackgroundNotification, object: nil)
+        notificationCenter.addObserver(
+            self, selector: #selector(appMovedToForeground),
+            name: UIScene.willEnterForegroundNotification, object: nil)
+
         eventLoggerFacility.publish()
     }
 
@@ -156,13 +137,8 @@ class EventLogEngine: EngineBaseCore {
         logRecorder = nil
         folderMonitor.stopMonitoring()
         let notificationCenter = NotificationCenter.default
-        if #available(iOS 13.0, *) {
-            notificationCenter.removeObserver(self, name: UIScene.didEnterBackgroundNotification, object: nil)
-            notificationCenter.removeObserver(self, name: UIScene.willEnterForegroundNotification, object: nil)
-        } else {
-            notificationCenter.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
-            notificationCenter.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
-        }
+        notificationCenter.removeObserver(self, name: UIScene.didEnterBackgroundNotification, object: nil)
+        notificationCenter.removeObserver(self, name: UIScene.willEnterForegroundNotification, object: nil)
     }
 
     /// Updates drone boot id in event log file.
@@ -176,7 +152,6 @@ class EventLogEngine: EngineBaseCore {
     func newSession() {
         ULog.d(.eventLogEngineTag, "New event log session requested.")
         logRecorder?.rotateLogFile()
-        nextLogDate = Date()
     }
 
     /// Handles new file detected in work directory.
@@ -184,24 +159,15 @@ class EventLogEngine: EngineBaseCore {
     /// - Parameter file: new file
     private func handleNewFile(file: URL) {
         // Considering only files appearing after log rotation.
-        guard file.lastPathComponent.range(of: "log-\\d+.bin", options: .regularExpression) != nil else {
+        guard file.lastPathComponent.range(of: "log-[1-9]+-0-[0-9T+]+.bin", options: .regularExpression) != nil else {
             return
         }
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeZone = NSTimeZone.system
-        dateFormatter.locale = NSLocale.system
-        dateFormatter.dateFormat = "yyyyMMdd'T'HHmmssZZZ"
-
-        let currentDateStr = dateFormatter.string(from: currentLogDate ?? Date())
-        let fileName = "log-\(index)-\(sessionId?.prefix(5) ?? "")-\(currentDateStr).bin"
+        let fileName = file.lastPathComponent.replacingOccurrences(of: "-0-", with: "-\(sessionId?.prefix(5) ?? "")-")
         let srcFile = file.resolvingSymlinksInPath()
         let dstFile = srcFile.deletingLastPathComponent().appendingPathComponent(fileName)
 
         ULog.d(.eventLogEngineTag, "New file detected: \(srcFile) - renaming it to: \(fileName)")
-
-        index += 1 // it follows internal logger index, which is incremented on each log rotation
-        currentLogDate = nextLogDate
 
         do {
             try FileManager.default.moveItem(at: srcFile, to: dstFile)
@@ -296,10 +262,11 @@ private class FolderMonitor {
         }
 
         dispatchSource?.setCancelHandler { [weak self] in
-            guard let strongSelf = self else { return }
-            close(strongSelf.fileDescriptor)
-            strongSelf.fileDescriptor = -1
-            strongSelf.dispatchSource = nil
+            guard let self = self else { return }
+
+            close(self.fileDescriptor)
+            self.fileDescriptor = -1
+            self.dispatchSource = nil
         }
 
         dispatchSource?.resume()

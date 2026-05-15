@@ -88,8 +88,11 @@ import Foundation
 ///  - `BlacklistedVersions` (Array of String): List of plist file names that describe the blacklisted firmware
 ///     versions. Default is empty. Ignored if `FirmwareSync` is `false`.
 ///
-///  - `AutoSelectWifiCountry` (Bool): Whether or not the auto wifi selection, based on reverse geocoding, is used.
-///      Default is `true`.
+///  - `AutoSelectWifiCountry` (Bool): Whether or not the auto country selection for Wifi, based on reverse geocoding,
+///     is used. Default is `true`.
+///
+///  - `AutoSelectMarsCountry` (Bool): Whether or not the auto country selection for Mars, based on reverse
+///     geocoding, is used. Default is `true`.
 ///
 ///  - `Ephemeris` (Bool): Ephemeris files help the drone to be aware of its own gps position faster.
 ///      Default is `true`.
@@ -261,8 +264,15 @@ public class GroundSdkConfig: NSObject {
         }
     }
 
-    /// Whether or not the auto wifi selection, based on reverse geocoding, is used.
+    /// Whether or not the auto country selection for Wifi, based on reverse geocoding, is used.
     public var autoSelectWifiCountry = true {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
+    /// Whether or not the auto country selection for Mars, based on reverse geocoding, is used.
+    public var autoSelectMarsCountry = true {
         willSet(newValue) {
             checkLocked()
         }
@@ -478,6 +488,9 @@ public class GroundSdkConfig: NSObject {
         if let autoSelectWifiCountry = config?[Keys.autoSelectWifiCountry.rawValue] as? Bool {
             self.autoSelectWifiCountry = autoSelectWifiCountry
         }
+        if let autoSelectMarsCountry = config?[Keys.autoSelectMarsCountry.rawValue] as? Bool {
+            self.autoSelectMarsCountry = autoSelectMarsCountry
+        }
         if let enableEphemeris = config?[Keys.enableEphemeris.rawValue] as? Bool {
             self.enableEphemeris = enableEphemeris
         }
@@ -534,6 +547,7 @@ public class GroundSdkConfig: NSObject {
         case embeddedFirmwares = "EmbeddedFirmwares"
         case blacklistedVersions = "BlacklistedVersions"
         case autoSelectWifiCountry = "AutoSelectWifiCountry"
+        case autoSelectMarsCountry = "AutoSelectMarsCountry"
         case enableEphemeris = "Ephemeris"
         case enableFlightLog = "FlightLog"
         case enableFlightCameraRecord = "FlightCameraRecord"

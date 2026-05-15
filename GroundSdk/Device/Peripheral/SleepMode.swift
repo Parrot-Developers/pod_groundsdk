@@ -57,7 +57,7 @@ public protocol SleepMode: Peripheral {
     /// Sleep mode activation status.
     ///
     /// This property is **transient**: it will be set once when the activation succeeds or fails, and then
-    /// immediately back to `null`.
+    /// immediately back to `nil`.
     var activationStatus: SleepModeActivationStatus? { get }
 
     /// Activates sleep mode.

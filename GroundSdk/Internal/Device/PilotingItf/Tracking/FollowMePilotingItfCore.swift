@@ -133,12 +133,6 @@ class FollowModeSettingCore: FollowModeSetting, CustomStringConvertible {
     }
 }
 
-extension FollowModeSettingCore: GSFollowModeSetting {
-    func modeIsSupported(_ mode: FollowMode) -> Bool {
-        return supportedModes.contains(mode)
-    }
-}
-
 /// Internal FollowMe piloting interface implementation
 public class FollowMePilotingItfCore: TrackingPilotingItfCore, FollowMePilotingItf {
 
@@ -214,27 +208,5 @@ extension FollowMePilotingItfCore {
     @discardableResult public func cancelSettingsRollback() -> FollowMePilotingItfCore {
         _followMode.cancelRollback { markChanged() }
         return self
-    }
-}
-
-// MARK: - objc compatibility
-
-/// Internal FollowMePilotingItfCore implementation for objectiveC
-extension FollowMePilotingItfCore: GSFollowMePilotingItf {
-
-    public var gsFollowMode: GSFollowModeSetting {
-        return _followMode
-    }
-
-    /// The current follow state if this interface is `.active`, otherwise the value is not significant.
-    ///
-    /// When the FollowMe mode is active, the drone follows its target (moving the drone and the camera). If the Follow
-    /// mode prerequisites are not met, the drone may remain stationary (while visually following its target).
-    public var gsFollowBehavior: FollowBehavior {
-        if let followBehavior = followBehavior {
-            return followBehavior
-        } else {
-            return .stationary
-        }
     }
 }

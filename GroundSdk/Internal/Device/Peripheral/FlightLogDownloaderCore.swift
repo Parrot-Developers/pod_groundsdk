@@ -31,17 +31,17 @@ import Foundation
 
 /// Internal implementation of the FlightLogDownloader
 public class FlightLogDownloaderCore: PeripheralCore, FlightLogDownloader {
-    /// Core implementation of the state
-    public private(set) var state: FlightLogDownloaderState
+    private(set) public var downloadingState: FlightLogDownloadingState = .none
 
-    private(set) public var isDownloading = false
+    private(set) public var completionStatus: FlightLogDownloadCompletionStatus = .none
+
+    private(set) public var latestDownloadCount: Int = 0
 
     /// Constructor
     ///
     /// - Parameters:
     ///     - Parameter store: store where this peripheral will be stored
     public init(store: ComponentStoreCore) {
-        state = FlightLogDownloaderState()
         super.init(desc: Peripherals.flightLogDownloader, store: store)
     }
 }
@@ -49,14 +49,15 @@ public class FlightLogDownloaderCore: PeripheralCore, FlightLogDownloader {
 /// Backend callback methods
 extension FlightLogDownloaderCore {
 
-    /// Updates the currently downloading flag.
+    /// Updates the currently downloading state.
     ///
-    /// - Parameter downloadingFlag: the new downloading flag
+    /// - Parameter downloadingState: the new downloading state
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(downloadingFlag: Bool) -> FlightLogDownloaderCore {
-        if isDownloading != downloadingFlag {
-            isDownloading = downloadingFlag
+    @discardableResult public func update(downloadingState newValue: FlightLogDownloadingState)
+        -> FlightLogDownloaderCore {
+        if downloadingState != newValue {
+            downloadingState = newValue
             markChanged()
         }
         return self
@@ -67,9 +68,9 @@ extension FlightLogDownloaderCore {
     /// - Parameter downloadedCount: new downloaded count
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(downloadedCount: Int) -> FlightLogDownloaderCore {
-        if state.downloadedCount != downloadedCount {
-            state.downloadedCount = downloadedCount
+    @discardableResult public func update(downloadedCount newValue: Int) -> FlightLogDownloaderCore {
+        if latestDownloadCount != newValue {
+            latestDownloadCount = newValue
             markChanged()
         }
         return self
@@ -80,10 +81,10 @@ extension FlightLogDownloaderCore {
     /// - Parameter completionStatus: new completion status
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(completionStatus: FlightLogDownloadCompletionStatus)
+    @discardableResult public func update(completionStatus newValue: FlightLogDownloadCompletionStatus)
         -> FlightLogDownloaderCore {
-            if state.status != completionStatus {
-                state.status = completionStatus
+            if completionStatus != newValue {
+                completionStatus = newValue
                 markChanged()
             }
         return self

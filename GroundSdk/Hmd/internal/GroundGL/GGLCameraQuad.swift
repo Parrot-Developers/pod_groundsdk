@@ -38,12 +38,12 @@ class  GGLCameraQuad: NSObject, GGLDrawable, GGLShaderLoader, AVCaptureVideoData
     public private(set) var fov: Double = 0
     public private(set) var newFrameSinceLastDraw = false
 
-    private (set) var renderSize: CGSize = {
+    private(set) var renderSize: CGSize = {
             return CGSize(width: UIScreen.main.scale * 960, height: UIScreen.main.scale * 540)
     }()
 
     /// true or false if a frame is ready to be rendered
-    private (set) var isFrameReady = false
+    private(set) var isFrameReady = false
     private var lastPixelBuffer: CVImageBuffer?
 
     // Uniform index.

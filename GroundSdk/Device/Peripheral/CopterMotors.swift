@@ -30,7 +30,6 @@
 import Foundation
 
 /// Motor description.
-@objc(GSCopterMotor)
 public enum CopterMotor: Int {
 
     /// Front left motor (copter viewed from above).
@@ -84,32 +83,8 @@ public protocol CopterMotors: Peripheral {
 
 /// :nodoc:
 /// CopterMotors description
-@objc(GSCopterMotorsDesc)
 public class CopterMotorsDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = CopterMotors
     public let uid = PeripheralUid.copterMotors.rawValue
     public let parent: ComponentDescriptor? = nil
-}
-
-// MARK: Objective-C API
-
-/// CopterMotors peripheral interface for copter drones.
-///
-/// Allows to query the error status of each of the copter's motors.
-///
-/// This peripheral can be retrieved by:
-/// ```
-/// drone.getPeripheral(Peripherals.copterMotors)
-/// ```
-/// - Note: This protocol is for Objective-C only. Swift must use the protocol `CopterMotors`.
-@objc
-public protocol GSCopterMotors: Peripheral {
-    /// All motors currently undergoing some error.
-    var motorsWithCurrentError: Set<Int> { get }
-
-    /// Gets a motor's latest error status.
-    ///
-    /// - Parameter motor: motor whose error must be retrieved
-    /// - Returns: latest error of the provided motor
-    func latestError(onMotor motor: CopterMotor) -> MotorError
 }

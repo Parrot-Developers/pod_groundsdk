@@ -31,11 +31,8 @@ import Foundation
 import CoreLocation
 
 /// Media item in a media store.
-@objcMembers
-@objc(GSMediaItem)
 public class MediaItem: NSObject {
     /// Type of media.
-    @objc(GSMediaItemType)
     public enum MediaType: Int, CustomStringConvertible {
         /// Media is a photo.
         case photo
@@ -76,7 +73,6 @@ public class MediaItem: NSObject {
     }
 
     /// Media format.
-    @objc(GSMediaItemFormat)
     public enum Format: Int, CustomStringConvertible {
         /// JPEG photo.
         case jpg
@@ -84,6 +80,8 @@ public class MediaItem: NSObject {
         case dng
         /// MP4 video.
         case mp4
+        /// PNG photo.
+        case png
 
         /// Debug description.
         public var description: String {
@@ -94,12 +92,13 @@ public class MediaItem: NSObject {
                 return "dng"
             case .mp4:
                 return "mp4"
+            case .png:
+                return "png"
             }
         }
     }
 
     /// Photo mode.
-    @objc(GSMediaItemPhotoMode)
     public enum PhotoMode: Int, CustomStringConvertible {
         /// single shot mode.
         case single
@@ -134,7 +133,6 @@ public class MediaItem: NSObject {
     }
 
     /// Panorama type.
-    @objc(GSMediaItemPanoramaType)
     public enum PanoramaType: Int, CustomStringConvertible {
         /// Horizontal 180° panorama type.
         case horizontal_180
@@ -161,7 +159,6 @@ public class MediaItem: NSObject {
     }
 
     /// Available metadata types.
-    @objc(GSMetadataType)
     public enum MetadataType: Int, CustomStringConvertible {
         /// Media contains thermal metadata.
         case thermal
@@ -176,7 +173,6 @@ public class MediaItem: NSObject {
     }
 
     /// Track of a media.
-    @objc(GSMediaItemTrack)
     public enum Track: Int, CustomStringConvertible {
         /// Default video track.
         case defaultVideo
@@ -194,9 +190,23 @@ public class MediaItem: NSObject {
         }
     }
 
+    /// Resource camera spectrum
+    public enum CameraSpectrum {
+
+        /// Resource has an unknown camera spectrum.
+        case unknown
+
+        /// Resource has a visible camera spectrum.
+        case visible
+
+        /// Resource has a blended camera spectrum.
+        case blended
+
+        /// Resource has a thermal camera spectrum.
+        case thermal
+    }
+
     /// A resource of a media.
-    @objc(GSMediaItemResource)
-    @objcMembers
     public class Resource: NSObject {
 
         /// Resource unique identifier.
@@ -204,6 +214,9 @@ public class MediaItem: NSObject {
 
         /// Resource type.
         public let type: MediaItem.ResourceType
+
+        /// Resource path
+        public let path: String
 
         /// Resource format.
         public let format: MediaItem.Format
@@ -222,6 +235,9 @@ public class MediaItem: NSObject {
 
         /// Available metaData types in this ressource.
         public let metadataTypes: Set<MetadataType>
+
+        /// Camera spectrum. `nil` if this resource `type` is not a `photo`.
+        public let cameraSpectrum: CameraSpectrum?
 
         /// Storage of the ressource.
         public let storage: StorageType?
@@ -246,24 +262,29 @@ public class MediaItem: NSObject {
         /// - Parameters:
         ///   - format: resource format
         ///   - type: resource type
+        ///   - path: resource path
         ///   - size: resource data size
         ///   - duration: resource duration in seconds (for video)
         ///   - location: resource creation location, may be `nil` if unavailable
         ///   - creationDate: media creation date
         ///   - metadataTypes: set of 'MetadataType' available in this ressource
+        ///   - cameraSpectrum: camera spectrum of the media; `nil` if `type` is not `photo`
         ///   - storage: resource storage type `nil` if unavailable
         ///   - signed: `true` if resource is signed, `false` otherwise
-        init(uid: String, type: MediaItem.ResourceType, format: MediaItem.Format, size: UInt64, duration: TimeInterval?,
-             location: CLLocation?, creationDate: Date, metadataTypes: Set<MetadataType>, storage: StorageType?,
+        init(uid: String, type: MediaItem.ResourceType, path: String, format: MediaItem.Format, size: UInt64,
+             duration: TimeInterval?, location: CLLocation?, creationDate: Date, metadataTypes: Set<MetadataType>,
+             cameraSpectrum: CameraSpectrum?, storage: StorageType?,
              signed: Bool) {
             self.uid = uid
             self.type = type
+            self.path = path
             self.format = format
             self.size = size
             self.duration = duration
             self.location = location
             self.creationDate = creationDate
             self.metadataTypes = metadataTypes
+            self.cameraSpectrum = cameraSpectrum
             self.storage = storage
             self.signed = signed
         }
@@ -298,6 +319,9 @@ public class MediaItem: NSObject {
     /// Flight date if available, otherwise nil.
     public let flightDate: Date?
 
+    /// location of a media
+    public let location: CLLocation?
+
     /// Expected number of resources in the media.
     public let expectedCount: UInt64?
 
@@ -329,14 +353,15 @@ public class MediaItem: NSObject {
     ///   - creationDate: media creation date
     ///   - bootDate: drone boot date
     ///   - flightDate: flight date
+    ///   - location: location of the media
     ///   - expectedCount: expected number of resources in the media
     ///   - photoMode: photo mode of the media (if available and media is a photo else nil)
     ///   - panoramatype: panoramaType
     ///   - resources: available resources by formats
     ///   - metadataTypes: set of 'MetadataType' available in this media
     init(uid: String, name: String, type: MediaType, runUid: String, customId: String?, customTitle: String?,
-         creationDate: Date, bootDate: Date? = nil, flightDate: Date? = nil, expectedCount: UInt64?,
-         photoMode: MediaItem.PhotoMode?, panoramaType: PanoramaType?, resources: [Resource],
+         creationDate: Date, bootDate: Date? = nil, flightDate: Date? = nil, location: CLLocation? = nil,
+         expectedCount: UInt64?, photoMode: MediaItem.PhotoMode?, panoramaType: PanoramaType?, resources: [Resource],
          metadataTypes: Set<MetadataType>) {
         self.uid = uid
         self.name = name
@@ -347,100 +372,11 @@ public class MediaItem: NSObject {
         self.creationDate = creationDate
         self.bootDate = bootDate
         self.flightDate = flightDate
+        self.location = location
         self.expectedCount = expectedCount
         self.photoMode = photoMode
         self.panoramaType = panoramaType
         self.resources = resources
         self.metadataTypes = metadataTypes
-    }
-}
-
-// MARK: - objc compatibility
-
-/// Objective-C extension of MediaItem.
-public extension MediaItem {
-    /// Photo mode, if available.
-    ///
-    /// - Note:
-    ///    - Value is meaningless if `hasPhotoMode`is `NO`.
-    ///    - Only use in Objective-C.
-    @objc(photoMode)
-    var gsPhotoMode: PhotoMode {
-        return photoMode ?? .single
-    }
-
-    /// Whether photo mode is available.
-    ///
-    /// - Note: Only use in Objective-C.
-    var hasPhotoMode: Bool {
-        return photoMode != nil
-    }
-
-    /// Panorama type, if available.
-    ///
-    /// - Note:
-    ///    - Value is meaningless if `hasPanoramaType`is `NO`.
-    ///    - Only use in Objective-C.
-    @objc(panoramaType)
-    var gsPanoramaType: PanoramaType {
-        return panoramaType ?? .horizontal_180
-    }
-
-    /// Whether panorama is available.
-    ///
-    /// - Note: Only use in Objective-C.
-    var hasPanoramaType: Bool {
-        return panoramaType != nil
-    }
-
-    /// Expected count, if available.
-    ///
-    /// - Note:
-    ///    - Value is meaningless if `hasExpectedCount`is `NO`.
-    ///    - Only use in Objective-C.
-    @objc(expectedCount)
-    var gsExpectedCount: UInt64 {
-        return expectedCount ?? 0
-    }
-
-    /// Whether expected count is available.
-    ///
-    /// - Note:
-    ///    - Value is meaningless if `hasPanoramaType`is `NO`.
-    ///    - Only use in Objective-C.
-    var hasExpectedCount: Bool {
-        return expectedCount != nil
-    }
-
-    /// Tells if a metadataType is present.
-    ///
-    /// - Parameter metadataType: MetadataType to check
-    /// - Returns: `true` if the metadataType type is present, `false` otherwise
-    ///
-    /// - Note: Only use in Objective-C.
-    @objc(hasMetadataType:)
-    func hasMetadataType(_ metadataType: MetadataType) -> Bool {
-        return self.metadataTypes.contains(metadataType)
-    }
-}
-
-/// Objective-C extension of MediaItem.Resource.
-@objc(GSMediaItemResource)
-public extension MediaItem.Resource {
-    /// Resource duration in seconds. Zero if the resource is not a video or ift the duration is not available.
-    @objc(duration)
-    var gsDuration: TimeInterval {
-        return duration ?? 0
-    }
-
-    /// Tells if a metadataType is present.
-    ///
-    /// - Parameter metadataType: MetadataType to check
-    /// - Returns: `true` if the metadataType type is present, `false` otherwise
-    ///
-    /// - Note: Only use in Objective-C.
-    @objc(hasMetadataType:)
-    func hasMetadataType(_ metadataType: MediaItem.MetadataType) -> Bool {
-        return self.metadataTypes.contains(metadataType)
     }
 }

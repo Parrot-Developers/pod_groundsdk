@@ -235,9 +235,9 @@ public class UpdaterCore: PeripheralCore, Updater {
     /// - Parameters:
     ///    - store: store where this peripheral will be stored
     ///    - backend: updater backend
-    public init(store: ComponentStoreCore, backend: UpdaterBackend) {
+    public init(desc: ComponentDescriptor, store: ComponentStoreCore, backend: UpdaterBackend) {
         self.backend = backend
-        super.init(desc: Peripherals.updater, store: store)
+        super.init(desc: desc, store: store)
     }
 
     public func downloadNextFirmware() -> Bool {
@@ -451,50 +451,5 @@ extension UpdaterCore {
             markChanged()
         }
         return self
-    }
-}
-
-/// Extension of UpdaterCore.Download to support Objective-C API
-extension UpdaterCore.Download: GSUpdaterDownload {
-    var gsCurrentFirmware: GSFirmwareInfo {
-        // we allow us to force cast because we know that this firmware info is a FirmwareInfoCore and this class
-        // implements the protocol GSFirmwareInfo.
-        return currentFirmware as! GSFirmwareInfo
-    }
-}
-
-/// Extension of UpdaterCore.Upload to support Objective-C API
-extension UpdaterCore.Update: GSUpdaterUpdate {
-    var gsCurrentFirmware: GSFirmwareInfo {
-        // we allow us to force cast because we know that this firmware info is a FirmwareInfoCore and this class
-        // implements the protocol GSFirmwareInfo.
-        return currentFirmware as! GSFirmwareInfo
-    }
-}
-
-/// Extension of UpdaterCore to support Objective-C API
-extension UpdaterCore: GSUpdater {
-    public var gsDownloadableFirmwares: [GSFirmwareInfo] {
-        return _downloadableFirmwares
-    }
-
-    public var gsCurrentDownload: GSUpdaterDownload? {
-        return _currentDownload
-    }
-
-    public var gsApplicableFirmwares: [GSFirmwareInfo] {
-        return _applicableFirmwares
-    }
-
-    public var gsCurrentUpdate: GSUpdaterUpdate? {
-        return _currentUpdate
-    }
-
-    public func isPreventingDownload(reason: UpdaterDownloadUnavailabilityReason) -> Bool {
-        return downloadUnavailabilityReasons.contains(reason)
-    }
-
-    public func isPreventingUpdate(reason: UpdaterUpdateUnavailabilityReason) -> Bool {
-        return updateUnavailabilityReasons.contains(reason)
     }
 }

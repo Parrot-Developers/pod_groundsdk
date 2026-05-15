@@ -32,9 +32,9 @@ import Foundation
 /// Internal camera photo progress indicator core implementation.
 public class Camera2PhotoProgressIndicatorCore: ComponentCore, Camera2PhotoProgressIndicator {
 
-    private (set) public var remainingTime: Double?
+    private(set) public var remainingTime: Double?
 
-    private (set) public var remainingDistance: Double?
+    private(set) public var remainingDistance: Double?
 
     /// Debug description.
     public override var description: String {

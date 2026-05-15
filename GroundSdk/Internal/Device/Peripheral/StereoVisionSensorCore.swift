@@ -32,7 +32,7 @@ import Foundation
 /// Internal Anafi stereo vision sensor peripheral implementation
 public class StereoVisionSensorCore: PeripheralCore, StereoVisionSensor {
 
-    private (set) public var isCalibrated: Bool = false
+    private(set) public var isCalibrated: Bool = false
 
     /// Constructor
     ///

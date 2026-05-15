@@ -30,7 +30,6 @@
 import Foundation
 
 /// Precise home modes.
-@objc(GSPreciseHomeMode)
 public enum PreciseHomeMode: Int, CustomStringConvertible, CaseIterable {
     /// Precise home is off.
     case disabled
@@ -47,7 +46,6 @@ public enum PreciseHomeMode: Int, CustomStringConvertible, CaseIterable {
 }
 
 /// Precise home state.
-@objc(GSPreciseHomeState)
 public enum PreciseHomeState: Int {
     /// Precise home unavailable.
     case unavailable
@@ -99,38 +97,8 @@ public protocol PreciseHome: Peripheral {
 
 /// :nodoc:
 /// PreciseHome description
-@objc(GSPreciseHomeDesc)
 public class PreciseHomeDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = PreciseHome
     public let uid = PeripheralUid.preciseHome.rawValue
     public let parent: ComponentDescriptor? = nil
-}
-
-// MARK: - objc compatibility
-
-/// Setting to change the precise home mode
-/// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSPreciseHomeSetting {
-    /// Tells if a setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Precise home mode setting.
-    var mode: PreciseHomeMode { get set }
-
-    /// Checks if a mode is supported.
-    ///
-    /// - Parameter mode: mode to check
-    /// - Returns: `true` if the mode is supported
-    func isModeSupported(_ mode: PreciseHomeMode) -> Bool
-}
-
-/// Peripheral managing precise home.
-/// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSPreciseHome {
-    /// Precise home setting.
-    @objc(setting)
-    var gsSetting: GSPreciseHomeSetting { get }
-
-    /// Actual precise home state.
-    var state: PreciseHomeState { get }
 }

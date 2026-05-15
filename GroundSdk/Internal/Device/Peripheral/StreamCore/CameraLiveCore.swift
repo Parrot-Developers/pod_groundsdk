@@ -33,10 +33,21 @@ import Foundation
 public class CameraLiveCore: StreamCore, CameraLive {
 
     /// Camera live source being played back.
-    public let source: CameraLiveSource
+    private var source: CameraLiveSource
 
     /// Current camera live playback state.
     public var playState: CameraLivePlayState = .none
+
+    /// Set of sources currently available for CameraLive.
+    public var sources: Set<CameraLiveSource> = []
+
+    /// The currently selected source for CameraLive, or `nil` if not available.
+    public var selectedSource: CameraLiveSource?
+
+    /// The camera requested by the drone.
+    ///
+    /// This property is *transient*: it will change back to `nil` immediately after it is notified.
+    public var requestedCamera: RequestedCamera?
 
     /// Constructor
     ///
@@ -63,6 +74,19 @@ public class CameraLiveCore: StreamCore, CameraLive {
         super.stop()
     }
 
+    public func refreshSources() {
+        backend.requestSources()
+    }
+
+    public func selectSource(source: CameraLiveSource) {
+        self.source = source
+        backend.selectSource(source: source)
+    }
+
+    public func notifyCamera(requestedCamera: RequestedCamera) {
+        backend.notifyCamera(source: requestedCamera.source, requester: requestedCamera.requester)
+    }
+
     override func onPlayStateChanged(playState: StreamPlayState) {
         switch playState {
         case .stopped:
@@ -72,6 +96,10 @@ public class CameraLiveCore: StreamCore, CameraLive {
         case .playing:
             update(playState: .playing).notifyUpdated()
         }
+    }
+
+    override func onSourceSetChanged(sources: Set<CameraLiveSource>, selected: CameraLiveSource?) {
+        update(sources: sources).update(selectedSource: selected).notifyUpdated()
     }
 }
 
@@ -85,6 +113,45 @@ extension CameraLiveCore {
     public func update(playState: CameraLivePlayState) -> CameraLiveCore {
         if playState != self.playState {
             self.playState = playState
+            changed = true
+        }
+        return self
+    }
+
+    /// Updates current sources.
+    ///
+    /// - Parameter sources: new sources
+    /// - Returns: self to allow call chaining
+    @discardableResult
+    public func update(sources: Set<CameraLiveSource>) -> CameraLiveCore {
+        if sources != self.sources {
+            self.sources = sources
+            changed = true
+        }
+        return self
+    }
+
+    /// Updates current selected source.
+    ///
+    /// - Parameter selectedSource: new selected source
+    /// - Returns: self to allow call chaining
+    @discardableResult
+    public func update(selectedSource: CameraLiveSource?) -> CameraLiveCore {
+        if selectedSource != self.selectedSource {
+            self.selectedSource = selectedSource
+            changed = true
+        }
+        return self
+    }
+
+    /// Updates requested camera.
+    ///
+    /// - Parameter requestedCamera: new requested camera
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(requestedCamera newRequestedCamera: RequestedCamera?) -> CameraLiveCore {
+        if requestedCamera != newRequestedCamera {
+            requestedCamera = newRequestedCamera
             changed = true
         }
         return self

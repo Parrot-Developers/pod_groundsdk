@@ -32,7 +32,6 @@ import Foundation
 /// Reasons why a tracking piloting interface may be unavailable or unavailable in degraded mode.
 ///
 /// - Note: `FollowMePilotingItf` and `LookAtPilotingItf` are "tracking pilotingItf".
-@objc(GSTrackingIssue)
 public enum TrackingIssue: Int, CustomStringConvertible {
 
     /// Drone is not flying.

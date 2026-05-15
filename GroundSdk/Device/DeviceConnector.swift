@@ -68,6 +68,10 @@ public enum DeviceConnectorTechnology: Int, CustomStringConvertible {
     case usb
     /// Connect using Bluetooth Low Energy.
     case ble
+    /// Connect using Microhard radio.
+    case microhard
+    /// Connect using Mars.
+    case mars
 
     /// Debug description.
     public var description: String {
@@ -75,6 +79,8 @@ public enum DeviceConnectorTechnology: Int, CustomStringConvertible {
         case .wifi: return "wifi"
         case .usb: return "usb"
         case .ble: return "ble"
+        case .microhard: return "microhard"
+        case .mars: return "mars"
         }
     }
 }
@@ -117,4 +123,18 @@ public func == (lhs: DeviceConnector, rhs: DeviceConnector) -> Bool {
 /// - returns: `true` if not equals
 public func != (lhs: DeviceConnector, rhs: DeviceConnector) -> Bool {
     return !(lhs == rhs)
+}
+
+/// Custom parameter that can be provided for connection.
+public enum DeviceConnectionParameter {
+
+    /// Provides a security key for connection.
+    ///
+    /// This parameter can be used with `DeviceConnectorTechnology.wifi` connectors.
+    case securityKey(key: String)
+
+    /// Allows to specify operation power value (in dB).
+    ///
+    /// This parameter can be used with `DeviceConnectorTechnology.microhard` connectors.
+    case operationPower(value: Int)
 }

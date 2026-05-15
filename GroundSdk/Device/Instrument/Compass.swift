@@ -35,15 +35,14 @@ import Foundation
 /// ```
 /// drone.getInstrument(Instruments.compass)
 /// ```
-@objc(GSCompass)
 public protocol Compass: Instrument {
     /// Heading of the drone (in degrees), in range [0, 360[, relative to the GPS North.
-    var heading: Double { get }
+    /// `nil` if not available.
+    var heading: Double? { get }
 }
 
 /// :nodoc:
 /// Instrument descriptor
-@objc(GSCompassDesc)
 public class CompassDesc: NSObject, InstrumentClassDesc {
     public typealias ApiProtocol = Compass
     public let uid = InstrumentUid.compass.rawValue

@@ -82,6 +82,8 @@ public class GimbalCore: CalibratableGimbalCore, Gimbal {
 
     private(set) public var lockedAxes: Set<GimbalAxis> = []
 
+    private(set) public var isStabilizationDegraded: Bool = false
+
     private(set) public var attitudeBounds: [GimbalAxis: Range<Double>] = [:]
 
     public var maxSpeedSettings: [GimbalAxis: DoubleSetting] {
@@ -219,6 +221,18 @@ extension GimbalCore {
         let filteredLockedAxes = newValue.filter { supportedAxes.contains($0) }
         if filteredLockedAxes != lockedAxes {
             lockedAxes = filteredLockedAxes
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates is stabilization degraded value.
+    ///
+    /// - Parameter newValue: the new is stabilization degraded value
+    /// - Returns: self to allow call chaining
+    @discardableResult public func update(isStabilizationDegraded newValue: Bool) -> GimbalCore {
+        if isStabilizationDegraded != newValue {
+            isStabilizationDegraded = newValue
             markChanged()
         }
         return self
@@ -448,54 +462,5 @@ extension GimbalCore {
             }
         }
         return self
-    }
-}
-
-/// Extension of Gimbal that implements ObjC API
-extension GimbalCore: GSGimbal {
-
-    public func isAxisSupported(_ axis: GimbalAxis) -> Bool {
-        return supportedAxes.contains(axis)
-    }
-
-    public func isAxisLocked(_ axis: GimbalAxis) -> Bool {
-        return lockedAxes.contains(axis)
-    }
-
-    public func attitudeLowerBound(onAxis axis: GimbalAxis) -> NSNumber? {
-        if let lowerBound = attitudeBounds[axis]?.lowerBound {
-            return NSNumber(value: lowerBound)
-        }
-        return nil
-    }
-
-    public func attitudeUpperBound(onAxis axis: GimbalAxis) -> NSNumber? {
-        if let upperBound = attitudeBounds[axis]?.upperBound {
-            return NSNumber(value: upperBound)
-        }
-        return nil
-    }
-
-    public func maxSpeed(onAxis axis: GimbalAxis) -> DoubleSetting? {
-        return maxSpeedSettings[axis]
-    }
-
-    public func stabilization(onAxis axis: GimbalAxis) -> BoolSetting? {
-        return stabilizationSettings[axis]
-    }
-
-    public func currentAttitude(onAxis axis: GimbalAxis) -> NSNumber? {
-        if let stabilization = _stabilizationSettings[axis] {
-            return NSNumber(value: (stabilization.value ? _absoluteAttitude[axis] : _relativeAttitude[axis]) ?? 0)
-        }
-        return nil
-    }
-
-    public func currentAttitude(onAxis axis: GimbalAxis, frameOfReference: FrameOfReference) -> NSNumber? {
-        return NSNumber(value: (frameOfReference == .absolute ? _absoluteAttitude[axis] : _relativeAttitude[axis]) ?? 0)
-    }
-
-    public func control(mode: GimbalControlMode, yaw: NSNumber?, pitch: NSNumber?, roll: NSNumber?) {
-        control(mode: mode, yaw: yaw?.doubleValue, pitch: pitch?.doubleValue, roll: roll?.doubleValue)
     }
 }

@@ -30,7 +30,6 @@
 import Foundation
 
 /// Media replay stream interface.
-@objc(GSMediaReplay)
 public protocol MediaReplay: Replay {
 
     /// Media source being played back.
@@ -38,7 +37,6 @@ public protocol MediaReplay: Replay {
 }
 
 /// Media replay source interface.
-@objc(GSMediaReplaySource)
 public protocol MediaReplaySource {
     /// Media unique identifier.
     var mediaUid: String? { get }
@@ -51,7 +49,6 @@ public protocol MediaReplaySource {
 }
 
 /// Media replay source factory.
-@objc(GSMediaReplaySourceFactory)
 public class MediaReplaySourceFactory: NSObject {
 
     /// Creates a source for streaming a media resource.
@@ -60,28 +57,7 @@ public class MediaReplaySourceFactory: NSObject {
     ///    - resource: media resource to stream
     ///    - track: stream track identifier
     /// - Returns: media replay source, or nil if the resource is invalid
-    @objc(videoTrackOf:track:)
     public static func videoTrackOf(resource: MediaItem.Resource, track: MediaItem.Track) -> MediaReplaySource? {
         return MediaSourceCore(resource: resource as! MediaItemResourceCore, track: track)
-    }
-}
-
-/// Objective-C wrapper of Ref<MediaReplay>. Required because swift generics can't be used from Objective-C.
-/// - Note: This class is for Objective-C only and must not be used in Swift.
-@objcMembers
-public class GSMediaReplayRef: NSObject {
-    /// Wrapper reference.
-    private let ref: Ref<MediaReplay>
-
-    /// Referenced media replay stream.
-    public var value: MediaReplay? {
-        return ref.value
-    }
-
-    /// Constructor.
-    ///
-    /// - Parameter ref: wrapper reference
-    init(ref: Ref<MediaReplay>) {
-        self.ref = ref
     }
 }

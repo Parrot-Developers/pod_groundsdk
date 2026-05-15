@@ -58,7 +58,7 @@ public enum Camera2PhotoCaptureState: Equatable, CustomStringConvertible {
         /// Photo capture has stopped automatically.
         case captureDone
 
-        /// Photo captue has stopped on user request.
+        /// Photo capture has stopped on user request.
         case userRequest
 
         /// Photo capture has stopped because of a camera configuration change.
@@ -66,6 +66,21 @@ public enum Camera2PhotoCaptureState: Equatable, CustomStringConvertible {
 
         /// Photo capture has stopped due to insufficient storage space on the drone.
         case errorInsufficientStorageSpace
+
+        /// Photo capture has stopped because the camera is inactive.
+        case errorInactiveCamera
+
+        /// Photo capture has stopped because of the arbitration.
+        case errorArbitration
+
+        /// Photo capture was already started/stopped.
+        case errorAlready
+
+        /// Photo capture has stopped because the storage is unavailable.
+        case errorStorageUnavailable
+
+        /// Photo capture has stopped due to encrypted storage.
+        case errorStorageEncrypted
 
         /// Photo capture has stopped due to an internal error.
         case errorInternal
@@ -124,6 +139,16 @@ public enum Camera2PhotoCaptureState: Equatable, CustomStringConvertible {
     public var canStop: Bool {
         switch self {
         case .starting, .started:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Whether photo capture is stopping.
+    public var isStopping: Bool {
+        switch self {
+        case .stopping:
             return true
         default:
             return false

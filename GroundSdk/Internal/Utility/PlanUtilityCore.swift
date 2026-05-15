@@ -36,7 +36,7 @@ public protocol PlanUtility: AnyObject, UtilityCore {
     /// Generates a plan file in the given filepath URL with the given
     /// items and configurations.
     ///
-    /// cf `Plan.generate(filepath:staticConfig:items:groundStation:)` for more information.
+    /// cf `Plan.generate(plan:at:groundStation:)` for more information.
     ///
     /// - Parameters:
     ///   - plan: the plan representation to write out to `filepath`.
@@ -49,11 +49,10 @@ public protocol PlanUtility: AnyObject, UtilityCore {
     /// Generates a plan file in the given filepath URL with the given
     /// items and configurations.
     ///
-    /// cf `Plan.generate(filepath:staticConfig:items:groundStation:)` for more information.
+    /// cf `Plan.generate(plan:at:groundStation:)` for more information.
     ///
     /// - Parameters:
     ///   - plan: the plan representation to write out to `filepath`.
-    ///   - filepath: a local file URL where the output will be written.
     ///   - groundStation: the ground station id that creates the plan.
     /// - throws: Plan.Error or any JSON encoder errors that can occur during
     ///   generation.

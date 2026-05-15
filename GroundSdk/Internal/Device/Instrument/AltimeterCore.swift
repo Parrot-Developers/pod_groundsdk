@@ -57,13 +57,13 @@ public class TerrainDataCore: TerrainData, CustomStringConvertible, Equatable {
 public class AltimeterCore: InstrumentCore, Altimeter {
 
     /// Altitude of the drone relative to take off altitude (in m)
-    private (set) public var takeoffRelativeAltitude: Double?
+    private(set) public var takeoffRelativeAltitude: Double?
 
     /// Altitude of the drone relative to the ground (in m)
-    private (set) public var groundRelativeAltitude: Double?
+    private(set) public var groundRelativeAltitude: Double?
 
     /// Absolute altitude of the drone, i.e. relative to sea-level (in m).
-    private (set) public var absoluteAltitude: Double?
+    private(set) public var absoluteAltitude: Double?
 
     /// Terrain data.
     public var terrainData: TerrainData? {
@@ -73,7 +73,7 @@ public class AltimeterCore: InstrumentCore, Altimeter {
 
     /// Vertical speed of the drone (in m/s)
     /// Positive speed means that the drone is going up
-    private (set) public var verticalSpeed: Double?
+    private(set) public var verticalSpeed: Double?
 
     /// Debug description
     public override var description: String {
@@ -165,23 +165,5 @@ extension AltimeterCore {
             verticalSpeed = newValue
         }
         return self
-    }
-}
-
-extension AltimeterCore: GSAltimeter {
-    public func getTakeoffRelativeAltitude() -> NSNumber? {
-        return takeoffRelativeAltitude as NSNumber?
-    }
-
-    public func getGroundRelativeAltitude() -> NSNumber? {
-        return groundRelativeAltitude as NSNumber?
-    }
-
-    public func getAbsoluteAltitude() -> NSNumber? {
-        return absoluteAltitude as NSNumber?
-    }
-
-    public func getVerticalSpeed() -> NSNumber? {
-        return verticalSpeed as NSNumber?
     }
 }

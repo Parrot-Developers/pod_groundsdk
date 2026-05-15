@@ -53,27 +53,3 @@ public protocol InstrumentProvider {
     func getInstrument<Desc: InstrumentClassDesc>(_ desc: Desc,
                               observer: @escaping Ref<Desc.ApiProtocol>.Observer) -> Ref<Desc.ApiProtocol>
 }
-
-/// Protocol that provides functions to get instruments.
-/// Those methods should no be used from Swift.
-@objc
-public protocol GSInstrumentProvider {
-    /// Gets an instrument.
-    ///
-    /// - Parameter desc: requested instrument. See `Instruments` api for available descriptors instances.
-    /// - Returns: requested instrument
-    /// - Note: This method is for Objective-C only. Swift must use `func getInstrument:`.
-    @objc(getInstrument:)
-    func getInstrument(desc: ComponentDescriptor) -> Instrument?
-
-    /// Gets an instrument and registers an observer notified each time it changes.
-    ///
-    /// - Parameters:
-    ///    - desc: requested instrument. See `Instruments` api for available descriptors instances.
-    ///    - observer: observer to notify when the instrument changes
-    /// - Returns: reference to the requested instrument
-    /// - Note: This method is for Objective-C only. Swift must use `func getInstrument:desc:observer`.
-    @objc(getInstrument:observer:)
-    func getInstrumentRef(desc: ComponentDescriptor, observer: @escaping (Instrument?) -> Void)
-        -> GSInstrumentRef
-}

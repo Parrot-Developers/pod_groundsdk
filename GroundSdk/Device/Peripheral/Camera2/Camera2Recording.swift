@@ -32,8 +32,9 @@ import Foundation
 /// Camera recording state.
 public enum Camera2RecordingState: Equatable, CustomStringConvertible {
     /// Recording is stopped and ready to be started.
+    /// - reason: reason why the recording has stopped, or `nil`if unknown
     /// - latestSavedMediaId: identifier of latest saved media, or `nil` if no media was saved since connection
-    case stopped(latestSavedMediaId: String?)
+    case stopped(reason: StopReason? = nil, latestSavedMediaId: String?)
 
     /// Recording is starting.
     /// This state is entered from `stopped` after a call to `Camera2Recording.start()`.
@@ -64,8 +65,27 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
         /// Recording has stopped due to insufficient storage space on the drone.
         case errorInsufficientStorageSpace
 
+        /// Recording has stopped due to insufficient storage space on the drone,
+        /// the capture will restart on a fallback storage.
+        case errorInsufficientStorageSpaceFallback
+
         /// Recording has stopped because storage is too slow.
         case errorInsufficientStorageSpeed
+
+        /// Recording has stopped because the camera is now inactive.
+        case errorInactiveCamera
+
+        /// Recording has stopped because of the arbitration.
+        case errorArbitration
+
+        /// Recording was already started/stopped.
+        case errorAlready
+
+        /// Recording has stopped because the storage is unavailable.
+        case errorStorageUnavailable
+
+        /// Recording has stopped due to encrypted storage.
+        case errorStorageEncrypted
 
         /// Recording has stopped due to an internal error.
         case errorInternal
@@ -77,8 +97,8 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
     /// Equatable.
     static public func == (lhs: Camera2RecordingState, rhs: Camera2RecordingState) -> Bool {
         switch (lhs, rhs) {
-        case (let .stopped(latestSavedMediaIdL), let .stopped(latestSavedMediaIdR)):
-            return latestSavedMediaIdL == latestSavedMediaIdR
+        case (let .stopped(reasonL, latestSavedMediaIdL), let .stopped(reasonR, latestSavedMediaIdR)):
+            return latestSavedMediaIdL == latestSavedMediaIdR && reasonL == reasonR
 
         case (.starting, .starting):
             return true
@@ -99,8 +119,8 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
     /// Debug description.
     public var description: String {
         switch self {
-        case let .stopped(latestSavedMediaId):
-            return "stopped \(latestSavedMediaId ?? "none")"
+        case let .stopped(reason, latestSavedMediaId):
+            return "stopped \(String(describing: reason)), \(latestSavedMediaId ?? "none")"
         case .starting:
             return "starting"
         case let .started(startTimeOnSystemClock, duration, videoBitrate, mediaStorage):
@@ -125,6 +145,26 @@ public enum Camera2RecordingState: Equatable, CustomStringConvertible {
     public var canStop: Bool {
         switch self {
         case .starting, .started:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Whether recording is started.
+    public var isStarted: Bool {
+        switch self {
+        case .started:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Whether recording is stopping.
+    public var isStopping: Bool {
+        switch self {
+        case .stopping:
             return true
         default:
             return false

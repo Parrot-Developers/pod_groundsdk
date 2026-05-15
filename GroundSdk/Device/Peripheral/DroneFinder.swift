@@ -30,7 +30,6 @@
 import Foundation
 
 /// Drone connection security type.
-@objc(GSConnectionSecurity)
 public enum ConnectionSecurity: Int {
 
     /// Drone is not secured, i.e. it can be connected to without password.
@@ -60,7 +59,6 @@ public enum ConnectionSecurity: Int {
 }
 
 /// Drone visibility over wifi or cellular network.
-@objc(GSDroneVisibility)
 public enum DroneVisibility: Int, CustomStringConvertible {
 
     /// Drone is hidden.
@@ -85,9 +83,20 @@ public enum DroneVisibility: Int, CustomStringConvertible {
     }
 }
 
+/// Drone backup link visibility.
+public enum DroneBackupLinkVisibility {
+
+    /// Not visible (may not be supported).
+    case invisible
+
+    /// The drone is visible but not yet started.
+    case visibleAndIdle
+
+    /// The drone is visible and started.
+    case visibleAndStarted
+}
+
 /// Represents a remote drone seen during discovery.
-@objcMembers
-@objc(GSDiscoveredDrone)
 public class DiscoveredDrone: NSObject {
 
     /// Drone unique identifier.
@@ -114,6 +123,9 @@ public class DiscoveredDrone: NSObject {
     /// True if the drone is visible over cellular network.
     public let cellularOnLine: Bool
 
+    /// Backup link visibility.
+    public let backupLinkVisibility: DroneBackupLinkVisibility
+
     /// Constructor.
     /// - Parameters:
     ///    - uid: drone unique identifier
@@ -124,8 +136,10 @@ public class DiscoveredDrone: NSObject {
     ///    - connectionSecurity: connection security
     ///    - wifiVisibility: drone visibility over wifi
     ///    - cellularOnLine: drone cellular network is online
+    ///    - backupLinkVisibility: backup link visibility
     init(uid: String, model: Drone.Model, name: String, known: Bool, rssi: Int,
-         connectionSecurity: ConnectionSecurity, wifiVisibility: Bool, cellularOnLine: Bool) {
+         connectionSecurity: ConnectionSecurity, wifiVisibility: Bool, cellularOnLine: Bool,
+         backupLinkVisibility: DroneBackupLinkVisibility) {
         self.uid = uid
         self.model = model
         self.name = name
@@ -134,17 +148,80 @@ public class DiscoveredDrone: NSObject {
         self.connectionSecurity = connectionSecurity
         self.wifiVisibility = wifiVisibility
         self.cellularOnLine = cellularOnLine
+        self.backupLinkVisibility = backupLinkVisibility
     }
 
     /// Debug description.
     override open var description: String {
         return "DiscoveredDrone \(uid) \(model) \(name) \(known ? "known " : "") " +
-        "rssi:\(rssi) security:\(connectionSecurity) wifi:\(wifiVisibility) cellular:\(cellularOnLine)"
+        "rssi:\(rssi) security:\(connectionSecurity) wifi:\(wifiVisibility) cellular:\(cellularOnLine)" +
+        "backupLinkVisibility: \(String(describing: backupLinkVisibility))"
+    }
+}
+
+/// Technology used for connecting to the drone.
+public enum DroneConnectionType {
+
+    /// Drone is known to be connectable through WiFi.
+    case wifi
+
+    /// Drone is known to be connectable through Cellular.
+    case cellular
+
+    /// Drone is known to be connectable through Microhard.
+    case microhard
+
+    /// Drone is known to be connectable through Mars.
+    case mars
+
+    /// Drone is known to be connectable through backup link.
+    case backupLink
+}
+
+/// Discovery status
+public enum DiscoveryStatus {
+
+    /// Successful scan
+    case success
+
+    /// Radio is not ready or available.
+    case errorRadioNotReady
+
+    /// Controller knows zero discoverable drone and cannot scan them.
+    case errorNoDiscoverableDrone
+}
+
+/// Represents a drone known by the remote controller
+public class KnownDrone: NSObject {
+
+    /// Drone unique identifier.
+    public let uid: String
+
+    /// Drone model.
+    public let model: Drone.Model
+
+    /// Drone name.
+    public let name: String
+
+    /// the known connection types of the drone.
+    public let connectionTypes: Set<DroneConnectionType>
+
+    /// Constructor
+    ///
+    /// - Parameters:
+    ///   - uid: drone unique identifer
+    ///   - model: drone model
+    ///   - name: drone name
+    ///   - connectionTypes: known connection types of the drone
+    init(uid: String, model: Drone.Model, name: String, connectionTypes: Set<DroneConnectionType>) {
+        self.uid = uid
+        self.model = model
+        self.name = name
+        self.connectionTypes = connectionTypes
     }
 }
 
 /// DroneFinder state.
-@objc(GSDroneFinderState)
 public enum DroneFinderState: Int {
 
     /// Not scanning for drone at the moment.
@@ -172,7 +249,6 @@ public enum DroneFinderState: Int {
 /// ```
 /// remoteControl.getPeripheral(Peripherals.droneFinder)
 /// ```
-@objc(GSDroneFinder)
 public protocol DroneFinder: Peripheral {
 
     /// Current drone finder state.
@@ -181,13 +257,34 @@ public protocol DroneFinder: Peripheral {
     /// List of drones discovered during last discovery.
     var discoveredDrones: [DiscoveredDrone] { get }
 
+    /// Discovery status.
+    var discoveryStatus: DiscoveryStatus? { get }
+
+    /// List of known drones of this remote control.
+    var knownDrones: [KnownDrone] { get }
+
+    /// Connection types supported by this remote control.
+    var connectionTypes: Set<DroneConnectionType> { get }
+
     /// Clears the current list of discovered drones.
     ///
     /// After calling this method, discoveredDrones is an empty list.
     func clear()
 
     /// Asks for an update of the list of discovered drones.
+    ///
+    /// - Note: useBackupRadio will be `false`
     func refresh()
+
+    /// Asks for an update of the list of discovered drones.
+    ///
+    /// - Parameter useBackupRadio: whether to use backup radio or not
+    func refresh(useBackupRadio: Bool)
+
+    /// Stops discovery
+    ///
+    /// - Note: Only necessary if refresh was started with useBackupRadio at `true`
+    func stopDiscovery() -> Bool
 
     /// Connects a discovered drone.
     ///
@@ -202,11 +299,17 @@ public protocol DroneFinder: Peripheral {
     ///    - password: password to use for connection
     /// - Returns: `true` if the connection process has started
     func connect(discoveredDrone: DiscoveredDrone, password: String) -> Bool
+
+    /// Connects a known drone, which might not be visible.
+    ///
+    /// - Parameter knownDrone: know drone to connect
+    /// - Returns: `true` if the connection process has started, `false` for example
+    ///  if the connection cannot be started from a non-discovered drone.
+    func connect(knownDrone: KnownDrone) -> Bool
 }
 
 /// :nodoc:
 /// Drone finder descriptor
-@objc(GSDroneFinderDesc)
 public class DroneFinderDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = DroneFinder
     public let uid = PeripheralUid.droneFinder.rawValue

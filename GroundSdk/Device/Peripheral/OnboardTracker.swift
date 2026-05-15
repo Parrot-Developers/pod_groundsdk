@@ -38,11 +38,16 @@ public enum TrackingState: Int, CustomStringConvertible {
     /// Target has been lost, but the drone is trying to find it again.
     case lost
 
+    /// The tracking is temporarily inactive on user request, by using yaw or pitch for example.
+    /// It will resume when user stops this.
+    case pause
+
     /// Debug description.
     public var description: String {
         switch self {
         case .tracked:  return "tracked"
         case .lost: return "lost"
+        case .pause: return "pause"
         }
     }
 }
@@ -109,13 +114,42 @@ public class Target: NSObject {
     /// Constructor.
     ///
     /// - Parameters:
-    ///    - targetId: id of the target.
+    ///    - targetId: id of the target
     ///    - cookie: cookie given by user to the target
     ///    - state: tracking state
     public init(targetId: UInt, cookie: UInt, state: TrackingState) {
         self.targetId = targetId
         self.cookie = cookie
         self.state = state
+    }
+}
+
+/// Tracking margins.
+public struct TrackingMargins: Equatable {
+    /// Left margin in range [0, 1].
+    public internal(set) var left: Double
+
+    /// Right margin in range [0, 1]
+    public internal(set) var right: Double
+
+    /// Top margin in range [0, 1]
+    public internal(set) var top: Double
+
+    /// Bottom margin in range [0, 1]
+    public internal(set) var bottom: Double
+
+    /// Constructor.
+    ///
+    /// - Parameters:
+    ///    - left: left margin
+    ///    - right: right margin
+    ///    - top: top margin
+    ///    - bottom: bottom margin
+    public init(left: Double, right: Double, top: Double, bottom: Double) {
+        self.left = left
+        self.right = right
+        self.top = top
+        self.bottom = bottom
     }
 }
 
@@ -200,6 +234,11 @@ public protocol OnboardTracker: Peripheral {
 
     /// Tells if tracking feature is available.
     var isAvailable: Bool { get }
+
+    /// Tracking margins.
+    ///
+    /// `nil` if not supported by the drone.
+    var trackingMargins: TrackingMargins? { get }
 }
 
 /// :nodoc:

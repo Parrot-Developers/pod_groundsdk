@@ -30,17 +30,14 @@
 import Foundation
 
 /// Camera anti-flickering modes.
-@objc(GSCameraAntiFlickeringMode)
 public enum CameraAntiFlickeringMode: Int, CustomStringConvertible {
     /// Anti-flickering is off.
     case off
     /// Auto detect anti-flickering.
     case automatic
     /// Force the exposure time to be an integer multiple of 10ms.
-    @objc(GSCameraAntiFlickeringMode50Hz)
     case mode50Hz
     /// Force the exposure time to be an integer multiple of 8.33ms.
-    @objc(GSCameraAntiFlickeringMode60Hz)
     case mode60Hz
 
     /// Debug description.
@@ -64,22 +61,4 @@ public protocol CameraAntiFlickeringSettings: AnyObject {
 
     /// Recording mode.
     var mode: CameraAntiFlickeringMode { get set }
-}
-
-// MARK: - objc compatibility
-
-/// Setting to configure camera exposure compensation
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSCameraAntiFlickeringSettings {
-    /// Tells if a setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Exposure compensation value.
-    var mode: CameraAntiFlickeringMode { get set }
-
-    /// Checks if an anti-flickering mode is supported.
-    ///
-    /// - Parameter mode: anti-flickering mode to check
-    /// - Returns: `true` if the anti-flickering mode is supported
-    func isModeSupported(_ mode: CameraAntiFlickeringMode) -> Bool
 }

@@ -76,6 +76,12 @@ public protocol MissionManager: Peripheral {
     /// Deactivate current mission. Default mission will be selected.
     func deactivate()
 
+    /// Get assets directory for the specified mission.
+    ///
+    /// - Parameter uid: mission uid
+    /// - Returns: the asset directory, or `nil` if it's not ready yet
+    func getAssetDirectory(uid: String) -> URL?
+
     /// Send a message to a mission.
     ///
     /// - Parameter message: mission message

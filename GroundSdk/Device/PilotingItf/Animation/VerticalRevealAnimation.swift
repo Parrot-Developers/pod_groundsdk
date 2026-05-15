@@ -46,8 +46,6 @@ import Foundation
 ///   then the drone will apply its own default value for this parameter.
 /// - **mode**: animation execution mode. If `with(mode:)` is not customized, then the drone will apply its
 ///   own default value for this parameter: `.once`.
-@objcMembers
-@objc(GSVerticalRevealAnimationConfig)
 public class VerticalRevealAnimationConfig: NSObject, AnimationConfig {
 
     public let type = AnimationType.verticalReveal
@@ -123,27 +121,10 @@ public class VerticalRevealAnimationConfig: NSObject, AnimationConfig {
     }
 }
 
-/// Extension that brings Obj-C support.
-extension VerticalRevealAnimationConfig {
-    /// `true` when `with(mode:)` has been called once.
-    /// ObjC-only api. In Swift, use `mode`.
-    public var modeIsCustom: Bool {
-        return mode != nil
-    }
-
-    /// Custom mode.
-    /// Value is meaningless if `modeIsCustom` is `false`.
-    /// ObjC-only api. In Swift, use `mode`.
-    public var customMode: AnimationMode {
-        return mode ?? .once
-    }
-}
-
 /// Vertical reveal animation.
 ///
 /// This animation instructs the drone to start looking down, then to fly up slowly looking at the horizon. Once the
 /// drone reaches its target altitude, it rotates on itself to perform an horizontal panorama.
-@objc(GSVerticalRevealAnimation)
 public protocol VerticalRevealAnimation: Animation {
 
     /// Current animation vertical speed, in meters per second.

@@ -86,8 +86,11 @@ public protocol StreamCoreBackend {
 
     /// Seeks to a time position.
     ///
-    /// - Parameter position: position to seek, in seconds
-    func seek(position: Int)
+    /// - Parameters:
+    ///   - position: position to seek, in seconds
+    ///   - exact: `true` means seek to the sample closest to the position, `false` means seek to the nearest
+    ///   synchronization sample preceding the position
+    func seek(position: Int, exact: Bool)
 
     /// Stops the stream.
     func stop()
@@ -97,6 +100,24 @@ public protocol StreamCoreBackend {
     /// - Parameter config: sink configuration
     /// - Returns: the opened sink
     func newSink(config: SinkCoreConfig) -> SinkCore
+
+    /// Requests the list of available sources for live stream.
+    func requestSources()
+
+    /// Selects the live `source` to stream.
+    ///
+    /// - Parameter source: camera source to select.
+    func selectSource(source: CameraLiveSource)
+
+    /// Notifies the drone that the requested camera has been accepted by sending it back.
+    ///
+    /// This method should be called following the [requested camera][requestedCamera] demand from the drone
+    /// after selecting the new camera source if necessary.
+    ///
+    /// - Parameters:
+    ///    - source: the camera live source
+    ///    - requester: the requester
+    func notifyCamera(source: CameraLiveSource, requester: String)
 }
 
 /// Internal Stream implementation.
@@ -249,7 +270,8 @@ public class StreamCore: NSObject, Stream {
     ///    - position: playback position, in milliseconds
     ///    - speed: playback speed (multiplier), 0 when paused
     ///    - timestamp: state collection timestamp, based on time provided by 'ProcessInfo.processInfo.systemUptime'
-    func onPlaybackStateChanged(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval) {}
+    func onPlaybackStateChanged(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval,
+                                isSeeking: Bool) {}
 
     /// Notifies that the stream play state changed.
     ///
@@ -257,6 +279,13 @@ public class StreamCore: NSObject, Stream {
     ///
     /// - Parameter playState: stream play state
     func onPlayStateChanged(playState: StreamPlayState) {}
+
+    /// Notifies that the live source set or selection changed.
+    ///
+    /// - Parameters:
+    ///   - sources: available camera sources
+    ///   - selected: new selected camera source
+    func onSourceSetChanged(sources: Set<CameraLiveSource>, selected: CameraLiveSource?) {}
 }
 
 /// Backend callback methods.
@@ -296,11 +325,23 @@ extension StreamCore {
     ///    - position: playback position, in milliseconds
     ///    - speed: playback speed (multiplier), 0 when paused
     ///    - timestamp: state collection timestamp, based on time provided by 'ProcessInfo.processInfo.systemUptime'
-    public func streamPlaybackStateDidChange(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval) {
+    ///    - isSeeking: whether playback is currently seeking
+    public func streamPlaybackStateDidChange(duration: Int64, position: Int64, speed: Double, timestamp: TimeInterval,
+                                             isSeeking: Bool) {
         onPlaybackStateChanged(duration: duration,
                                position: position,
                                speed: speed,
-                               timestamp: timestamp)
+                               timestamp: timestamp,
+                               isSeeking: isSeeking)
+    }
+
+    /// Notifies when the live source set or selection changed.
+    ///
+    /// - Parameters:
+    ///   - sources: new media source list
+    ///   - selected: the selected media
+    public func sourceSetDidChange(sources: Set<CameraLiveSource>, selected: CameraLiveSource?) {
+        onSourceSetChanged(sources: sources, selected: selected)
     }
 }
 
@@ -418,6 +459,12 @@ public protocol OverlayContextBackend: AnyObject {
     /// Frame metadata handle.
     var frameMetadataHandle: UnsafeRawPointer? {get}
 
+    /// Frame metadata byte buffer.
+    var frameMetadataBuffer: Data? {get}
+
+    /// Current frame timestamp in microseconds.
+    var frameTimestamp: UInt64? {get}
+
     /// Histogram.
     var histogram: Histogram? {get}
 }
@@ -450,6 +497,16 @@ public class OverlayContextCore: OverlayContext {
 
     public var frameMetadataHandle: UnsafeRawPointer? {
         return backend.frameMetadataHandle
+    }
+
+    public var frameMetadata: Vmeta_TimedMetadata? {
+        guard let buffer = backend.frameMetadataBuffer else { return nil }
+
+        return try? Vmeta_TimedMetadata(serializedData: buffer)
+    }
+
+    public var frameTimestamp: UInt64? {
+        return backend.frameTimestamp
     }
 
     public var histogram: Histogram? {

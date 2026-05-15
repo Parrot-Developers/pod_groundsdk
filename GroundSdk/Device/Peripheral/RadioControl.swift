@@ -30,7 +30,6 @@
 import Foundation
 
 /// Transport used by the remote control - drone link.
-@objc(GSLinkTransport)
 public enum LinkTransport: Int, CustomStringConvertible {
 
     /// Remote control - drone link uses WiFi transport.
@@ -64,15 +63,6 @@ public protocol RadioControl: Peripheral {
     var transportSetting: TransportSetting { get }
 }
 
-/// Peripheral managing the transport used between the remote control and the drone.
-///
-/// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSRadioControl: Peripheral {
-    /// Transport setting.
-    @objc(transportSetting)
-    var gsTransportSetting: GSTransportSetting { get }
-}
-
 /// Setting to change the transport used by the remote control - drone link.
 public protocol TransportSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation.
@@ -85,26 +75,8 @@ public protocol TransportSetting: AnyObject {
     var supportedTransports: Set<LinkTransport> { get }
 }
 
-/// Setting to change the transport used by the remote control - drone link.
-///
-/// - Note: this protocol is for Objective-C compatibility only.
-@objc public protocol GSTransportSetting {
-    /// Tells if the setting value has been changed and is waiting for change confirmation.
-    var updating: Bool { get }
-
-    /// Current transport setting.
-    var value: LinkTransport { get set }
-
-    /// Tells whether a given transport is supported.
-    ///
-    /// - Parameter transport: the transport to query
-    /// - Returns: `true` if the transport is supported, `false` otherwise
-    func isTransportSupported(_ transport: LinkTransport) -> Bool
-}
-
 /// :nodoc:
 /// RadioControl description.
-@objc(GSRadioControlDesc)
 public class RadioControlDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = RadioControl
     public let uid = PeripheralUid.radioControl.rawValue

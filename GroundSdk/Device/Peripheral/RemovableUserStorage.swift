@@ -39,16 +39,8 @@ public protocol RemovableUserStorage: UserStorage { }
 
 /// :nodoc:
 /// Removable user storage description
-@objc(GSRemovableUserStorageDesc)
 public class RemovableUserStorageDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = RemovableUserStorage
     public let uid = PeripheralUid.removableUserStorage.rawValue
     public let parent: ComponentDescriptor? = nil
-}
-
-// MARK: - objc compatibility
-
-/// Removable user storage.
-/// - Note: This protocol is for Objective-C compatibility only.
-@objc public protocol GSRemovableUserStorage: GSUserStorage {
 }

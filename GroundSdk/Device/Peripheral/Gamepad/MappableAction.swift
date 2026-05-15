@@ -31,11 +31,11 @@ import Foundation
 
 /// An action that may be triggered when the gamepad inputs generate a specific set of button events.
 ///
-/// Actions starting with appAction don't occur on the connected drone but are forwarded to the application
+/// Actions starting with appAction don't occur on the connected drone but are  only forwarded to the application
 /// as `NSNotification` (see `GsdkActionGamepadAppAction`).
 ///
-/// Other actions are predefined actions that are executed by the connected drone.
-@objc(GSButtonsMappableAction)
+/// Other actions are predefined actions that are executed by the connected drone, but might still also trigger a
+/// `NSNotification` to notify the application that the action was executed
 public enum ButtonsMappableAction: Int {
 
     /// Triggers a `NSNotification`
@@ -141,6 +141,9 @@ public enum ButtonsMappableAction: Int {
     /// Commands the connected drone to take off or land (depending on its current state)
     case takeOffOrLand
 
+    /// Commands the connected drone to activate the smartTakeOffLand function (depending on its current state)
+    case smartTakeOffLand
+
     /// Commands the connected drone to start or stop recording the video (depending on its current state)
     case recordVideo
 
@@ -179,6 +182,25 @@ public enum ButtonsMappableAction: Int {
     /// present and supported by the controller
     case cycleHud
 
+    /// Commands the connected drone to add a debug-tag in the logs
+    /// This is a debug-only action and has no visible effect on the drone behavior
+    case debugTag
+
+    /// Commands the controller to switch between internal and external antenna
+    case toggleAntenna
+
+    /// Commands the connected drone to change the camera spectrum (visible/thermal)
+    case changeSpectrum
+
+    /// Commands the connected mobile device to take a screenshot (independent of the application)
+    case screenshot
+
+    /// Commands the connected drone to switch between piloting modes: loitering, manual
+    case pilotingMode
+
+    /// Commands the connected drone to switch between assistance modes: attitude, altitude
+    case assistanceMode
+
     /// Debug description.
     public var description: String {
         switch self {
@@ -200,6 +222,7 @@ public enum ButtonsMappableAction: Int {
         case .appAction15:              return "appAction15"
         case .returnHome:               return "returnHome"
         case .takeOffOrLand:            return "takeOffOrLand"
+        case .smartTakeOffLand:         return "smartTakeOffLand"
         case .recordVideo:              return "recordVideo"
         case .takePicture:              return "takePicture"
         case .photoOrVideo:             return "photoOrVideo"
@@ -212,6 +235,12 @@ public enum ButtonsMappableAction: Int {
         case .flipBack:                 return "flipBack"
         case .emergencyCutOff:          return "emergencyCutOff"
         case .cycleHud:                 return "cycleHud"
+        case .debugTag:                 return "debugTag"
+        case .toggleAntenna:            return "toggleAntenna"
+        case .changeSpectrum:           return "changeSpectrum"
+        case .screenshot:               return "screenshot"
+        case .pilotingMode:             return "pilotingMode"
+        case .assistanceMode:           return "assistanceMode"
         }
     }
 
@@ -219,16 +248,16 @@ public enum ButtonsMappableAction: Int {
     public static let allCases: Set<ButtonsMappableAction> =
         [.appActionSettings, .appAction1, .appAction2, .appAction3, .appAction4, .appAction5, .appAction6, .appAction7,
          .appAction8, .appAction9, .appAction10, .appAction11, .appAction12, .appAction13, .appAction14, .appAction15,
-         .returnHome, .takeOffOrLand, .recordVideo, .takePicture, .photoOrVideo, .centerCamera,
+         .returnHome, .takeOffOrLand, .smartTakeOffLand, .recordVideo, .takePicture, .photoOrVideo, .centerCamera,
          .increaseCameraExposition, .decreaseCameraExposition, .flipLeft, .flipRight, .flipFront, .flipBack,
-         .emergencyCutOff, .cycleHud]
+         .emergencyCutOff, .cycleHud, .debugTag, .toggleAntenna, .changeSpectrum, .screenshot, .pilotingMode,
+         .assistanceMode]
 }
 
 /// An action that may be triggered when the gamepad inputs generate a specific axis event, optionally in conjunction
 /// with a specific set of button events.
 ///
 /// Those are predefined actions that are executed by the connected drone.
-@objc(GSAxisMappableAction)
 public enum AxisMappableAction: Int {
 
     /// Controls the connected drone roll.

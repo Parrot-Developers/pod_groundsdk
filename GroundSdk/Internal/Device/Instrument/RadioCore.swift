@@ -113,11 +113,3 @@ extension RadioCore {
         return self
     }
 }
-
-// MARK: Objective-C API
-/// - Note: this protocol is for Objective-C only. Swift must use the protocol `Radio`
-extension RadioCore: GSRadio {
-    public var gsLinkSignalQuality: Int {
-        return linkSignalQuality ?? -1
-    }
-}

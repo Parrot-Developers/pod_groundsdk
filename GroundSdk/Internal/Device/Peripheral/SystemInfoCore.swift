@@ -31,15 +31,32 @@ import Foundation
 
 /// System info backend part.
 public protocol SystemInfoBackend: AnyObject {
+
+    /// Sets the product name.
+    ///
+    /// - Parameter productName: new product name
+    /// - Returns: `true` if the command has been sent, `false` otherwise
+    func set(productName: String) -> Bool
+
     /// Asks to the device to do a settings reset.
     ///
-    /// - Returns: true if the reset factory is in progress
+    /// - Returns: `true` if the reset factory is in progress
     func resetSettings() -> Bool
 
     /// Asks to the device to do a factory reset.
     ///
-    /// - Returns: true if the reset factory is in progress
+    /// - Returns: `true` if the reset factory is in progress
     func factoryReset() -> Bool
+
+    /// Asks to the device to do a power off.
+    ///
+    /// - Returns: `true` if the command has been sent, `false` otherwise
+    func powerOff() -> Bool
+
+    /// Asks to the device to do a reboot.
+    ///
+    /// - Returns: `true` if the command has been sent, `false` otherwise
+    func reboot() -> Bool
 }
 
 /// Internal system info peripheral implementation
@@ -66,11 +83,18 @@ public class SystemInfoCore: PeripheralCore, SystemInfo {
     /// Device board identifier.
     private(set) public var boardId = ""
 
+    public var productName: StringSetting? {
+        return _productName
+    }
+
     /// Whether or not the reset settings is in progress
     private(set) public var  isResetSettingsInProgress = false
 
     /// Whether or not the factory reset is in progress
     private(set) public var isFactoryResetInProgress = false
+
+    /// Core implementation of the product name setting.
+    private var _productName: StringSettingCore?
 
     /// Constructor
     ///
@@ -112,10 +136,35 @@ public class SystemInfoCore: PeripheralCore, SystemInfo {
         }
         return inProgress
     }
+
+    public func powerOff() -> Bool {
+        backend.powerOff()
+    }
+
+    public func reboot() -> Bool {
+        backend.reboot()
+    }
 }
 
 /// Backend callback methods
 extension SystemInfoCore {
+
+    /// Updates current product name.
+    ///
+    /// - Parameter productName: new product name
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(productName newValue: String) -> SystemInfoCore {
+        if _productName == nil {
+            _productName = StringSettingCore(didChangeDelegate: self) { [unowned self] newValue in
+                return self.backend.set(productName: newValue)
+            }
+        }
+        if _productName!.update(value: newValue) {
+            markChanged()
+        }
+        return self
+    }
 
     /// Changes the firmware version
     ///
@@ -214,6 +263,18 @@ extension SystemInfoCore {
     @discardableResult public func factoryResetEnded() -> SystemInfoCore {
         if isFactoryResetInProgress != false {
             isFactoryResetInProgress = false
+            markChanged()
+        }
+        return self
+    }
+
+    /// Reset product name
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func resetProductName() -> SystemInfoCore {
+        if _productName != nil {
+            _productName = nil
             markChanged()
         }
         return self

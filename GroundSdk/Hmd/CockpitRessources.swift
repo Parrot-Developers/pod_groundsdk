@@ -256,3 +256,5 @@ extension Data {
         return segment
     }
 }
+
+// swiftlint:enable nesting

@@ -30,7 +30,6 @@
 import Foundation
 
 /// Completion status of a flight log download.
-@objc(GSFlightLogDownloadCompletionStatus)
 public enum FlightLogDownloadCompletionStatus: Int, CustomStringConvertible {
     /// Download is not complete yet. Flight log download may still be ongoing or not even started yet.
     case none
@@ -54,31 +53,24 @@ public enum FlightLogDownloadCompletionStatus: Int, CustomStringConvertible {
     }
 }
 
-/// State of the flight log downloader.
-/// Informs about any ongoing flight logs download progress, as well as the completion status of the flight logs
-/// download.
-@objcMembers
-@objc(GSFlightLogDownloaderState)
-public class FlightLogDownloaderState: NSObject {
-    /// Current completion status of the flight log downloader.
-    ///
-    /// The completion status changes to either `.interrupted` or `.success` when the download has been interrupted or
-    /// completes successfully,
-    /// then remains in this state until another flight log download begins, where it switches back to `.none`.
-    public internal(set) var status: FlightLogDownloadCompletionStatus
+/// Flight log downloading state
+public enum FlightLogDownloadingState: CustomStringConvertible, Equatable {
+    /// No download at this time.
+    case none
 
-    /// The current progress of an ongoing flight log download, expressed as a percentage.
-    public internal(set) var downloadedCount: Int
-
-    /// Constructor
+    /// Flight logs are being downloaded.
     ///
-    /// - Parameters:
-    ///     - status: flight log download completion status.
-    ///     - downloadedCount: downloaded count.
-    internal init(status: FlightLogDownloadCompletionStatus = .none, downloadedCount: Int = 0) {
-        self.status = status
-        self.downloadedCount = downloadedCount
-        super.init()
+    /// - Parameter hasFlight whether the files currently downloading have a flight or not.
+    case downloading(hasFlight: Bool)
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .none:
+            return "none"
+        case .downloading(let hasFlight):
+            return "downloading hasFlight: \(hasFlight))"
+        }
     }
 }
 
@@ -90,18 +82,26 @@ public class FlightLogDownloaderState: NSObject {
 /// ```
 /// device.getPeripheral(Peripherals.flightLogDownloader)
 /// ```
-@objc(GSFlightLogDownloader)
 public protocol FlightLogDownloader: Peripheral {
-    /// Current download state.
-    var state: FlightLogDownloaderState { get }
 
-    /// Whether a flight log is currently being downloaded.
-    var isDownloading: Bool { get }
+    /// Downloading state.
+    ///
+    /// Files are downloaded in order of date, and whether there was a flight or not in it.
+    var downloadingState: FlightLogDownloadingState { get }
+
+    /// Current completion status of the flight log downloader.
+    ///
+    /// The completion status changes to either `.interrupted` or `.success` when the download has been interrupted or
+    /// completes successfully, then remains in this state until another flight log download begins, where it switches back
+    /// to `.none`.
+    var completionStatus: FlightLogDownloadCompletionStatus { get }
+
+    /// Informs about the count of successfully downloaded flight logs before interruption.
+    var latestDownloadCount: Int { get }
 }
 
 /// :nodoc:
 /// FlightLogDownloader description
-@objc(GSFlightLogDownloaderDesc)
 public class FlightLogDownloaderDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = FlightLogDownloader
     public let uid = PeripheralUid.flightLogDownloader.rawValue

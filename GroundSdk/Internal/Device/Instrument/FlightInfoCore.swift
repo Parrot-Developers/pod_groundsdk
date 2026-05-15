@@ -34,7 +34,7 @@ public class FlightInfoCore: InstrumentCore, FlightInfo {
 
     /// Current flight id
     /// Empty if the drone is not flying.
-    private (set) public var flightId: String = ""
+    private(set) public var flightId: String = ""
 
     /// Debug description
     public override var description: String {

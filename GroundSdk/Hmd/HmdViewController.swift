@@ -29,14 +29,15 @@
 
 import UIKit
 
-/// Class to use in order to mark a specific view in a views hierarchy. The view with this class will be rendered.
+/// Class to use in order to mark a specific view in a views hierarchy. The view with this class
+/// will be rendered.
 /// See: `public func setViewForHud(view: UIView?, refreshRateHz: Double)`
 open class DrawableView: UIView {
     let isDrawableView = true
 }
 
-/// The VC that supports all the display and OpenGl composition of the "HMD" view. You can subclass this ViewController
-/// in order to implement a HMD feature
+/// The VC that supports all the display and OpenGl composition of the "HMD" view. You can subclass
+/// this ViewController in order to implement a HMD feature
 open class HmdViewController: UIViewController {
 
     /// enum to specify the camera source.
@@ -52,11 +53,12 @@ open class HmdViewController: UIViewController {
     /// Cockpit Glasses ressources
     private var cockpitRessources: CockpitRessources?
 
-    /// Cockpit model used for rendering. See `setCockpitModel(model: String)` to set or change the model.
+    /// Cockpit model used for rendering. See `setCockpitModel(model: String)` to set or change the
+    /// model.
     private var cockpitName: String?
 
-    /// Can enable / disable CockpitGlasses VR rendering. Can be used during development to display the undistorted
-    /// HMD screen. (`true` disables the distortion)
+    /// Can enable / disable CockpitGlasses VR rendering. Can be used during development to display
+    /// the undistorted HMD screen. (`true` disables the distortion)
     public var debugDistortionOff: Bool = false {
         didSet {
             debugQuad?.enable = debugDistortionOff
@@ -93,14 +95,15 @@ open class HmdViewController: UIViewController {
         }
     }
 
-    /// Closure called at every frame refresh. At each draw(), this closure is called and allows to implement specific
     // processing
+    /// Closure called at every frame refresh. At each draw(), this closure is called and allows to
+    /// implement specific
     public var refreshUpdate: (() -> Void)?
 
     /// Set true in this property will force the hud layer to be always render in low res
     ///
-    /// Note: If the hud view uses the `fallBackMinRefreshRateHz`parameter (see `setViewForHud()`), the lowres
-    /// rendering should be automatically activated in the case of a bad framerate.
+    /// Note: If the hud view uses the `fallBackMinRefreshRateHz`parameter (see `setViewForHud()`),
+    /// the lowres rendering should be automatically activated in the case of a bad framerate.
     public var hudForceLowRes = false {
         didSet {
             if oldValue == false && hudForceLowRes == true {
@@ -116,17 +119,19 @@ open class HmdViewController: UIViewController {
     private var distortionMesh: GGLDistortionMesh?
     /// MultiLayer OffScreen rendering system.
     private var multiLayer: GGLMultiLayer?
-    // Size of the final fbo (in the multiLayer object). This size is a default one: an exact size, based on phone
-    // physical size and dpi, can be computed later.
+    // Size of the final fbo (in the multiLayer object). This size is a default one: an exact size,
+    // based on phone physical size and dpi, can be computed later.
     private var fboSize = CGSize(width: 1280, height: 1280)
 
     // Hud
     /// layer id for the Hud
     private var hudLayerId: GGLMultiLayer.LayerId?
-    /// Zoom factor to apply in the multilayer system so that the Hud screen "fits" the view (no crop).
+    /// Zoom factor to apply in the multilayer system so that the Hud screen "fits" the view (no
+    /// crop).
     private var hudZoomForFit = CGFloat(1)
-    /// Zoom factor to apply to the Hud view. By default, the HUD view is displayed in "fit" mode. A factor of 1. is
-    /// the default. For example, to reduce the view in half, the zoom factor to use would be 0.5
+    /// Zoom factor to apply to the Hud view. By default, the HUD view is displayed in "fit" mode.
+    /// A factor of 1. is the default. For example, to reduce the view in half, the zoom factor to
+    /// use would be 0.5
     public var hudCustomZoom = CGFloat(1) {
         didSet {
             if oldValue != hudCustomZoom {
@@ -140,8 +145,8 @@ open class HmdViewController: UIViewController {
     private var hudTimer: GGLTimer?
     /// Refresh rate of the Hud (Hz)
     private var refreshHudHz: Double = 0
-    /// Minimum refresh rate of the Hud (Hz). In case of poor performance, the refresh rate can be automatically
-    /// reduced, but never below this value.
+    /// Minimum refresh rate of the Hud (Hz). In case of poor performance, the refresh rate can be
+    /// automatically reduced, but never below this value.
     private var minRefreshHudHz: Double?
 
     /// A struct object that checks the refresh rate of the Hud.
@@ -154,7 +159,8 @@ open class HmdViewController: UIViewController {
     private var cameraQuad: GGLCameraQuad?
     /// layer id for the Hud
     private var cameraLayerId: GGLMultiLayer.LayerId?
-    /// Zoom factor to apply in the multilayer system so that the camera screen "fits" the view (no crop).
+    /// Zoom factor to apply in the multilayer system so that the camera screen "fits" the view (no
+    /// crop).
     private var cameraZoomForFit: CGFloat = 1
 
     // Phone's Camera Overlay
@@ -170,13 +176,15 @@ open class HmdViewController: UIViewController {
     private var overStreamLayerId: GGLMultiLayer.LayerId?
 
     // debug Quad
-    /// This Quad is used to render the HMD view without distortion. See the property `debugDistortionOff`
+    /// This Quad is used to render the HMD view without distortion. See the property
+    /// `debugDistortionOff`
     private var debugQuad: GGLTexturedQuad?
 
     // Stream
     /// Layer id of the drone's video stream
     private var streamLayerId: GGLMultiLayer.LayerId?
-    /// Zoom factor to apply in the multilayer system so that the video stream "fits" the view (no crop).
+    /// Zoom factor to apply in the multilayer system so that the video stream "fits" the view (no
+    /// crop).
     private var streamZoomForFit: CGFloat = 1
 
     /// true / false if the rendering view is currently presented
@@ -199,7 +207,8 @@ open class HmdViewController: UIViewController {
         }
 
         // get a distortion mesh
-        distortionMesh = GGLDistortionMesh(cockpitName: cockpitName, cockpitRessources: cockpitRessources)
+        distortionMesh = GGLDistortionMesh(cockpitName: cockpitName,
+                                           cockpitRessources: cockpitRessources)
         if let distortionMesh = distortionMesh {
             distortionMesh.setVerticalOffset(verticalOffset)
             gglView.addDrawable(distortionMesh)
@@ -221,8 +230,10 @@ open class HmdViewController: UIViewController {
 
             // add a layer for the camera and a overlay
             if let cameraQuad = cameraQuad {
-                cameraLayerId = multiLayer.addFrameBufferLayer(size: cameraQuad.renderSize, flip: true)
-                overCameraLayerId = multiLayer.addFrameBufferLayer(size: cameraQuad.renderSize, flip: true)
+                cameraLayerId = multiLayer.addFrameBufferLayer(size: cameraQuad.renderSize,
+                                                               flip: true)
+                overCameraLayerId = multiLayer.addFrameBufferLayer(size: cameraQuad.renderSize,
+                                                                   flip: true)
             }
 
             if let cameraLayerId = cameraLayerId, let overCameraLayerId = overCameraLayerId {
@@ -232,15 +243,19 @@ open class HmdViewController: UIViewController {
             }
 
             // add a layer for the Stream overlay
-            streamLayerId = multiLayer.addExternalTextureLayer(size: fboSize, flip: true, autorelease: false)
+            streamLayerId = multiLayer.addExternalTextureLayer(size: fboSize, flip: true,
+                                                               autorelease: false)
             overStreamLayerId = multiLayer.addFrameBufferLayer(size: fboSize, flip: true)
             if let streamLayerId = streamLayerId, let overStreamLayerId = overStreamLayerId {
-                multiLayer.setZoomForLayer(id: streamLayerId, zoom: distortionMesh?.zoomForAspectFit ?? 1)
-                multiLayer.setZoomForLayer(id: overStreamLayerId, zoom: distortionMesh?.zoomForAspectFit ?? 1)
+                multiLayer.setZoomForLayer(id: streamLayerId,
+                                           zoom: distortionMesh?.zoomForAspectFit ?? 1)
+                multiLayer.setZoomForLayer(id: overStreamLayerId,
+                                           zoom: distortionMesh?.zoomForAspectFit ?? 1)
             }
 
             // add a layer for the Hud
-            hudLayerId = multiLayer.addExternalTextureLayer(size: fboSize, flip: false, autorelease: true)
+            hudLayerId = multiLayer.addExternalTextureLayer(size: fboSize, flip: false,
+                                                            autorelease: true)
             if let hudLayerId = hudLayerId {
                 hudZoomForFit = (distortionMesh?.zoomForAspectFit ?? 1)
                 multiLayer.setZoomForLayer(id: hudLayerId, zoom: hudZoomForFit * hudCustomZoom)
@@ -355,8 +370,8 @@ open class HmdViewController: UIViewController {
         }
     }
 
-    /// Enable or disable the camera overlay. The camera overlay should be visible if at least one sprite is defined
-    /// and visible.
+    /// Enable or disable the camera overlay. The camera overlay should be visible if at least one
+    /// sprite is defined and visible.
     ///
     /// - Returns: true if the camera overlay is visible, false otherwise.
     @discardableResult private func showCameraOverlayIdNeeded() -> Bool {
@@ -374,8 +389,8 @@ open class HmdViewController: UIViewController {
         }
     }
 
-    /// Enable or disable the drone's stream overlay. The stream overlay should be visible if at least one sprite is
-    /// defined and visible.
+    /// Enable or disable the drone's stream overlay. The stream overlay should be visible if at
+    /// least one sprite is defined and visible.
     ///
     /// - Returns: true if the stream overlay is visible, false otherwise.
     @discardableResult private func showStreamOverlayIfeeded() -> Bool {
@@ -497,7 +512,8 @@ open class HmdViewController: UIViewController {
         }
     }
 
-    /// Render the Hud view in the multilayer Frame Buffer Object. This function schedules copies of the hud
+    /// Render the Hud view in the multilayer Frame Buffer Object. This function schedules copies of
+    /// the hud.
     /// The result (an openGl texture) is then applied to the multilayer Frame Buffer Object
     private func activeAutoRefreshHud() {
         let samplingHz = Double(100)
@@ -568,7 +584,8 @@ extension HmdViewController {
         return cockpitRessources?.cockpitNames
     }
 
-    /// Set or update the Cockit Model. Call this function during initialization (viewDidLoad() is a good place).
+    /// Set or update the Cockit Model. Call this function during initialization (viewDidLoad() is a
+    /// good place).
     /// Subsequently, it is possible to dynamically update the model used.
     ///
     /// - Parameter model: Cockpit Model.
@@ -582,14 +599,15 @@ extension HmdViewController {
     /// Set a view as Hud template
     ///
     /// - Parameters:
-    ///   - view: the view used to draw the Hud (For better optimization / representation of the view,
-    /// design a view with a ratio of 1: 1). Use 'nil' to deactivate the hud rendering.
+    ///   - view: the view used to draw the Hud (For better optimization / representation of the
+    ///     view, design a view with a ratio of 1: 1). Use 'nil' to deactivate the hud rendering.
     ///   - refreshRateHz: refresh Rate in Hertz. (> 0)
-    ///   - fallBackMinRefreshRateHz: if this parameter is defined, an automatic framerate reduction mechanism is used
-    /// in case of poor performance
+    ///   - fallBackMinRefreshRateHz: if this parameter is defined, an automatic framerate reduction
+    ///     mechanism is used in case of poor performance
     ///
-    /// Note: in order to render a spéecific view in `view.subviews`, you can mark the view to render using the Class
-    /// `DrawableView`. If no view is a DrawableView in the hierarchy, the `view`is used for rendering.
+    /// Note: in order to render a spéecific view in `view.subviews`, you can mark the view to
+    /// render using the Class `DrawableView`. If no view is a DrawableView in the hierarchy, the
+    /// `view`is used for rendering.
     public func setViewForHud(view: UIView?, refreshRateHz: Double, fallBackMinRefreshRateHz: Double? = nil) {
         // remove any hud if exists
         hudView = view
@@ -649,9 +667,12 @@ extension HmdViewController {
         spritesForStream.remove(sprite)
     }
 
-    /// The call to this function indicates that the camera overlay has been modified and must be refreshed.
+    /// The call to this function indicates that the camera overlay has been modified and must be
+    /// refreshed.
     public func cameraOverlayNeedsRefresh() {
-        guard let overCameraLayerId = overCameraLayerId, let cameraQuad = cameraQuad, videoOrigin == .phoneCamera else {
+        guard let overCameraLayerId = overCameraLayerId,
+                let cameraQuad = cameraQuad,
+                videoOrigin == .phoneCamera else {
             return
         }
         if showCameraOverlayIdNeeded() {
@@ -662,7 +683,8 @@ extension HmdViewController {
                 glClear(GLbitfield(GL_COLOR_BUFFER_BIT))
                 spritesForCamera.forEach {
                     if $0.quad.enable {
-                        $0.quad.renderDrawable(frame: CGRect(x: 0, y: 0, width: cameraQuad.renderSize.width,
+                        $0.quad.renderDrawable(frame: CGRect(x: 0, y: 0,
+                                                             width: cameraQuad.renderSize.width,
                                                              height: cameraQuad.renderSize.height))
                     }
                 }
@@ -672,7 +694,8 @@ extension HmdViewController {
         }
     }
 
-    /// The call to this function indicates that the stream overlay has been modified and must be refreshed.
+    /// The call to this function indicates that the stream overlay has been modified and must be
+    /// refreshed.
     public func streamOverlayNeedsRefresh() {
         guard let overStreamLayerId = overStreamLayerId, videoOrigin == .droneCamera else {
             return
@@ -685,7 +708,9 @@ extension HmdViewController {
                 glClear(GLbitfield(GL_COLOR_BUFFER_BIT))
                 spritesForStream.forEach {
                     if $0.quad.enable {
-                        $0.quad.renderDrawable(frame: CGRect(x: 0, y: 0, width: fboSize.width, height: fboSize.height))
+                        $0.quad.renderDrawable(frame: CGRect(x: 0, y: 0,
+                                                             width: fboSize.width,
+                                                             height: fboSize.height))
                     }
                 }
                 glBindFramebuffer(GLenum(GL_FRAMEBUFFER), 0)
@@ -695,12 +720,12 @@ extension HmdViewController {
     }
 }
 
-/// Object to control the actual Hud refresh rate. A flag (see the `badPerf` property) indicates if the refresh rate
-/// is lower than the desired one.
+/// Object to control the actual Hud refresh rate. A flag (see the `badPerf` property) indicates if
+/// the refresh rate is lower than the desired one.
 private struct HudFrequencyController {
 
-    /// Minimum refresh rate of the Hud (Hz). In case of poor performance, the refresh rate can be automatically
-    /// reduced, but never below this value.
+    /// Minimum refresh rate of the Hud (Hz). In case of poor performance, the refresh rate can be
+    /// automatically reduced, but never below this value.
     let minTriggerHz: Double?
     /// The frequency at which the trigger function will be called
     let samplingHz: Double
@@ -725,8 +750,8 @@ private struct HudFrequencyController {
     ///
     /// - Parameters:
     ///   - requestedTriggerHz: the initial refresh rate requested for the hud (must be > 0)
-    ///   - minTriggerHz: minimum refresh rate of the Hud (Hz). In case of poor performance, the refresh rate can be
-    /// automatically reduced, but never below this value. (must be > 0)
+    ///   - minTriggerHz: minimum refresh rate of the Hud (Hz). In case of poor performance, the
+    ///     refresh rate can be automatically reduced, but never below this value. (must be > 0)
     ///   - samplingHz: the initial refresh rate requested for the hud (must be > 0)
     init(requestedTriggerHz: Double, minTriggerHz: Double? = nil, samplingHz: Double) {
         self.minTriggerHz = minTriggerHz

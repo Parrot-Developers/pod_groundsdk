@@ -160,21 +160,6 @@ public class UserStorageCore: PeripheralCore, UserStorage {
     }
 }
 
-/// Objc support
-extension UserStorageCore: GSUserStorage {
-    public func isFormattingTypeSupported(_ formattingType: FormattingType) -> Bool {
-         return supportedFormattingTypes.contains(formattingType)
-    }
-
-    public var isCheckingErrorSupported: Bool {
-        return hasCheckError != nil ? true : false
-    }
-
-    public var gsHasCheckError: Bool {
-        return hasCheckError != nil ? hasCheckError! : false
-    }
-}
-
 /// Backend callback methods
 extension UserStorageCore {
     /// Updates the available space on the media

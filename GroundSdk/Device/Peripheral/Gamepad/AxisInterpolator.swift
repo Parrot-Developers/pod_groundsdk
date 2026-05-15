@@ -38,7 +38,6 @@ import Foundation
 ///
 /// The interpolation formula applies before any axis event is sent either to the connected drone (in case the axis is
 /// not grabbed by the application) or to the application (when the axis is grabbed).
-@objc(GSAxisInterpolator)
 public enum AxisInterpolator: Int {
 
     /// Physical linear axis position is not modified.

@@ -57,23 +57,14 @@ extension FileReplayCore {
     /// Register observer to get notified when the application is put in background.
     func registerAppBackgroundObserver() {
         let notificationCenter = NotificationCenter.default
-        if #available(iOS 13.0, *) {
-            notificationCenter.addObserver(self, selector: #selector(appMovedToBackground),
-                                           name: UIScene.didEnterBackgroundNotification, object: nil)
-        } else {
-            notificationCenter.addObserver(self, selector: #selector(appMovedToBackground),
-                                           name: UIApplication.didEnterBackgroundNotification, object: nil)
-        }
+        notificationCenter.addObserver(self, selector: #selector(appMovedToBackground),
+                                       name: UIScene.didEnterBackgroundNotification, object: nil)
     }
 
     /// Unregister observer notified when the application is put in background.
     func unregisterAppBackgroundObserver() {
         let notificationCenter = NotificationCenter.default
-        if #available(iOS 13.0, *) {
-            notificationCenter.removeObserver(self, name: UIScene.didEnterBackgroundNotification, object: nil)
-        } else {
-            notificationCenter.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
-        }
+        notificationCenter.removeObserver(self, name: UIScene.didEnterBackgroundNotification, object: nil)
     }
 
     /// Called when the application is put in background.

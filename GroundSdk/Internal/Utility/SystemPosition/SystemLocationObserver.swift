@@ -108,6 +108,8 @@ class SystemLocationObserverCore: NSObject, SystemLocationObserver {
 
     /// Starts the generation of updates that report the user’s current location.
     func startLocationObserver() {
+        ULog.d(.systemPositionTag, "Start location server, requested: \(locationUpdateRequested)"
+                                 + " applicationState: \(UIApplication.shared.applicationState)")
         if !locationUpdateRequested {
             locationUpdateRequested = true
             locationManager.requestWhenInUseAuthorization()
@@ -117,6 +119,7 @@ class SystemLocationObserverCore: NSObject, SystemLocationObserver {
 
     /// Stops the generation of location updates.
     func stopLocationObserver() {
+        ULog.d(.systemPositionTag, "Stop location server, requested: \(locationUpdateRequested)")
         if locationUpdateRequested {
             locationUpdateRequested = false
             locationManager.stopUpdatingLocation()
@@ -141,6 +144,8 @@ class SystemLocationObserverCore: NSObject, SystemLocationObserver {
 
     func requestLocation() {
         // Checks that coninous updates are not active
+        ULog.d(.systemPositionTag, "Request location, requested: \(locationUpdateRequested)"
+               + " applicationState: \(UIApplication.shared.applicationState)")
         if !locationUpdateRequested {
             locationManager.requestWhenInUseAuthorization()
             locationManager.requestLocation()
@@ -159,6 +164,7 @@ extension SystemLocationObserverCore: CLLocationManagerDelegate {
     }
 
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        ULog.d(.systemPositionTag, "Location manager authorization, status: \(status).")
         let authorized = (status == .authorizedAlways || status == .authorizedWhenInUse)
         authorizedDidChange(authorized)
     }
