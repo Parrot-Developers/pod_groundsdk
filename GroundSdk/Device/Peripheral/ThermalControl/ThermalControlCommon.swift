@@ -63,6 +63,22 @@ public struct ThermalColor: Equatable {
     }
 }
 
+/// Calibration method
+public enum ThermalCalibrationMethod: Int, CustomStringConvertible, CaseIterable {
+    /// Calibration with a cover placed by the user on the camera.
+    case cover
+    /// Calibration using the shutter embedded in the camera.
+    case shutter
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .cover: return "cover"
+        case .shutter: return "shutter"
+        }
+    }
+}
+
 /// Thermal camera calibration modes.
 public enum ThermalCalibrationMode: Int, CustomStringConvertible, CaseIterable {
     /// Calibration triggered automatically.
@@ -160,6 +176,9 @@ public protocol ThermalCalibration: AnyObject {
 
     /// Thermal camera calibration state
     var calibrationState: CalibrationState { get }
+
+    /// The calibration method that will be used.
+    var method: ThermalCalibrationMethod? { get }
 
     /// Triggers a calibration.
     ///

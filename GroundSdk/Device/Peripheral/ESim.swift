@@ -53,6 +53,9 @@ public enum ESimStatus: CustomStringConvertible {
 /// Error code.
 public enum ESimErrorCode: CustomStringConvertible {
 
+    /// Unknown error
+    case unknown
+
     /// There is no error.
     case ok
 
@@ -92,12 +95,22 @@ public enum ESimErrorCode: CustomStringConvertible {
     /// Client authentication failure error.
     case clientAuthenticationFailure
 
-    /// Unknown error
-    case unknown
+    /// ICCID already exists error.
+    case iccidAlreadyExists
+
+    /// EID refused error.
+    case eidRefused
+
+    /// Not enough memory error.
+    case notEnoughMemory
+
+    /// Install failed error.
+    case installFailed
 
     /// Debug description.
     public var description: String {
         switch self {
+        case .unknown:                       return "unknown"
         case .ok:                            return "ok"
         case .internalError:                 return "internalError"
         case .invalidSim:                    return "invalidSim"
@@ -111,7 +124,10 @@ public enum ESimErrorCode: CustomStringConvertible {
         case .confirmationCodeRequired:      return "confirmationCodeRequired"
         case .serverAuthenticationFailure:   return "serverAuthenticationFailure"
         case .clientAuthenticationFailure:   return "clientAuthenticationFailure"
-        case .unknown:                       return "unknown"
+        case .iccidAlreadyExists:            return "iccidAlreadyExists"
+        case .eidRefused:                    return "eidRefused"
+        case .notEnoughMemory:               return "notEnoughMemory"
+        case .installFailed:                 return "installFailed"
         }
     }
 }
@@ -128,21 +144,31 @@ public struct ESimProfile: Hashable, CustomStringConvertible, Equatable {
     /// Indicates whether the profile is enabled or not.
     public var enabled: Bool
 
+    /// The default profile's name.
+    public var name: String
+
+    /// The customizable profile name.
+    public var nickname: String
+
     /// Constructor.
     ///
     /// - Parameters:
     ///   - iccid: the ICCID
     ///   - provider: the provider
     ///   - enabled: whether the profile is enabled or not
-    public init(iccid: String, provider: String, enabled: Bool) {
+    ///   - name: the name
+    ///   - nickname: the nickname
+    public init(iccid: String, provider: String, enabled: Bool, name: String, nickname: String) {
         self.iccid = iccid
         self.provider = provider
         self.enabled = enabled
+        self.name = name
+        self.nickname = nickname
     }
 
     /// Debug description.
     public var description: String {
-        return "iccid: \(iccid) provider: \(provider) enabled: \(enabled)"
+        return "iccid: \(iccid) provider: \(provider) enabled: \(enabled) name: \(name) nickname:\(nickname)"
     }
 }
 
@@ -170,6 +196,14 @@ public enum OperationState: Equatable {
     ///   - error: the error code
     ///   - iccid: the ICCID
     case delete(error: ESimErrorCode?, iccid: String)
+
+    /// Rename operation state
+    ///
+    /// - Parameters:
+    ///   - error: the error code
+    ///   - iccid: the ICCID
+    ///   - nickname: the nickname
+    case rename(error: ESimErrorCode?, iccid: String, nickname: String)
 }
 
 /// ESIM peripheral interface.
@@ -194,7 +228,7 @@ public protocol ESim: Peripheral {
     /// `nil` when there is no operation in progress.
     var operationState: OperationState? { get }
 
-    /// Download profile.
+    /// Downloads an eSIM profile.
     ///
     /// After this call, `operationState` should return an `OperationState.Download` object enum value.
     ///
@@ -205,23 +239,34 @@ public protocol ESim: Peripheral {
     /// - Note: the activation code format is `LPA:1$sm-dp+example.com$ABC123456789`
     func downloadProfile(activationCode: String, confirmationCode: String?) -> Bool
 
-    /// Enable profile.
+    /// Enables an eSIM profile.
     ///
     /// After this call, `operationState` should return an `OperationState.Enable` enum value.
     ///
     /// - Parameters:
-    ///    - iccid: the ICCID
-    ///    - enable: whether to enable the profile or not
+    ///    - iccid: the ICCID of the profile to delete
+    ///    - enable: whether to enable the eSIM profile or not
     /// - Returns: true if the command has been sent, false otherwise
     func enableProfile(iccid: String, enable: Bool) -> Bool
 
-    /// Delete profile.
+    /// Deletes an eSIM profile.
     ///
     /// After this call, `operationState` should return an `OperationState.Delete` enum value.
     ///
-    /// - Parameter iccid: the ICCID
+    /// - Parameter iccid: the ICCID of the profile to delete
     /// - Returns: true if the command has been sent, false otherwise
     func deleteProfile(iccid: String) -> Bool
+
+    /// Renames an eSIM profile.
+    ///
+    /// After this call, `operationState` should return an `OperationState.Rename` enum value.
+    /// - Note: The nickname is limited to 64 characters.
+    ///
+    /// - Parameters:
+    ///    - iccid: the ICCID of the profile to rename
+    ///    - nickname: the nickname to set
+    /// - Returns: true if the command has been sent, false otherwise
+    func renameProfile(iccid: String, nickname: String) -> Bool
 }
 
 /// :nodoc:

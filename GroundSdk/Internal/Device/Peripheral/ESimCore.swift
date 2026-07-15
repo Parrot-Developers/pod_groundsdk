@@ -29,7 +29,7 @@
 
 /// eSIM backend part.
 public protocol ESimBackend: AnyObject {
-    /// Download profile
+    /// Downloads an eSIM profile
     ///
     /// - Parameters:
     ///    - activationCode: the activation code
@@ -37,19 +37,27 @@ public protocol ESimBackend: AnyObject {
     /// - Returns: true if the command has been sent, false otherwise
     func downloadProfile(activationCode: String, confirmationCode: String?) -> Bool
 
-    /// Enable profile
+    /// Enables an eSIM profile
     ///
     /// - Parameters:
-    ///    - iccid: the ICCID
+    ///    - iccid: the ICCID of the profile to enable
     ///    - enable: whether to enable the profile or not
     /// - Returns: true if the command has been sent, false otherwise
     func enableProfile(iccid: String, enable: Bool) -> Bool
 
-    /// Delete profile
+    /// Deletes an eSIM profile
     ///
-    /// - Parameter iccid: the ICCID
+    /// - Parameter iccid: the ICCID of the profile to delete
     /// - Returns: true if the command has been sent, false otherwise
     func deleteProfile(iccid: String) -> Bool
+
+    /// Renames an eSIM profile
+    ///
+    /// - Parameters:
+    ///    - iccid: the ICCID of the profile to rename
+    ///    - nickname: the nickname to set
+    /// - Returns: true if the command has been sent, false otherwise
+    func renameProfile(iccid: String, nickname: String) -> Bool
 }
 
 /// Internal eSIM peripheral implementation
@@ -130,6 +138,19 @@ public class ESimCore: PeripheralCore, ESim {
         if !profileList.filter({ profile in return profile.iccid == iccid }).isEmpty {
             if backend.deleteProfile(iccid: iccid) {
                 applyState(state: OperationState.delete(error: nil, iccid: iccid), timeoutValue: defaultTimout)
+                return true
+            }
+        }
+        return false
+    }
+
+    public func renameProfile(iccid: String, nickname: String) -> Bool {
+        if !profileList.filter({ profile in return profile.iccid == iccid && profile.nickname != nickname }).isEmpty {
+            if nickname.count > 64 {
+                return false
+            } else if backend.renameProfile(iccid: iccid, nickname: nickname) {
+                applyState(state: OperationState.rename(error: nil, iccid: iccid, nickname: nickname),
+                           timeoutValue: defaultTimout)
                 return true
             }
         }

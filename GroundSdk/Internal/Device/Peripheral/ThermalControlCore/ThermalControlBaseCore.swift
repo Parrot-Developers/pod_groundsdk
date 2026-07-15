@@ -80,6 +80,9 @@ class ThermalCalibrationCore: ThermalCalibration, CustomDebugStringConvertible {
     /// Supported calibration modes
     var supportedModes: Set<ThermalCalibrationMode> = [.automatic, .manual]
 
+    /// The calibration method that will be used
+    var method: ThermalCalibrationMethod?
+
     /// Current calibration mode
     var mode: ThermalCalibrationMode {
         get {
@@ -173,6 +176,20 @@ class ThermalCalibrationCore: ThermalCalibration, CustomDebugStringConvertible {
         if userActionRequired != newUserActionRequired {
             userActionRequired = newUserActionRequired
             timeout.cancel()
+            return true
+        }
+        return false
+    }
+
+    /// Called by the backend, change the calibration methode
+    ///
+    /// - Parameter method: new calibration method
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    public func update(method newMethod: ThermalCalibrationMethod?)
+    -> Bool {
+        if method != newMethod {
+            method = newMethod
             return true
         }
         return false
@@ -306,6 +323,22 @@ extension ThermalControlBaseCore {
             markChanged()
         }
         if _calibration!.update(supportedMode: newSupportedCalibrationMode) {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates calibration method.
+    ///
+    /// - Parameter method: new calibration method
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(method newMethod: ThermalCalibrationMethod?) -> ThermalControlBaseCore {
+        if _calibration == nil {
+            _calibration = ThermalCalibrationCore(didChangeDelegate: self, backend: backend)
+            markChanged()
+        }
+            if _calibration!.update(method: newMethod) {
             markChanged()
         }
         return self

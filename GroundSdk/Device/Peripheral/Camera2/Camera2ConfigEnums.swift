@@ -70,6 +70,8 @@ public enum Camera2PhotoResolution: String, Camera2ConfigEnum {
     case res48MegaPixels
     /// 21 mega pixels.
     case res21MegaPixels
+    /// 12.5 mega pixels.
+    case res12_5MegaPixels
     /// 12 mega pixels.
     case res12MegaPixels
 
@@ -183,8 +185,14 @@ public enum Camera2RecordingResolution: String, Camera2ConfigEnum {
 
 /// Camera recording frame rates.
 public enum Camera2RecordingFramerate: Float, Camera2ConfigEnum {
-    /// 8.6 fps
+    /// 8.6 fps.
     case fps9 = 8.6
+    /// 12 fps.
+    case fps12 = 12
+    /// 12.5 fps.
+    case fps12_5 = 12.5
+    /// 15 fps.
+    case fps15 = 15
     /// 23.97 fps.
     case fps24 = 23.97
     /// 25 fps.
