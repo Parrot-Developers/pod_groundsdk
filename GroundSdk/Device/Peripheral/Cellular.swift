@@ -59,6 +59,9 @@ public enum CellularSimStatus: String, CustomStringConvertible, CaseIterable {
     /// SIM card is ready.
     case ready
 
+    /// eSIM card with no activated profile.
+    case noProfile
+
     /// Debug description.
     public var description: String { return rawValue }
 }
@@ -196,6 +199,132 @@ public enum CellularResetState: String, CustomStringConvertible, CaseIterable {
     public var description: String { return rawValue }
 }
 
+/// Cellular pairing state.
+public enum CellularPairingState: CustomStringConvertible, CaseIterable, Equatable {
+    /// Drone not paired and no current pairing request.
+    case unpaired
+
+    /// Drone paired and no current pairing request.
+    case paired
+
+    /// Checking account validity.
+    case checkingAccountValidity
+
+    /// Creating temporary account.
+    case creatingTemporaryAccount
+
+    /// Requesting challenge.
+    case requestingChallenge
+
+    /// Signing challenge.
+    case signingChallenge
+
+    /// Sending pairing request.
+    case sendingPairingRequest
+
+    /// Sending unpairing request.
+    case sendingUnpairingRequest
+
+    /// Getting drone list.
+    case gettingDroneList
+
+    /// The latest attempt to pair/unpair was successful.
+    ///
+    /// This state indicates the result of pairing and is transient. The state will change back to
+    /// `.paired`/`.unpaired` after success has been notified.
+    case success
+
+    /// The latest attempt to pair failed with error.
+    ///
+    /// This state indicates the result of pairing and is transient. The state will change back to
+    /// `.unpaired` after failure has been notified.
+    case failure(CellularPairingError)
+
+    /// All cases.
+    public static var allCases: [CellularPairingState] {
+        [.unpaired, .paired, .checkingAccountValidity, .creatingTemporaryAccount, .requestingChallenge,
+         .signingChallenge, .sendingPairingRequest, .sendingUnpairingRequest, .gettingDroneList, .success, .failure(.none)]
+    }
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .unpaired: return "unpaired"
+        case .paired: return "paired"
+        case .checkingAccountValidity: return "CheckingAccountValidity"
+        case .creatingTemporaryAccount: return "CreatingTemporaryAccount"
+        case .requestingChallenge: return "RequestingChallenge"
+        case .signingChallenge: return "SigningChallenge"
+        case .sendingPairingRequest: return "SendingPairingRequest"
+        case .sendingUnpairingRequest: return "SendingUnpairingRequest"
+        case .gettingDroneList: return "GettingDroneList"
+        case .success: return "Success"
+        case .failure(let error): return "Failure: \(error)"
+        }
+    }
+}
+
+/// Cellular pairing error.
+public enum CellularPairingError: String, CustomStringConvertible, CaseIterable {
+
+    /// No error.
+    case none
+
+    /// Request was canceled.
+    case canceled
+
+    /// Server error.
+    case serverError
+
+    /// Bad request.
+    case badRequest
+
+    /// Unknown error.
+    case unknownError
+
+    /// Failed to create temporary account.
+    case failedToCreateTemporaryAccount
+
+    /// Failed to get challenge
+    case failedToGetChallenge
+
+    /// Failed to sign challenge
+    case failedToSignChallenge
+
+    /// Failed to get drone list.
+    case failedtoGetDroneList
+
+    /// Missing user token.
+    case missingToken
+
+    /// Invalid user token.
+    case invalidToken
+
+    /// Pairing failed.
+    case paringFailed
+
+    /// Unpairing failed.
+    case unpairingFailed
+
+    /// No internet connection.
+    case noInternetConnection
+
+    /// No APC secret key.
+    case missingApcSecretKey
+
+    /// No xCallerId.
+    case missingXCallerId
+
+    /// Drone is not connected.
+    case noDrone
+
+    /// No certificate.
+    case noCertificate
+
+    /// Debug description.
+    public var description: String { return rawValue }
+}
+
 /// Setting providing access to the CellularMode.
 public protocol CellularModeSetting: AnyObject {
     /// Tells if the setting value has been changed and is waiting for change confirmation
@@ -321,6 +450,19 @@ public protocol Cellular: Peripheral {
 
     /// Cellular reset state.
     var resetState: CellularResetState { get }
+
+    /// Informs about pairing state.
+    var pairingState: CellularPairingState { get }
+
+    /// Starts cellular pairing process.
+    ///
+    /// The `pairingState` will update during the process.
+    func requestPairing()
+
+    /// Starts cellular unpairing process.
+    ///
+    /// The `pairingState` will update during the process.
+    func requestUnpairing()
 }
 
 /// :nodoc:

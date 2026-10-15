@@ -30,6 +30,19 @@
 import Foundation
 import CoreLocation
 
+/// The pairing authorization.
+public enum PairingAuthorization: CaseIterable {
+
+    /// Pairing is never authorized.
+    case never
+
+    /// Pairing is always authorized.
+    case always
+
+    /// Pairing is authorized only once.
+    case once
+}
+
 /// The device paired to the remote control.
 public struct PairedDevice: Equatable {
     /// Drone uid
@@ -57,6 +70,9 @@ public enum PairingFailureReason {
 
     /// Controller is in remote antenna mode without a remote antenna connected.
     case noRemoteAntenna
+
+    /// Pairing has been refused by the drone because it's already paired with another remote control.
+    case unauthorized
 }
 
 /// Pairing peripheral interface for remote controls.
@@ -77,10 +93,17 @@ public protocol Pairing: Peripheral {
     ///
     /// This property is *transient*: it will be set once when pairing fails, and then immediately back to `nil`.
     var failureReason: PairingFailureReason? { get }
+
+    /// Remote control pairing authorization setting.
+    ///
+    /// A remote control is paired with the first connected application, and pairing is disabled afterward. This setting
+    /// allows to pair the remote control with a new application.
+    /// `nil` if not supported by the remote control.
+    var authorization: EnumSetting<PairingAuthorization>? { get }
 }
 
 /// :nodoc:
-/// Pairing periheral descriptor
+/// Remote control pairing periheral descriptor
 public class PairingDesc: NSObject, PeripheralClassDesc {
     public typealias ApiProtocol = Pairing
     public let uid = PeripheralUid.pairing.rawValue

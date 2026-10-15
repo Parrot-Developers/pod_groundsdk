@@ -121,6 +121,31 @@ public struct MotorizedSupport: Equatable {
     }
 }
 
+/// Remote antenna location.
+public struct Location3D: Equatable {
+
+    /// The latitude
+    public var latitude: Double
+
+    /// The longitude
+    public var longitude: Double
+
+    /// The altitude (AMSL)
+    public var altitude: Double?
+
+    /// Constructor
+    ///
+    /// - Parameters:
+    ///    - latitude: the latitude
+    ///    - longitude: the longitude
+    ///    - altitude: the altitude (AMSL)
+    public init(latitude: Double, longitude: Double, altitude: Double? = nil) {
+        self.latitude = latitude
+        self.longitude = longitude
+        self.altitude = altitude
+    }
+}
+
 /// Setting providing access to the geographical location setup.
 public protocol RemoteAntennaLocationSetting: AnyObject {
 
@@ -128,7 +153,7 @@ public protocol RemoteAntennaLocationSetting: AnyObject {
     var updating: Bool { get }
 
     /// Current remote antenna location.
-    var value: CLLocationCoordinate2D? { get set }
+    var value: Location3D? { get set }
 }
 
 /// Motorized support alarm.
@@ -157,7 +182,9 @@ public enum MotorizedSupportAlarm {
 public protocol RemoteAntenna: Peripheral {
 
     /// Remote antenna activation setting.
-    var enabled: BoolSetting { get }
+    ///
+    /// `nil` if enabled feature is not supported.
+    var enabled: BoolSetting? { get }
 
     /// Current state of the remote antenna device.
     /// `nil` if unknown or the remote antenna feature is not `enabled` or `disabled`.

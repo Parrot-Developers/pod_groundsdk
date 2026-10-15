@@ -152,6 +152,7 @@ public protocol Gimbal: CalibratableGimbal {
 
     /// Whether the axis is stabilized.
     /// Only contains supported axes.
+    /// Empty if axes are always stabilized
     var stabilizationSettings: [GimbalAxis: BoolSetting] { get }
 
     /// Current gimbal attitude.

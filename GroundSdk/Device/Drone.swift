@@ -48,14 +48,14 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
         case anafiUa
         /// Anafi USA.
         case anafiUsa
-        /// Anafi 3.
-        case anafi3
         /// Anafi 3 MIL.
         case anafi3Mil
-        /// Anafi 3 GOV.
-        case anafi3Gov
         /// Chuck 3.
         case chuck3
+        /// Chuck 3 ON.
+        case chuck3On
+        /// Anafi 4.
+        case anafi4
 
         /// Internal unique identifier.
         public var internalId: Int {
@@ -65,10 +65,10 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
             case .anafi2:       return 0x091a
             case .anafiUa:      return 0x091b
             case .anafiUsa:     return 0x091e
-            case .anafi3:       return 0x091f
             case .anafi3Mil:    return 0x0920
-            case .anafi3Gov:    return 0x0924
             case .chuck3:       return 0x0925
+            case .chuck3On:     return 0x0926
+            case .anafi4:       return 0x0927
             }
         }
 
@@ -80,16 +80,16 @@ public class Drone: NSObject, PilotingItfProvider, InstrumentProvider, Periphera
             case .anafi2:       return "anafi2"
             case .anafiUa:      return "anafiUa"
             case .anafiUsa:     return "anafiUsa"
-            case .anafi3:       return "anafi3"
             case .anafi3Mil:    return "anafi3Mil"
-            case .anafi3Gov:    return "anafi3Gov"
             case .chuck3:       return "chuck3"
+            case .chuck3On:     return "chuck3On"
+            case .anafi4:       return "anafi4"
             }
         }
 
         /// Set containing all possible values of drone model.
-        static let allCases: Set<Model> = [.anafi4k, .anafiThermal, .anafi2, .anafiUa, .anafiUsa,
-                                           .anafi3, .anafi3Mil, .anafi3Gov, .chuck3]
+        static let allCases: Set<Model> = [.anafi4k, .anafiThermal, .anafi2, .anafiUa, .anafiUsa, .anafi3Mil,
+                                           .chuck3, .chuck3On, .anafi4]
     }
 
     /// Drone unique identifier, persistant between sessions.

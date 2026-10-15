@@ -48,6 +48,12 @@ public protocol NetworkControlBackend: AnyObject {
     /// - Parameter directConnectionMode: the new mode
     /// - Returns: true if the command has been sent, false if not connected and the value has been changed immediately
     func set(directConnectionMode: NetworkDirectConnectionMode) -> Bool
+
+    /// Sets ethernet IP configuration.
+    ///
+    /// - Parameter ethernetIpConfig: the new ethernet IP configuration
+    /// - Returns: `true` if the command has been sent, `false` if not connected and the value has been changed immediately
+    func set(ethernetIpConfig: IpConfig) -> Bool
 }
 
 /// Network link details implementation.
@@ -127,6 +133,13 @@ public class NetworkControlCore: PeripheralCore, NetworkControl {
     /// Direct connection mode setting.
     private var _directConnection: EnumSettingCore<NetworkDirectConnectionMode>!
 
+    /// Ethernet IP config.
+    private var _ethernetIpConfig: IpConfigSettingCore?
+
+    public var ethernetIpConfig: IpConfigSetting? {
+        return _ethernetIpConfig
+    }
+
     /// Implementation backend.
     private unowned let backend: NetworkControlBackend
 
@@ -150,6 +163,17 @@ public class NetworkControlCore: PeripheralCore, NetworkControl {
         _directConnection = EnumSettingCore(defaultValue: .legacy, didChangeDelegate: self) { [unowned self] mode in
             self.backend.set(directConnectionMode: mode)
         }
+    }
+
+    /// Creates the IP config setting if it doesn't exist yet and returns it.
+    public func ensureEthernetIpConfig() -> IpConfigSettingCore {
+        if _ethernetIpConfig == nil {
+            _ethernetIpConfig = IpConfigSettingCore(didChangeDelegate: self) { [unowned self] ipConfig in
+                return self.backend.set(ethernetIpConfig: ipConfig)
+            }
+            markChanged()
+        }
+        return _ethernetIpConfig!
     }
 }
 
@@ -269,6 +293,32 @@ extension NetworkControlCore {
         return self
     }
 
+    /// Updates the ethernet IP configuration.
+    ///
+    /// - Parameter ethernetIpConfig: new IP configuration
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult
+    public func update(ethernetIpConfig newConfig: IpConfig) -> NetworkControlCore {
+        if ensureEthernetIpConfig().update(config: newConfig) {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Clears the ethernet IP configuration.
+    ///
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult
+    public func clearEthernetIpConfig() -> NetworkControlCore {
+        if _ethernetIpConfig != nil {
+            _ethernetIpConfig = nil
+            markChanged()
+        }
+        return self
+    }
+
     /// Cancels all pending settings rollbacks.
     ///
     /// - Returns: self to allow call chaining
@@ -278,6 +328,7 @@ extension NetworkControlCore {
         _routingPolicy.cancelRollback { markChanged() }
         _maxCellularBitrate.cancelRollback { markChanged() }
         _directConnection.cancelRollback { markChanged() }
+        _ethernetIpConfig?.cancelRollback() { markChanged() }
         return self
     }
 }

@@ -107,16 +107,20 @@ extension StreamSharingEngine: StreamSharingBackend {
                                 coordinateSystem: coordinateSystem)
     }
 
+    func addRecordChapter(name: String, timestamp: UInt64?) {
+        manager?.addRecordChapter(name: name, timestamp: timestamp)
+    }
+
     func stopRecording() {
         manager?.stopRecording()
     }
 
     func startStreaming(url: URL, resolution: StreamSharingResolution, maxBitrate: Int, overlay: Bool,
                         unitSystem: OverlayUnitSystem, coordinateSystem: OverlayCoordinateSystem,
-                        rtspTransport: StreamSharingRtspTransport) {
+                        rtspTransport: StreamSharingRtspTransport, networkInterface: StreamNetworkInterface) {
         manager?.startStreaming(url: url, resolution: resolution, maxBitrate: maxBitrate, overlay: overlay,
                                 unitSystem: unitSystem, coordinateSystem: coordinateSystem,
-                                rtspTransport: rtspTransport)
+                                rtspTransport: rtspTransport, networkInterface: networkInterface)
     }
 
     func stopStreaming() {

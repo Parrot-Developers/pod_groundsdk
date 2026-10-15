@@ -72,6 +72,7 @@ public class EnginesControllerCore: NSObject {
         utilityRegistry.publish(utility: CloudServerCore(utilityRegistry: utilityRegistry))
         // publish the mission asset storage utility
         utilityRegistry.publish(utility: MissionAssetStorageCoreImpl())
+        utilityRegistry.publish(utility: CertificateImagesStorageCoreImpl())
 
         // create internal engines
         allEngineList.append(SystemEngine(enginesController: self))

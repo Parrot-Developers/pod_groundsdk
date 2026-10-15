@@ -29,6 +29,7 @@
 
 import Foundation
 
+
 /// Class to store the user account informations
 public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
 
@@ -79,7 +80,9 @@ public class UserAccountInfoCore: Equatable, CustomStringConvertible, Codable {
     ///   - droneList: user drone list, APC JSON format
     ///   - cloudAntennaList: cloud antenna list, APC JSON format
     internal init(account: String?, changeDate: Date, dataUploadPolicy: DataUploadPolicy,
-                  oldDataPolicy: OldDataPolicy, privateMode: Bool = false, token: String?, droneList: String?, cloudAntennaList: String?) {
+                  oldDataPolicy: OldDataPolicy, privateMode: Bool = false,
+                  token: String?,
+                  droneList: String?, cloudAntennaList: String?) {
         self.account = account
         self.changeDate = changeDate
         self.dataUploadPolicy = dataUploadPolicy
@@ -152,7 +155,11 @@ class UserAccountEngine: EngineBaseCore {
     /// UserAccount utility (published in this Engine)
     private let userAccountUtilityCoreImpl: UserAccountUtilityCoreImpl
 
+    /// Ground sdk user defaults value
     private var groundSdkUserDefaults: GroundSdkUserDefaults!
+
+    /// APC rest api
+    private var userAccountRestApi: ApcRestApi?
 
     /// Constructor
     ///
@@ -160,8 +167,9 @@ class UserAccountEngine: EngineBaseCore {
     public required init(enginesController: EnginesControllerCore) {
         // init utilities
         userAccountUtilityCoreImpl = UserAccountUtilityCoreImpl()
+        // can force unwrap because this utility is always published.
         super.init(enginesController: enginesController)
-
+        userAccountUtilityCoreImpl.backend = self
         if let groundSdkUserDefaults = enginesController.groundSdkUserDefaults {
             self.groundSdkUserDefaults = groundSdkUserDefaults
         } else {
@@ -175,10 +183,14 @@ class UserAccountEngine: EngineBaseCore {
         ULog.d(.userAccountEngineTag, "Loading UserAccountEngine.")
         // publishes UserAccountUtility
         publishUtility(userAccountUtilityCoreImpl)
+
     }
 
     public override func startEngine() {
         ULog.d(.userAccountEngineTag, "Starting UserAccountEngine.")
+        if let cloudServer = utilities.getUtility(Utilities.cloudServer) {
+            userAccountRestApi = ApcRestApi(cloudServer: cloudServer)
+        }
         // publish facilities
         userAccount.publish()
     }
@@ -263,7 +275,6 @@ extension UserAccountEngine: UserAccountBackend {
                 || userAccountInfo?.oldDataPolicy != newOldPolicy
                 || userAccountInfo?.privateMode != newPrivateMode
                 ? Date() : userAccountInfo!.changeDate
-
             userAccountInfo = UserAccountInfoCore(account: newAccount,
                                                   changeDate: newDate,
                                                   dataUploadPolicy: newUploadPolicy,
@@ -300,6 +311,29 @@ extension UserAccountEngine: UserAccountBackend {
             userAccountInfo = UserAccountInfoCore(dataUploadPolicy: newUploadPolicy, privateMode: privateMode)
             saveData()
         }
+    }
+
+    /// Checks validity of an user account.
+    ///
+    /// - Parameter completion: completion closure called when the request is terminated.
+    func checkValidity(completion: @escaping (CellularPairingError, Bool) -> Void) {
+        if let token =  userAccountInfo?.token {
+            _ = userAccountRestApi?.checkValidity(token: token, completion: { error, value in
+                completion(error, value)
+            })
+        } else {
+            completion(.missingToken, false)
+        }
+    }
+
+    /// Creates temporary account.
+    ///
+    /// - Parameter completion: completion closure called when the request is terminated.
+    func createTemporaryAccount(completion: @escaping (CellularPairingError) -> Void) {
+        _ = userAccountRestApi?.createTemporaryAccount(completion: { error, token, email in
+            self.update(account: email, token: token)
+            completion(error)
+        })
     }
 }
 

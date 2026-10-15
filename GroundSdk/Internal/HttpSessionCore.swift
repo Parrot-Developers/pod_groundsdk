@@ -185,6 +185,7 @@ public class HttpSessionCore: NSObject {
         }
 
         var taskIdentifier: Int?
+
         let task = session.dataTask(with: request) { data, response, error in
 
             let result: Result

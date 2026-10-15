@@ -69,6 +69,12 @@ public protocol CellularBackend: AnyObject {
     ///
     /// - Returns: `true` if the command has been sent, `false` otherwise
     func resetSettings() -> Bool
+
+    /// Starts cellular pairing process.
+    func requestPairing()
+
+    /// Starts cellular unpairing process.
+    func requestUnpairing()
 }
 
 /// Network mode setting implementation
@@ -427,6 +433,12 @@ public class CellularCore: PeripheralCore, Cellular {
     /// Technology.
     public private(set) var technology: CellularTechnology = .edge
 
+    /// Pairing state.
+    public private(set) var pairingState: CellularPairingState = .unpaired
+
+    /// Pairing error.
+    public private(set) var pairingError: CellularPairingError = .none
+
     /// Is roaming allowed.
     public var isRoamingAllowed: BoolSetting {
         return _isRoamingAllowed
@@ -500,6 +512,14 @@ public class CellularCore: PeripheralCore, Cellular {
             return true
         }
         return false
+    }
+
+    public func requestPairing() {
+        return backend.requestPairing()
+    }
+
+    public func requestUnpairing() {
+        return backend.requestUnpairing()
     }
 }
 
@@ -757,6 +777,19 @@ extension CellularCore {
     @discardableResult public func update(resetState newValue: CellularResetState) -> CellularCore {
         if resetState != newValue {
             resetState = newValue
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates the pairing state.
+    ///
+    /// - Parameter pairingState: new pairing state
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(pairingState newValue: CellularPairingState) -> CellularCore {
+        if pairingState != newValue {
+            pairingState = newValue
             markChanged()
         }
         return self

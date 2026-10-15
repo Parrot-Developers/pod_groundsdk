@@ -43,12 +43,23 @@ public protocol UserAccountUtilityCore: UtilityCore {
     /// - Parameter accountDidChange: closure called when userInfoAccount changes.
     /// - Returns: a monitor
     func startMonitoring(accountDidChange: @escaping (UserAccountInfoCore?) -> Void) -> MonitorCore
+
+    /// Checks validity of an existing account
+    func checkValidity(completion: @escaping (CellularPairingError, Bool) -> Void)
+
+    /// Creates temporary account
+    func createTemporaryAccount(completion: @escaping (CellularPairingError) -> Void)
+
+    /// Sets the drone list
+    func set(droneList: String)
 }
 
 /// Implementation of the `UserAccountUtilityCore` utility.
 class UserAccountUtilityCoreImpl: UserAccountUtilityCore {
 
     let desc: UtilityCoreDescriptor = Utilities.userAccount
+
+    var backend: UserAccountBackend?
 
     /// Monitor that calls back a closure when the UserAccount changes.
     private class UserAccountMonitor: NSObject, MonitorCore {
@@ -106,6 +117,31 @@ class UserAccountUtilityCoreImpl: UserAccountUtilityCore {
     /// - Parameter monitor: the monitor to stop.
     private func stopUserAccountMonitoring(with monitor: UserAccountMonitor) {
         userAccountMonitors.remove(monitor)
+    }
+
+    /// Checks account validity
+    ///
+    /// - Parameter completion: the completion callback
+    func checkValidity(completion: @escaping (CellularPairingError, Bool) -> Void) {
+        if userAccountInfo?.token?.isEmpty == true {
+            completion(.missingToken, false)
+            return
+        }
+        backend?.checkValidity(completion: completion)
+    }
+
+    /// Creates temporary account
+    ///
+    /// - Parameter completion: the completion callback
+    func createTemporaryAccount(completion: @escaping (CellularPairingError) -> Void) {
+        backend?.createTemporaryAccount(completion: completion)
+    }
+
+    /// Gets drone list
+    ///
+    /// - Parameter completion: the completion callback
+    func set(droneList: String) {
+        backend?.set(droneList: droneList)
     }
 }
 

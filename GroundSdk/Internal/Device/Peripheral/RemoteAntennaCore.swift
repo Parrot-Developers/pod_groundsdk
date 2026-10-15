@@ -42,7 +42,7 @@ public protocol RemoteAntennaBackend: AnyObject {
     ///
     /// - Parameter location: the location of the remote antenna
     /// - Returns: `true` if the command has been sent, `false` otherwise
-    func set(location: CLLocationCoordinate2D) -> Bool
+    func set(location: Location3D) -> Bool
 
     /// Requests connection to the cloud antenna identified by the given serial number.
     ///
@@ -60,7 +60,7 @@ class RemoteAntennaLocationSettingCore: RemoteAntennaLocationSetting {
 
     var updating: Bool { return timeout.isScheduled }
 
-    var value: CLLocationCoordinate2D? {
+    var value: Location3D? {
         get {
             return _value
         }
@@ -81,7 +81,7 @@ class RemoteAntennaLocationSettingCore: RemoteAntennaLocationSetting {
         }
     }
 
-    private var _value: CLLocationCoordinate2D?
+    private var _value: Location3D?
 
     /// Timeout object.
     ///
@@ -92,14 +92,14 @@ class RemoteAntennaLocationSettingCore: RemoteAntennaLocationSetting {
     private unowned let didChangeDelegate: SettingChangeDelegate
 
     /// Closure to call to change the value.
-    private let backend: (CLLocationCoordinate2D) -> Bool
+    private let backend: (Location3D) -> Bool
 
     /// Constructor.
     ///
     /// - Parameters:
     ///   - didChangeDelegate: delegate called when the setting value is changed
     ///   - backend: closure to call to change the setting value
-    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (CLLocationCoordinate2D)
+    init(didChangeDelegate: SettingChangeDelegate, backend: @escaping (Location3D)
          -> Bool) {
         self.didChangeDelegate = didChangeDelegate
         self.backend = backend
@@ -109,7 +109,7 @@ class RemoteAntennaLocationSettingCore: RemoteAntennaLocationSetting {
     ///
     /// - Parameter newValue: the new location
     /// - Returns: `true` if the location has been changed, `false` otherwise
-    func update(location newValue: CLLocationCoordinate2D?) -> Bool {
+    func update(location newValue: Location3D?) -> Bool {
         if _value != newValue || updating {
             _value = newValue
             timeout.cancel()
@@ -132,7 +132,7 @@ class RemoteAntennaLocationSettingCore: RemoteAntennaLocationSetting {
 /// Internal remote antenna peripheral implementation.
 public class RemoteAntennaCore: PeripheralCore, RemoteAntenna {
 
-    public var enabled: BoolSetting {
+    public var enabled: BoolSetting? {
         return _enabled
     }
 
@@ -163,7 +163,7 @@ public class RemoteAntennaCore: PeripheralCore, RemoteAntenna {
     public private(set) var isLocationRequired: Bool?
 
     /// Core implementation of the enabled setting.
-    private var _enabled: BoolSettingCore!
+    private var _enabled: BoolSettingCore?
 
     /// Core implementation of the location setting.
     private var _location: RemoteAntennaLocationSettingCore!
@@ -179,9 +179,6 @@ public class RemoteAntennaCore: PeripheralCore, RemoteAntenna {
     public init(store: ComponentStoreCore, backend: RemoteAntennaBackend) {
         self.backend = backend
         super.init(desc: Peripherals.remoteAntenna, store: store)
-        _enabled = BoolSettingCore(didChangeDelegate: self) { [unowned self] value in
-            return self.backend.set(enabled: value)
-        }
         _location = RemoteAntennaLocationSettingCore(didChangeDelegate: self) { [unowned self] value in
             return self.backend.set(location: value)
         }
@@ -204,7 +201,27 @@ extension RemoteAntennaCore {
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(enabled newValue: Bool) -> RemoteAntennaCore {
-        if _enabled.update(value: newValue) {
+        if _enabled?.update(value: newValue) == true {
+            markChanged()
+        }
+        return self
+    }
+
+    /// Creates or destroys enabled settings.
+    ///
+    /// - Parameter value: whether to create (`true`) or destroy (`false`) the enabled setting
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func createOrDestroyEnabledSetting(value: Bool) -> RemoteAntennaCore {
+        if value {
+            if _enabled == nil {
+                _enabled = BoolSettingCore(didChangeDelegate: self) { [unowned self] value in
+                    return self.backend.set(enabled: value)
+                }
+                markChanged()
+            }
+        } else {
+            _enabled = nil
             markChanged()
         }
         return self
@@ -306,7 +323,7 @@ extension RemoteAntennaCore {
     /// - Parameter newValue: new remote antenna location
     /// - Returns: self to allow call chaining
     /// - Note: Changes are not notified until notifyUpdated() is called.
-    @discardableResult public func update(location newValue: CLLocationCoordinate2D?) -> RemoteAntennaCore {
+    @discardableResult public func update(location newValue: Location3D?) -> RemoteAntennaCore {
         if _location.update(location: newValue) {
             markChanged()
         }
@@ -372,7 +389,7 @@ extension RemoteAntennaCore {
     /// - Returns: self to allow call chaining
     /// - Note: changes are not notified until notifyUpdated() is called.
     @discardableResult public func cancelSettingsRollback() -> RemoteAntennaCore {
-        _enabled.cancelRollback { markChanged() }
+        _enabled?.cancelRollback { markChanged() }
         _location.cancelRollback { markChanged() }
         return self
     }

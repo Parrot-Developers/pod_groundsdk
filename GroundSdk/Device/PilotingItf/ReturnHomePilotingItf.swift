@@ -93,6 +93,9 @@ public enum ReturnHomeTarget: Int, CustomStringConvertible {
     /// Return to latest tracked target position during/after FollowMe piloting interface is/has been activated.
     /// See `TargetTracker` peripheral and `FollowMePilotingItf`
     case trackedTargetPosition
+    /// Return to vehicle.
+    /// See `Vehicle` peripheral.
+    case vehicle
 
     /// Debug description.
     public var description: String {
@@ -102,6 +105,7 @@ public enum ReturnHomeTarget: Int, CustomStringConvertible {
         case .customPosition:        return "customPosition"
         case .controllerPosition:    return "controllerPosition"
         case .trackedTargetPosition: return "trackedTargetPosition"
+        case .vehicle:               return "vehicle"
         }
     }
 
@@ -147,10 +151,16 @@ public enum ReturnHomeReason: Int, CustomStringConvertible, CaseIterable {
     case blocked
     /// Return home after a flightplan
     case flightplan
-    ///  Drone motor's down
+    /// Drone motor's down
     case motorDown
     /// Drone battery temperature is too high.
     case batteryTooHot
+    /// Return to  vehicle: the vehicle was not found.
+    case vehicleNotFound
+    /// Return to vehicle: the landing zone was not found.
+    case landingZoneNotFound
+    /// Return home has been triggered by geofence violation.
+    case geofenceViolation
 
     /// Debug description.
     public var description: String {
@@ -166,6 +176,9 @@ public enum ReturnHomeReason: Int, CustomStringConvertible, CaseIterable {
         case .flightplan:               return "flightplan"
         case .motorDown:                return "motorDown"
         case .batteryTooHot:            return "batteryTooHot"
+        case .vehicleNotFound:          return "vehicleNotFound"
+        case .landingZoneNotFound:      return "landingZoneNotFound"
+        case .geofenceViolation:        return "geofenceViolation"
         }
     }
 }

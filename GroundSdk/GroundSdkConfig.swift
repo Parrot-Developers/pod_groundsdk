@@ -142,6 +142,20 @@ public class GroundSdkConfig: NSObject {
         }
     }
 
+    /// xCallerId.
+    public var xCallerId: String? {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
+    /// APC secret key.
+    public var apcSecretKey: String? {
+        willSet(newValue) {
+            checkLocked()
+        }
+    }
+
     /// Whether Wifi backend is enabled.
     public var enableWifi = true {
         willSet(newValue) {
@@ -401,6 +415,12 @@ public class GroundSdkConfig: NSObject {
         if let applicationKey = config?[Keys.applicationKey.rawValue] as? String {
             self.applicationKey = applicationKey
         }
+        if let xCallerId = config?[Keys.xCallerId.rawValue] as? String {
+            self.xCallerId = xCallerId
+        }
+        if let apcSecretKey = config?[Keys.apcSecretKey.rawValue] as? String {
+            self.apcSecretKey = apcSecretKey
+        }
         if let enableWifi = config?[Keys.enableWifi.rawValue] as? Bool {
             self.enableWifi = enableWifi
         }
@@ -531,6 +551,8 @@ public class GroundSdkConfig: NSObject {
     private enum Keys: String {
         case root = "GroundSdk"
         case applicationKey = "ApplicationKey"
+        case xCallerId = "XCallerId"
+        case apcSecretKey = "APCSecretKey"
         case enableWifi = "Wifi"
         case enableUsb = "Usb"
         case offlineSettings = "OfflineSettings"

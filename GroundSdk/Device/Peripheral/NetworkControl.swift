@@ -161,6 +161,9 @@ public protocol NetworkControl: Peripheral {
 
     /// Direct connection mode setting.
     var directConnection: EnumSetting<NetworkDirectConnectionMode> { get }
+
+    /// Current ethernet IP configuration, `nil` if not supported by the drone.
+    var ethernetIpConfig: IpConfigSetting? { get }
 }
 
 /// :nodoc:

@@ -32,16 +32,24 @@ import CoreLocation
 
 /// Geofence modes, indicating the zone type where the drone is able to fly.
 public enum GeofenceMode: Int, CustomStringConvertible, CaseIterable {
-    /// The drone flying zone is only bounded by the maximum altitude setting.
+    /// The drone flying zone should only be bounded by the maximum altitude setting, but it is actually not bounded due
+    /// to a drone issue.
+    /// Deprecated in 8.5, replaced by NONE.
     case altitude
     /// The drone flying zone is bounded by the cylinder defined by the maximum altitude and distance settings.
     case cylinder
+    /// The drone flying zone is only bounded by the maximum altitude setting.
+    case ceiling
+    /// The drone flying zone is not bounded.
+    case none
 
     /// Debug description.
     public var description: String {
         switch self {
         case .altitude: return "altitude"
         case .cylinder: return "cylinder"
+        case .ceiling:  return "ceiling"
+        case .none:     return "none"
         }
     }
 }

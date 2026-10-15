@@ -34,28 +34,36 @@ public protocol UserStorageBackend: AnyObject {
     /// Request a format of the media.
     ///
     /// - Parameters:
-    ///     - formattingType: type of formatting
-    ///     - newMediaName: the new name that should be given to the media.
+    ///    - formattingType: type of formatting
+    ///    - newMediaName: the new name that should be given to the media.
     /// - Returns: true if the format has been asked, false otherwise.
     func format(formattingType: FormattingType, newMediaName: String?) -> Bool
 
     /// Request a format with encryption of the media.
     ///
     /// - Parameters:
-    ///     - password: password used for encryption
-    ///     - formattingType: type of formatting
-    ///     - newMediaName: the new name that should be given to the media. If you pass an empty string, the
+    ///    - password: password used for encryption
+    ///    - formattingType: type of formatting
+    ///    - newMediaName: the new name that should be given to the media. If you pass an empty string, the
     ///                           a default name will be assigned.
     /// - Returns: `true` if the format has been asked, `false` otherwise
-    func formatWithEncryption(password: String, formattingType: FormattingType, newMediaName: String?) -> Bool
+    func formatWithEncryption(password: String?, formattingType: FormattingType, newMediaName: String?) -> Bool
 
     /// Sends the password to the drone to access an encypted sd card.
     ///
     /// - Parameters:
-    ///     - password: password used to access encrypted card
-    ///     - usage: password usage
+    ///    - password: password used to access encrypted card
+    ///    - usage: password usage
     /// - Returns: `true` if the password has been sent, `false` otherwise
     func sendPassword(password: String, usage: PasswordUsage) -> Bool
+
+    /// Sets the secure storage new passphrase.
+    ///
+    /// - Parameters:
+    ///    - newPassphrase: the new passphrase, `nil` to remove passphrase
+    ///    - currentPassphrase: the current passphrase, `nil` if absent
+    /// - Returns: `true` if the passphrase has been sent, `false` otherwise
+    func setPassphrase(newPassphrase: String?, currentPassphrase: String?) -> Bool
 }
 
 /// User storage peripheral implementation
@@ -109,6 +117,10 @@ public class UserStorageCore: PeripheralCore, UserStorage {
 
     public var hasCheckError: Bool?
 
+    private(set) public var passphraseStatus: UserStoragePassphraseStatus?
+
+    private(set) public var encryptionState: UserStorageEncryptionState?
+
     /// Implementation backend
     private unowned let backend: UserStorageBackend
 
@@ -137,14 +149,14 @@ public class UserStorageCore: PeripheralCore, UserStorage {
         return false
     }
 
-    public func formatWithEncryption(password: String, formattingType: FormattingType) -> Bool {
+    public func formatWithEncryption(password: String?, formattingType: FormattingType) -> Bool {
         if canFormat && isEncryptionSupported {
             return backend.formatWithEncryption(password: password, formattingType: formattingType, newMediaName: nil)
         }
         return false
     }
 
-    public func formatWithEncryption(password: String, formattingType: FormattingType, newMediaName: String) -> Bool {
+    public func formatWithEncryption(password: String?, formattingType: FormattingType, newMediaName: String) -> Bool {
         if canFormat && isEncryptionSupported {
             return backend.formatWithEncryption(password: password, formattingType: formattingType,
                                                 newMediaName: newMediaName)
@@ -158,11 +170,15 @@ public class UserStorageCore: PeripheralCore, UserStorage {
         }
         return false
     }
+
+    public func setPassphrase(newPassphrase: String?, currentPassphrase: String?) -> Bool {
+        return backend.setPassphrase(newPassphrase: newPassphrase, currentPassphrase: currentPassphrase)
+    }
 }
 
 /// Backend callback methods
 extension UserStorageCore {
-    /// Updates the available space on the media
+    /// Updates the available space on the media.
     ///
     /// - Parameter availableSpace: the new available space
     /// - Returns: self to allow call chaining
@@ -188,7 +204,7 @@ extension UserStorageCore {
         return self
     }
 
-    /// Updates supported formatting types
+    /// Updates supported formatting types.
     ///
     /// - Parameter supportedFormattingTypes: formatting types
     /// - Returns: self to allow call chaining
@@ -201,7 +217,7 @@ extension UserStorageCore {
         return self
     }
 
-    /// Updates supported formatting step
+    /// Updates supported formatting step.
     ///
     /// - Parameters:
     ///   - formattingStep: formatting step
@@ -225,7 +241,7 @@ extension UserStorageCore {
         return self
     }
 
-    /// Updates the user storage physical state
+    /// Updates the user storage physical state.
     ///
     /// - Parameter physicalState: the new physical state
     /// - Returns: self to allow call chaining
@@ -242,7 +258,7 @@ extension UserStorageCore {
         return self
     }
 
-    /// Updates the user storage file system state
+    /// Updates the user storage file system state.
     ///
     /// - Parameter fileSystemState: the new file system state
     /// - Returns: self to allow call chaining
@@ -259,7 +275,7 @@ extension UserStorageCore {
         return self
     }
 
-    /// Updates the media information
+    /// Updates the media information.
     ///
     /// - Parameters:
     ///   - name: the new name
@@ -293,7 +309,7 @@ extension UserStorageCore {
         return self
     }
 
-    /// Updates the sdcard uuid
+    /// Updates the sdcard uuid.
     ///
     /// - Parameter uuid : the uuid of the sdcard
     /// - Returns: self to allow call chaining
@@ -324,7 +340,7 @@ extension UserStorageCore {
         return self
     }
 
-    /// Updates current info indicating if the media failed being checked without error
+    /// Updates current info indicating if the media failed being checked without error.
     ///
     /// - Parameter hasCheckError: `true` if the media failed being checked without error
     /// - Returns: self to allow call chaining
@@ -332,6 +348,32 @@ extension UserStorageCore {
     @discardableResult public func update(hasCheckError: Bool) -> UserStorageCore {
         if hasCheckError != self.hasCheckError {
             self.hasCheckError = hasCheckError
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates the passphrase status.
+    ///
+    /// - Parameter passphraseStatus: the passphrase status
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(passphraseStatus: UserStoragePassphraseStatus?) -> UserStorageCore {
+        if passphraseStatus != self.passphraseStatus {
+            self.passphraseStatus = passphraseStatus
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates the encryption state.
+    ///
+    /// - Parameter encryptionState: the new encryption state
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(encryptionState: UserStorageEncryptionState?) -> UserStorageCore {
+        if encryptionState != self.encryptionState {
+            self.encryptionState = encryptionState
             markChanged()
         }
         return self

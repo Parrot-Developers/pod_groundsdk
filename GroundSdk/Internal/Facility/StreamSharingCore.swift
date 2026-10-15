@@ -49,6 +49,13 @@ protocol StreamSharingBackend: AnyObject {
     func startRecording(directory: URL, resolution: StreamSharingResolution, bitrate: Int, overlay: Bool,
                         unitSystem: OverlayUnitSystem, coordinateSystem: OverlayCoordinateSystem)
 
+    /// Adds a chapter to the current record.
+    ///
+    /// - Parameters:
+    ///   - name: chapter name
+    ///   - timestamp: timestamp of the chapter, based on monotonic system clock, in microseconds; `nil` for current time
+    func addRecordChapter(name: String, timestamp: UInt64?)
+
     /// Stops the stream recording service.
     func stopRecording()
 
@@ -62,9 +69,10 @@ protocol StreamSharingBackend: AnyObject {
     ///   - unitSystem: unit system of the overlay
     ///   - coordinateSystem: coordinate system of the overlay
     ///   - rtspTransport: RTSP transport
+    ///   - networkInterface: network interface
     func startStreaming(url: URL, resolution: StreamSharingResolution, maxBitrate: Int, overlay: Bool,
                         unitSystem: OverlayUnitSystem, coordinateSystem: OverlayCoordinateSystem,
-                        rtspTransport: StreamSharingRtspTransport)
+                        rtspTransport: StreamSharingRtspTransport, networkInterface: StreamNetworkInterface)
 
     /// Stops the streaming service.
     func stopStreaming()
@@ -93,20 +101,29 @@ class RecordingCore: Recording {
                unitSystem: OverlayUnitSystem, coordinateSystem: OverlayCoordinateSystem) -> Bool {
         guard streamSharing.enabled, state == .stopped else { return false }
 
+        update(state: .starting)
+        stopReason = nil
         streamSharing.backend.startRecording(directory: directory, resolution: resolution, bitrate: bitrate,
                                              overlay: overlay, unitSystem: unitSystem,
                                              coordinateSystem: coordinateSystem)
-        update(state: .starting)
-        stopReason = nil
+
         streamSharing.notifyUpdated()
         return true
     }
 
-    func stop() -> Bool {
-        guard streamSharing.enabled, state == .started || state == .recording || state == .error else { return false }
+    func addChapter(name: String, timestamp: Double? = nil) {
+        guard streamSharing.enabled, state == .started || state == .recording else { return }
 
-        streamSharing.backend.stopRecording()
+        let microseconds: UInt64? = timestamp.map { UInt64(($0 * 1_000_000).rounded()) }
+        streamSharing.backend.addRecordChapter(name: name, timestamp: microseconds)
+    }
+
+    func stop() -> Bool {
+        guard streamSharing.enabled, state == .started || state == .recording
+                || state == .error else { return false }
+
         update(state: .stopping)
+        streamSharing.backend.stopRecording()
         streamSharing.notifyUpdated()
         return true
     }
@@ -172,15 +189,16 @@ class StreamingCore: Streaming {
 
     func start(url: URL, resolution videoResolution: StreamSharingResolution, maxBitrate: Int, overlay: Bool,
                unitSystem: OverlayUnitSystem, coordinateSystem: OverlayCoordinateSystem,
-               rtspTransport: StreamSharingRtspTransport) -> Bool {
-        guard streamSharing.enabled, state == .stopped else { return false }
-
-        streamSharing.backend.startStreaming(url: url, resolution: videoResolution, maxBitrate: maxBitrate,
-                                             overlay: overlay, unitSystem: unitSystem,
-                                             coordinateSystem: coordinateSystem, rtspTransport: rtspTransport)
+               rtspTransport: StreamSharingRtspTransport, networkInterface: StreamNetworkInterface) -> Bool {
+        guard streamSharing.enabled, (state == .stopped) else { return false }
         update(state: .starting)
         error = nil
         streamSharing.notifyUpdated()
+        streamSharing.backend.startStreaming(
+            url: url, resolution: videoResolution, maxBitrate: maxBitrate,
+            overlay: overlay, unitSystem: unitSystem,
+            coordinateSystem: coordinateSystem, rtspTransport: rtspTransport, networkInterface: networkInterface
+        )
         return true
     }
 
@@ -188,10 +206,10 @@ class StreamingCore: Streaming {
         guard streamSharing.enabled, state == .started || state == .streaming || state == .error ||
                 state == .connecting else { return false }
 
-        streamSharing.backend.stopStreaming()
         update(state: .stopping)
         error = nil
         streamSharing.notifyUpdated()
+        streamSharing.backend.stopStreaming()
         return true
     }
 
@@ -288,3 +306,4 @@ class StreamSharingCore: FacilityCore, StreamSharing {
         _streaming = StreamingCore(streamSharing: self)
     }
 }
+

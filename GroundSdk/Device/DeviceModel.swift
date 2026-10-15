@@ -105,9 +105,8 @@ public enum DeviceModel: CustomStringConvertible {
 
     /// List of devices that can be connectable through wifi.
     private static var wifiDevices: Set<DeviceModel> = [.drone(.anafi4k), .drone(.anafiThermal), .drone(.anafi2),
-                                                        .drone(.anafiUa), .drone(.anafiUsa),
-                                                        .drone(.anafi3), .drone(.anafi3Mil), .drone(.anafi3Gov),
-                                                        .drone(.chuck3)]
+                                                        .drone(.anafiUa), .drone(.anafiUsa), .drone(.anafi3Mil),
+                                                        .drone(.chuck3), .drone(.chuck3On), .drone(.anafi4)]
 
     /// List of devices that can be connectable through BLE.
     private static var bleDevices: Set<DeviceModel> = []
@@ -116,8 +115,11 @@ public enum DeviceModel: CustomStringConvertible {
     private static var microhardDevices: Set<DeviceModel> = [.drone(.anafiUa)]
 
     /// List of devices that can be connectable through Mars.
-    private static var marsDevices: Set<DeviceModel> = [.drone(.anafi3Mil), .drone(.chuck3)]
+    private static var marsDevices: Set<DeviceModel> = [.drone(.anafi3Mil), .drone(.chuck3), .drone(.chuck3On),
+                                                        .drone(.anafi4)]
 
+    private static var backupLinkDevices: Set<DeviceModel> = [.drone(.anafi3Mil), .drone(.chuck3), .drone(.chuck3On),
+                                                        .drone(.anafi4)]
     /// Filters device models that support a given technology.
     ///
     /// - Parameters:
@@ -138,6 +140,8 @@ public enum DeviceModel: CustomStringConvertible {
             return microhardDevices.intersection(models)
         case .mars:
             return marsDevices.intersection(models)
+        case .backupLink:
+            return backupLinkDevices.intersection(models)
         }
     }
 

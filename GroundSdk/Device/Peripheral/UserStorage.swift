@@ -189,7 +189,7 @@ public enum UserStorageFileSystemState: Int, CustomStringConvertible {
     }
 }
 
-/// Password usage when transmitting password to unlock file system
+/// Password usage when transmitting password to unlock file system.
 public enum PasswordUsage: Int, Codable {
     /// Send password for record requirement.
     case record
@@ -205,6 +205,56 @@ public enum PasswordUsage: Int, Codable {
     }
 }
 
+/// Passphrase status.
+public enum UserStoragePassphraseStatus: Int, CustomStringConvertible {
+    /// There is no error, passphrase was accepted.
+    case ok
+
+    /// The passphrase is too short.
+    case tooShort
+
+    /// The passphrase contains unsupported characters.
+    case unsupportedCharacters
+
+    /// The drone does not support passphrase operation.
+    case unsupportedOperation
+
+    /// Unknown error.
+    case unknown
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .ok:                    return "ok"
+        case .tooShort:              return "tooShort"
+        case .unsupportedCharacters: return "unsupportedCharacters"
+        case .unsupportedOperation:  return "unsupportedOperation"
+        case .unknown:               return "unknown"
+        }
+    }
+}
+
+/// The encryption type.
+public enum UserStorageEncryptionType: Int, CustomStringConvertible, Equatable {
+    /// There is no encryption, the data are in plaintext, not secure.
+    case none
+
+    /// Encrypted with legacy encryption.
+    case legacy
+
+    /// Encrypted with secure storage, which supports passphrase change and automatic unlocking.
+    case secureStorageV1
+
+    /// Debug description.
+    public var description: String {
+        switch self {
+        case .none:            return "none"
+        case .legacy:          return "legacy"
+        case .secureStorageV1: return "secureStorageV1"
+        }
+    }
+}
+
 /// Information about the media storage.
 public protocol UserStorageMediaInfo: AnyObject {
     /// The name of the media.
@@ -212,6 +262,37 @@ public protocol UserStorageMediaInfo: AnyObject {
 
     /// The capacity of the media, in Bytes.
     var capacity: Int64 { get }
+}
+
+/// The encryption state.
+public struct UserStorageEncryptionState: Equatable {
+    /// The encryption type.
+    public var type: UserStorageEncryptionType
+
+    /// Whether the device is currently locked.
+    public var isLocked: Bool
+
+    /// Whether the the device is currently configured to require a passphrase to unlock.
+    public var hasPassphrase: Bool
+
+    /// Whether a passphrase can be added when none is set (i.e. when hasPassphrase is false).
+    public var canAddPassphrase: Bool
+
+    /// Whether passphrase can be changed for another passphrase (i.e. when hasPassphrase is true).
+    public var canChangePassphrase: Bool
+
+    /// Whether the passphrase can be removed (i.e. when hasPassphrase is true).
+    public var canRemovePassphrase: Bool
+
+    public init(type: UserStorageEncryptionType, isLocked: Bool, hasPassphrase: Bool, canAddPassphrase: Bool,
+                canChangePassphrase: Bool, canRemovePassphrase: Bool) {
+        self.type = type
+        self.isLocked = isLocked
+        self.hasPassphrase = hasPassphrase
+        self.canAddPassphrase = canAddPassphrase
+        self.canChangePassphrase = canChangePassphrase
+        self.canRemovePassphrase = canRemovePassphrase
+    }
 }
 
 /// User storage.
@@ -260,8 +341,8 @@ public protocol UserStorage: Peripheral {
     /// `.formattingFailed`, or `.formattingDenied`.
     ///
     /// - Parameters:
-    ///     - formattingType: type of formatting
-    ///     - newMediaName: the new name that should be given to the media. If you pass an empty string, the
+    ///    - formattingType: type of formatting
+    ///    - newMediaName: the new name that should be given to the media. If you pass an empty string, the
     ///                           a default name will be assigned.
     /// - Returns: `true` if the format has been asked, `false` otherwise.
     func format(formattingType: FormattingType, newMediaName: String) -> Bool
@@ -283,6 +364,16 @@ public protocol UserStorage: Peripheral {
     /// sdcard uuid.
     var uuid: String? { get }
 
+    /// The passphrase change status.
+    ///
+    /// This property is *transient*: it will be set once when pairing fails, and then immediately back to `nil`.
+    var passphraseStatus: UserStoragePassphraseStatus? { get }
+
+    /// The encryption state.
+    ///
+    /// `nil` if not supported by the drone.
+    var encryptionState: UserStorageEncryptionState? { get }
+
     /// Requests a format with encryption of the media. The formatted media will get a default name.
     ///
     /// Should be called only when `canFormat` is `true`.
@@ -294,10 +385,10 @@ public protocol UserStorage: Peripheral {
     /// `.formattingFailed`, or `.formattingDenied`.
     ///
     /// - Parameters:
-    ///     - password: password used for encryption
-    ///     - formattingType: type of formatting
+    ///    - password: password used for encryption
+    ///    - formattingType: type of formatting
     /// - Returns: `true` if the format has been asked, `false` otherwise
-    func formatWithEncryption(password: String, formattingType: FormattingType) -> Bool
+    func formatWithEncryption(password: String?, formattingType: FormattingType) -> Bool
 
     /// Requests a format with encryption of the media. The formatted media will get a default name.
     ///
@@ -309,18 +400,27 @@ public protocol UserStorage: Peripheral {
     /// `.formattingFailed`, or `.formattingDenied`.
     ///
     /// - Parameters:
-    ///     - password: password used for encryption
-    ///     - formattingType: type of formatting
-    ///     - newMediaName: the new name that should be given to the media. If you pass an empty string, the
+    ///    - password: password used for encryption
+    ///    - formattingType: type of formatting
+    ///    - newMediaName: the new name that should be given to the media. If you pass an empty string, the
     ///                           a default name will be assigned.
     /// - Returns: `true` if the format has been asked, `false` otherwise
-    func formatWithEncryption(password: String, formattingType: FormattingType, newMediaName: String) -> Bool
+    func formatWithEncryption(password: String?, formattingType: FormattingType, newMediaName: String) -> Bool
 
     /// Sends the password to the drone to access an encypted sd card.
     ///
     /// - Parameters:
-    ///     - password: password used to access encrypted card
-    ///     - usage: password usage
+    ///    - password: password used to access encrypted card
+    ///    - usage: password usage
     /// - Returns: `true` if the password has been sent, `false` otherwise
     func sendPassword(password: String, usage: PasswordUsage) -> Bool
+
+    /// Sets the secure storage new passphrase.
+    ///
+    /// - Parameters:
+    ///    - newPassphrase: the new passphrase, `nil` to remove passphrase
+    ///    - currentPassphrase: the current passphrase, `nil` if absent
+    /// - Note: sends empty to reset passphrase
+    /// - Returns: `true` if the passphrase has been sent, `false` otherwise
+    func setPassphrase(newPassphrase: String?, currentPassphrase: String?) -> Bool
 }

@@ -53,6 +53,8 @@ public class Peripherals: NSObject {
     public static let blendedThermalCamera = BlendedThermalCameraDesc()
     /// Blended thermal camera2 peripheral.
     public static let blendedThermalCamera2 = BlendedThermalCamera2Desc()
+    /// Calibration peripheral.
+    public static let calibration = CalibrationDesc()
     /// Cellular.
     public static let cellular = CellularDesc()
     /// Certificate Uploader.
@@ -137,8 +139,10 @@ public class Peripherals: NSObject {
     public static let obstacleAvoidance = ObstacleAvoidanceDesc()
     /// Onboard tracker.
     public static let onboardTracker = OnboardTrackerDesc()
-    /// Pairing
+    /// Remote control pairing
     public static let pairing = PairingDesc()
+    /// Drone pairing
+    public static let dronePairing = DronePairingDesc()
     /// Piloting control.
     public static let pilotingControl = PilotingControlDesc()
     /// Precise home.
@@ -157,6 +161,8 @@ public class Peripherals: NSObject {
     public static let remoteAntennaUpdater = RemoteAntennaUpdaterDesc()
     /// Removable user storage.
     public static let removableUserStorage = RemovableUserStorageDesc()
+    /// Remote control network.
+    public static let remoteControlNetwork = RemoteControlNetworkDesc()
     /// Remote control system info.
     public static let remoteControlSystemInfo = RemoteControlSystemInfoDesc()
     /// SecureElement.
@@ -189,6 +195,8 @@ public class Peripherals: NSObject {
     public static let usbPower = UsbPowerDesc()
     /// Firmware updater peripheral.
     public static let updater = UpdaterDesc()
+    /// Vehicle peripheral.
+    public static let vehicle = VehicleDesc()
     /// Virtual gamepad peripheral.
     public static let virtualGamepad = VirtualGamepadDesc()
     /// Wifi access point peripheral.
@@ -213,6 +221,7 @@ enum PeripheralUid: Int {
     case beeper
     case blendedThermalCamera
     case blendedThermalCamera2
+    case calibration
     case cellular
     case certificateUploader
     case copilot
@@ -257,6 +266,7 @@ enum PeripheralUid: Int {
     case obstacleAvoidance
     case onboardTracker
     case pairing
+    case dronePairing
     case pilotingControl
     case preciseHome
     case privacy
@@ -266,6 +276,7 @@ enum PeripheralUid: Int {
     case remoteAntennaSecureElement
     case remoteAntennaUpdater
     case removableUserStorage
+    case remoteControlNetwork
     case remoteControlSystemInfo
     case secureElement
     case skyCtrl3Gamepad
@@ -283,6 +294,7 @@ enum PeripheralUid: Int {
     case unguardedFlight
     case updater
     case usbPower
+    case vehicle
     case virtualGamepad
     case wifiAccessPoint
     case wifiScanner

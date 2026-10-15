@@ -146,10 +146,14 @@ public class CloudServerCore: UtilityCore {
         data: Data?,
         method: HttpSessionCore.SendMethod = .put,
         trustAllCertificates: Bool = false,
+        query: [String: String]? = nil,
         requestCustomization: (inout URLRequest) -> Void = { _ in },
         completion: @escaping (_ result: HttpSessionCore.Result, _ data: Data?) -> Void) -> CancelableCore {
 
-        var request = URLRequest(url: baseUrl.appendingPathComponent(api))
+        var urlComponents = URLComponents(url: baseUrl.appendingPathComponent(api), resolvingAgainstBaseURL: false)!
+        urlComponents.queryItems = query?.map { return URLQueryItem(name: $0.key, value: $0.value) }
+        var request = URLRequest(url: urlComponents.url!)
+
         requestCustomization(&request)
         request.httpBody = data
 
@@ -253,16 +257,20 @@ public class CloudServerCore: UtilityCore {
     /// - Parameters:
     ///   - baseUrl: server base url. Use default server URL if not provided.
     ///   - api: api to use
+    ///   - requestCustomization: closure that will be called after that the `URLRequest` has been created. This request
+    ///                           can be customized by the caller through this closure.
     ///   - completion: completion callback
     ///   - result: the request result
     /// - Returns: the request
     public func delete(
         baseUrl: URL = CloudServerCore.defaultUrl,
         api: String,
+        requestCustomization: (inout URLRequest) -> Void = { _ in },
         completion: @escaping (_ result: HttpSessionCore.Result) -> Void) -> CancelableCore {
 
         var request = URLRequest(url: baseUrl.appendingPathComponent(api))
         updateHeader(&request)
+        requestCustomization(&request)
         return httpSession.delete(request: request, completion: completion)
     }
 

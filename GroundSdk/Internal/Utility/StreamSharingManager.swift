@@ -46,6 +46,11 @@ public protocol StreamSharingManager: UtilityCore {
     /// - Parameter sdkCoreStream: the SdkCoreStream
     func setStream(sdkCoreStream: ArsdkStream?)
 
+    /// Sets the MUX channel to tunnel the streaming service's outbound connection through.
+    ///
+    /// - Parameter muxCtxPtr: native mux_ctx pointer, or `0` if there is none (streaming runs directly over IP)
+    func setMuxContext(muxCtxPtr: Int)
+
     /// Starts the stream recording service.
     ///
     /// - Parameters:
@@ -60,6 +65,13 @@ public protocol StreamSharingManager: UtilityCore {
                         bitrate: Int, overlay: Bool, unitSystem: OverlayUnitSystem,
                         coordinateSystem: OverlayCoordinateSystem)
 
+    /// Add a chapter to the current record.
+    ///
+    /// - Parameters:
+    ///   - name: chapter name
+    ///   - timestamp: timestamp in microseconds of the chapter
+    func addRecordChapter(name: String, timestamp: UInt64?)
+
     /// Stops the stream recording service.
     func stopRecording()
 
@@ -67,7 +79,7 @@ public protocol StreamSharingManager: UtilityCore {
     func finalizeRecord(reason: ArsdkStreamRecordStopReason)
 
     /// Starts the streaming service.
-    ///
+    /// 
     /// - Parameters:
     ///   - url: URL to stream to
     ///   - resolution: streamed video resolution
@@ -76,9 +88,10 @@ public protocol StreamSharingManager: UtilityCore {
     ///   - unitSystem: unit system of the overlay
     ///   - coordinateSystem: coordinate system of the overlay
     ///   - rtspTransport: RTSP transport
+    ///   - networkInterface: network interface
     func startStreaming(url: URL, resolution: StreamSharingResolution, maxBitrate: Int, overlay: Bool,
                         unitSystem: OverlayUnitSystem, coordinateSystem: OverlayCoordinateSystem,
-                        rtspTransport: StreamSharingRtspTransport)
+                        rtspTransport: StreamSharingRtspTransport, networkInterface: StreamNetworkInterface)
 
     /// Stops the streaming service.
     func stopStreaming()

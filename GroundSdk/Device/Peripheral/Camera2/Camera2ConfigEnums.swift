@@ -185,6 +185,8 @@ public enum Camera2RecordingResolution: String, Camera2ConfigEnum {
 
 /// Camera recording frame rates.
 public enum Camera2RecordingFramerate: Float, Camera2ConfigEnum {
+    /// 7.5 fps.
+    case fps7_5 = 7.5
     /// 8.6 fps.
     case fps9 = 8.6
     /// 12 fps.

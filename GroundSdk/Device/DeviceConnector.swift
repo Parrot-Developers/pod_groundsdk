@@ -72,6 +72,8 @@ public enum DeviceConnectorTechnology: Int, CustomStringConvertible {
     case microhard
     /// Connect using Mars.
     case mars
+    /// Connect using backup link.
+    case backupLink
 
     /// Debug description.
     public var description: String {
@@ -81,6 +83,7 @@ public enum DeviceConnectorTechnology: Int, CustomStringConvertible {
         case .ble: return "ble"
         case .microhard: return "microhard"
         case .mars: return "mars"
+        case .backupLink: return "backupLink"
         }
     }
 }

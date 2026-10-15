@@ -1684,6 +1684,29 @@ public struct Vmeta_PhotoMetadata {
     set {_uniqueStorage()._sequenceNumber = newValue}
   }
 
+  /// Photo date and time in microseconds since the Epoch 
+  public var photoDate: UInt64 {
+    get {return _storage._photoDate}
+    set {_uniqueStorage()._photoDate = newValue}
+  }
+
+  /// Photo date GMT offset in seconds east (eg. GMT-6 is -21600) 
+  public var photoDateGmtoff: Int32 {
+    get {return _storage._photoDateGmtoff}
+    set {_uniqueStorage()._photoDateGmtoff = newValue}
+  }
+
+  /// Camera model; when not empty, this value overrides the one
+  /// from session metadata 
+  public var cameraModel: Vmeta_CameraModel {
+    get {return _storage._cameraModel ?? Vmeta_CameraModel()}
+    set {_uniqueStorage()._cameraModel = newValue}
+  }
+  /// Returns true if `cameraModel` has been explicitly set.
+  public var hasCameraModel: Bool {return _storage._cameraModel != nil}
+  /// Clears the value of `cameraModel`. Subsequent reads from it will return its default value.
+  public mutating func clearCameraModel() {_uniqueStorage()._cameraModel = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -1773,6 +1796,16 @@ public struct Vmeta_DroneMetadata {
     get {return _storage._batteryPercentage}
     set {_uniqueStorage()._batteryPercentage = newValue}
   }
+
+  /// Battery voltage 
+  public var batteryVoltage: SwiftProtobuf.Google_Protobuf_FloatValue {
+    get {return _storage._batteryVoltage ?? SwiftProtobuf.Google_Protobuf_FloatValue()}
+    set {_uniqueStorage()._batteryVoltage = newValue}
+  }
+  /// Returns true if `batteryVoltage` has been explicitly set.
+  public var hasBatteryVoltage: Bool {return _storage._batteryVoltage != nil}
+  /// Clears the value of `batteryVoltage`. Subsequent reads from it will return its default value.
+  public mutating func clearBatteryVoltage() {_uniqueStorage()._batteryVoltage = nil}
 
   /// Flying state 
   public var flyingState: Vmeta_FlyingState {
@@ -3747,6 +3780,9 @@ extension Vmeta_PhotoMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     23: .standard(proto: "media_id"),
     24: .standard(proto: "resource_index"),
     25: .standard(proto: "sequence_number"),
+    26: .standard(proto: "photo_date"),
+    27: .standard(proto: "photo_date_gmtoff"),
+    28: .standard(proto: "camera_model"),
   ]
 
   fileprivate class _StorageClass {
@@ -3775,6 +3811,9 @@ extension Vmeta_PhotoMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     var _mediaID: UInt32 = 0
     var _resourceIndex: UInt32 = 0
     var _sequenceNumber: UInt32 = 0
+    var _photoDate: UInt64 = 0
+    var _photoDateGmtoff: Int32 = 0
+    var _cameraModel: Vmeta_CameraModel? = nil
 
     static let defaultInstance = _StorageClass()
 
@@ -3806,6 +3845,9 @@ extension Vmeta_PhotoMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       _mediaID = source._mediaID
       _resourceIndex = source._resourceIndex
       _sequenceNumber = source._sequenceNumber
+      _photoDate = source._photoDate
+      _photoDateGmtoff = source._photoDateGmtoff
+      _cameraModel = source._cameraModel
     }
   }
 
@@ -3849,6 +3891,9 @@ extension Vmeta_PhotoMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         case 23: try { try decoder.decodeSingularUInt32Field(value: &_storage._mediaID) }()
         case 24: try { try decoder.decodeSingularUInt32Field(value: &_storage._resourceIndex) }()
         case 25: try { try decoder.decodeSingularUInt32Field(value: &_storage._sequenceNumber) }()
+        case 26: try { try decoder.decodeSingularUInt64Field(value: &_storage._photoDate) }()
+        case 27: try { try decoder.decodeSingularInt32Field(value: &_storage._photoDateGmtoff) }()
+        case 28: try { try decoder.decodeSingularMessageField(value: &_storage._cameraModel) }()
         default: break
         }
       }
@@ -3857,6 +3902,10 @@ extension Vmeta_PhotoMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
       if _storage._exposureProgram != 0 {
         try visitor.visitSingularUInt32Field(value: _storage._exposureProgram, fieldNumber: 1)
       }
@@ -3932,6 +3981,15 @@ extension Vmeta_PhotoMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       if _storage._sequenceNumber != 0 {
         try visitor.visitSingularUInt32Field(value: _storage._sequenceNumber, fieldNumber: 25)
       }
+      if _storage._photoDate != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._photoDate, fieldNumber: 26)
+      }
+      if _storage._photoDateGmtoff != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._photoDateGmtoff, fieldNumber: 27)
+      }
+      try { if let v = _storage._cameraModel {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 28)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -3966,6 +4024,9 @@ extension Vmeta_PhotoMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         if _storage._mediaID != rhs_storage._mediaID {return false}
         if _storage._resourceIndex != rhs_storage._resourceIndex {return false}
         if _storage._sequenceNumber != rhs_storage._sequenceNumber {return false}
+        if _storage._photoDate != rhs_storage._photoDate {return false}
+        if _storage._photoDateGmtoff != rhs_storage._photoDateGmtoff {return false}
+        if _storage._cameraModel != rhs_storage._cameraModel {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -3986,6 +4047,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     10: .standard(proto: "local_position"),
     4: .same(proto: "speed"),
     5: .standard(proto: "battery_percentage"),
+    14: .standard(proto: "battery_voltage"),
     7: .standard(proto: "flying_state"),
     11: .standard(proto: "animation_in_progress"),
     12: .standard(proto: "piloting_mode"),
@@ -4000,6 +4062,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     var _localPosition: Vmeta_Vector3? = nil
     var _speed: Vmeta_NED? = nil
     var _batteryPercentage: Int32 = 0
+    var _batteryVoltage: SwiftProtobuf.Google_Protobuf_FloatValue? = nil
     var _flyingState: Vmeta_FlyingState = .fsLanded
     var _animationInProgress: Bool = false
     var _pilotingMode: Vmeta_PilotingMode = .pmUnknown
@@ -4017,6 +4080,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       _localPosition = source._localPosition
       _speed = source._speed
       _batteryPercentage = source._batteryPercentage
+      _batteryVoltage = source._batteryVoltage
       _flyingState = source._flyingState
       _animationInProgress = source._animationInProgress
       _pilotingMode = source._pilotingMode
@@ -4049,6 +4113,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         case 11: try { try decoder.decodeSingularBoolField(value: &_storage._animationInProgress) }()
         case 12: try { try decoder.decodeSingularEnumField(value: &_storage._pilotingMode) }()
         case 13: try { try decoder.decodeSingularDoubleField(value: &_storage._altitudeAto) }()
+        case 14: try { try decoder.decodeSingularMessageField(value: &_storage._batteryVoltage) }()
         default: break
         }
       }
@@ -4094,6 +4159,9 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       if _storage._altitudeAto != 0 {
         try visitor.visitSingularDoubleField(value: _storage._altitudeAto, fieldNumber: 13)
       }
+      try { if let v = _storage._batteryVoltage {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -4111,6 +4179,7 @@ extension Vmeta_DroneMetadata: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         if _storage._localPosition != rhs_storage._localPosition {return false}
         if _storage._speed != rhs_storage._speed {return false}
         if _storage._batteryPercentage != rhs_storage._batteryPercentage {return false}
+        if _storage._batteryVoltage != rhs_storage._batteryVoltage {return false}
         if _storage._flyingState != rhs_storage._flyingState {return false}
         if _storage._animationInProgress != rhs_storage._animationInProgress {return false}
         if _storage._pilotingMode != rhs_storage._pilotingMode {return false}

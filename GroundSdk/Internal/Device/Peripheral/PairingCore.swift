@@ -29,18 +29,39 @@
 
 import Foundation
 
-/// Internal pairing  peripheral implementation
+/// Pairing backend protocol
+public protocol PairingBackend: AnyObject {
+
+    /// Sets pairing authorization.
+    ///
+    /// - Parameter value: the pairing authorization.
+    /// - Returns: `true` if the command has been sent, `false` otherwise.
+    func setAuthorization(_ value: PairingAuthorization) -> Bool
+}
+
+/// Internal pairing peripheral implementation
 public class PairingCore: PeripheralCore, Pairing {
 
     public private(set) var pairedDevice: PairedDevice?
 
     public private(set) var failureReason: PairingFailureReason?
 
+    /// Pairing setting
+    public var authorization: EnumSetting<PairingAuthorization>? {
+        return _authorization
+    }
+    private var _authorization: EnumSettingCore<PairingAuthorization>?
+
+    /// Implementation backend
+    private unowned let backend: PairingBackend
+
     /// Constructor
     ///
     /// - Parameters:
     ///    - store: store where this peripheral will be stored
-    public init(store: ComponentStoreCore) {
+    ///    - backend: pairing backend
+    public init(store: ComponentStoreCore, backend: PairingBackend) {
+        self.backend = backend
         super.init(desc: Peripherals.pairing, store: store)
     }
 }
@@ -69,6 +90,42 @@ extension PairingCore {
     @discardableResult public func update(failureReason reason: PairingFailureReason?) -> PairingCore {
         if failureReason != reason {
             failureReason = reason
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates supported authorizations
+    ///
+    /// - Parameter supportedAuthorizations: the new supported authorizations
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(supportedAuthorizations
+                                          newSupportedAuthorizations: Set<PairingAuthorization>) -> PairingCore {
+        if let _authorization {
+            if _authorization.update(supportedValues: newSupportedAuthorizations) {
+                markChanged()
+            }
+        } else {
+            _authorization = EnumSettingCore(
+                defaultValue: .never,
+                supportedValues: newSupportedAuthorizations,
+                didChangeDelegate: self
+            ) { [unowned self] authorization in
+                self.backend.setAuthorization(authorization)
+            }
+            markChanged()
+        }
+        return self
+    }
+
+    /// Updates new authorization
+    ///
+    /// - Parameter authorization: the new authorization
+    /// - Returns: self to allow call chaining
+    /// - Note: Changes are not notified until notifyUpdated() is called.
+    @discardableResult public func update(authorization newAuthorization: PairingAuthorization) -> PairingCore {
+        if _authorization?.update(value: newAuthorization) == true {
             markChanged()
         }
         return self

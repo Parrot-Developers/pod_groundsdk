@@ -195,7 +195,20 @@ public enum StreamingError: String, CustomStringConvertible {
     /// Stream URL is invalid.
     case invalidUrl
 
+    /// Controller is not connected.
+    case controllerNotConnected
+
     public var description: String { rawValue }
+}
+
+/// Stream network interface.
+public enum StreamNetworkInterface: CaseIterable {
+
+    /// Streaming is performed through the device network interface.
+    case device
+
+    /// Streaming is performed through the controller network interface.
+    case controller
 }
 
 /// Stream recording component.
@@ -222,6 +235,14 @@ public protocol Recording {
     /// - Returns: `true` if recording service will effectively start, otherwise `false`
     func start(directory: URL, resolution: StreamSharingResolution, bitrate: Int, overlay: Bool,
                unitSystem: OverlayUnitSystem, coordinateSystem: OverlayCoordinateSystem) -> Bool
+
+    /// Adds a chapter to the current record.
+    ///
+    /// - Parameters:
+    ///   - name: chapter name
+    ///   - timestamp: timestamp of the chapter, based on monotonic system clock, in seconds;
+    ///   `nil` for current time
+    func addChapter(name: String, timestamp: Double?)
 
     /// Stops the stream recording service.
     ///
@@ -251,10 +272,11 @@ public protocol Streaming {
     ///   - unitSystem: unit system of the overlay
     ///   - coordinateSystem: coordinate system of the overlay
     ///   - rtspTransport: RTSP transport
+    ///   - networkInterface: network interface
     /// - Returns: `true` if streaming service will effectively start, otherwise `false`
     func start(url: URL, resolution: StreamSharingResolution, maxBitrate: Int, overlay: Bool,
                unitSystem: OverlayUnitSystem, coordinateSystem: OverlayCoordinateSystem,
-               rtspTransport: StreamSharingRtspTransport) -> Bool
+               rtspTransport: StreamSharingRtspTransport, networkInterface: StreamNetworkInterface) -> Bool
 
     /// Stops the streaming service.
     ///

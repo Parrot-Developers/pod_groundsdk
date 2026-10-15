@@ -97,25 +97,12 @@ public class DeviceStateCore: DeviceState {
     ///
     /// - Note: Changes are not notified until notifyUpdated() is called.
     @discardableResult public func update(connectionState state: ConnectionState,
-                                          withCause cause: ConnectionStateCause) -> DeviceStateCore {
-        changed = ((connectionState != state) || (connectionStateCause != cause))
+                                          withCause cause: ConnectionStateCause? = nil) -> DeviceStateCore {
+        changed = ((connectionState != state) || (cause != nil && connectionStateCause != cause))
         connectionState = state
-        connectionStateCause = cause
-        updateCommandsState()
-        return self
-    }
-
-    /// Changes device connection state
-    ///
-    /// - Parameter state: new state
-    /// - Returns: self to allow call chaining
-    ///
-    /// - Note: Changes are not notified until notifyUpdated() is called
-    /// this only changes the connection state and not the reason.
-    /// You might prefer to use update:connectionState:withCause:
-    @discardableResult public func update(connectionState state: ConnectionState) -> DeviceStateCore {
-        changed = (connectionState != state)
-        connectionState = state
+        if let cause {
+            connectionStateCause = cause
+        }
         updateCommandsState()
         return self
     }

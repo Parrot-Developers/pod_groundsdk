@@ -130,14 +130,6 @@ public protocol CalibratableGimbal: Peripheral {
     /// until both all other reported errors are fixed and the device is restarted.
     var currentErrors: Set<GimbalError> { get }
 
-    /// Set of currently locked axes.
-    /// While an axis is locked, you cannot set a speed or a position.
-    ///
-    /// An axis can be locked because the drone is controlling this axis on itself, thus it does not allow the
-    /// controller to change its orientation. This might be the case during a FollowMe or when the
-    /// `PointOfInterestPilotingItf` is active.
-    ///
-
     /// Whether the gimbal is calibrated.
     var calibrated: Bool { get }
 

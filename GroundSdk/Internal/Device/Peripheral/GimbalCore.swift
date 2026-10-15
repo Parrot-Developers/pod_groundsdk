@@ -104,6 +104,8 @@ public class GimbalCore: CalibratableGimbalCore, Gimbal {
         GimbalAxis.allCases.forEach {
             if let stabilization = stabilizationSettings[$0] {
                 attitude[$0] = stabilization.value ? _absoluteAttitude[$0] : _relativeAttitude[$0]
+            } else if supportedAxes.contains($0) {
+                attitude[$0] = _absoluteAttitude[$0]
             }
         }
         return attitude
@@ -173,6 +175,11 @@ public class GimbalCore: CalibratableGimbalCore, Gimbal {
         } else {
             return _relativeAttitude
         }
+    }
+
+    /// Clears stabilization settings on all axes.
+    public func clearStabilization() {
+        _stabilizationSettings.removeAll()
     }
 }
 

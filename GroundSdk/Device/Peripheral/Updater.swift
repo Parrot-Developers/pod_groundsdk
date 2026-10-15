@@ -64,6 +64,9 @@ public enum UpdaterUpdateState: Int, CustomStringConvertible {
     /// - Note: Although the application may cancel an update operation in this state, the device will still apply the
     ///         uploaded firmware update.
     case processing
+    /// Some firmware file has been processed, and the device is now ready to reboot in order to apply the
+    /// corresponding update.
+    case readyToReboot
     /// Processing has been completed, now waiting for the device to reboot and reconnect. If automatic reboot has not
     /// been requested, a manual reboot should be triggered at this state.
     case waitingForReboot
@@ -85,6 +88,7 @@ public enum UpdaterUpdateState: Int, CustomStringConvertible {
         switch self {
         case .uploading:        return "uploading"
         case .processing:       return "processing"
+        case .readyToReboot:    return "readyToReboot"
         case .waitingForReboot: return "waitingForReboot"
         case .success:          return "success"
         case .failed:           return "failed"

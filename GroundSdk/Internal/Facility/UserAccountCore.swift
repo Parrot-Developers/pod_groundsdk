@@ -80,6 +80,16 @@ protocol UserAccountBackend: AnyObject {
     /// - Parameters:
     ///   - dataUploadPolicy: data upload policy.
     func clear(dataUploadPolicy: DataUploadPolicy)
+
+    /// Checks account validity
+    ///
+    /// - Parameter completion: the completion callback
+    func checkValidity(completion: @escaping (CellularPairingError, Bool) -> Void)
+
+    /// Creates temporary account
+    ///
+    /// - Parameter completion: the completion callback
+    func createTemporaryAccount(completion: @escaping (CellularPairingError) -> Void)
 }
 
 /// Core implementation of the UserAccount facility
@@ -130,5 +140,13 @@ class UserAccountCore: FacilityCore, UserAccount {
 
     func clear(dataUploadPolicy: DataUploadPolicy) {
         backend.clear(dataUploadPolicy: dataUploadPolicy)
+    }
+
+    func checkValidity(completion: @escaping (CellularPairingError, Bool) -> Void) {
+        return backend.checkValidity(completion: completion)
+    }
+
+    func createTemporaryAccount(completion: @escaping (CellularPairingError) -> Void) {
+        return backend.createTemporaryAccount(completion: completion)
     }
 }
